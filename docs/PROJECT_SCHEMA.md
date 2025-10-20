@@ -3,7 +3,7 @@
 **Name:** Wild Shape Tracker  
 **Platform:** React Native (Expo) Mobile App  
 **Primary Edition:** Pathfinder 1e (v1.0)  
-**Backend:** Supabase (PostgreSQL + Auth + Storage)  
+**Backend:** Firebase (Firestore + Auth + Storage)  
 **Offline Support:** Yes (TanStack Query with persistence)
 
 ---
@@ -20,22 +20,24 @@
 - **Forms:** React Hook Form + Zod validation
 - **Icons:** Lucide React Native
 
-### Backend (Supabase)
-- **Database:** PostgreSQL 15+
-- **Auth:** Email/Password, Magic Link
-- **Storage:** User-uploaded form images
+### Backend (Firebase)
+- **Database:** Firestore (NoSQL)
+- **Auth:** Email/Password, Email Link
+- **Storage:** Cloud Storage for user-uploaded form images
 - **Real-time:** Not needed for v1
-- **RLS:** Row Level Security enabled
+- **Security:** Firestore Security Rules enabled
 
 ### Development Tools
 - **Linting:** ESLint + Prettier
 - **Testing:** Jest + React Native Testing Library
-- **Type Safety:** TypeScript + Supabase generated types
+- **Type Safety:** TypeScript + Firebase types
 - **Version Control:** Git + GitHub
 
 ---
 
-## 3. Database Schema (Supabase)
+## 3. Database Schema (Firebase Firestore)
+
+**Note:** Firestore is a NoSQL database. Collections and document structure below.
 
 ### Table: `profiles`
 ```sql
