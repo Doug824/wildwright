@@ -119,14 +119,21 @@ src/
 └── constants/       # App constants and config
 ```
 
+**Code Infrastructure Created:**
+- ✅ Created src/types/firestore.ts (complete type definitions)
+- ✅ Created src/lib/firebase.ts (Firebase initialization)
+- ✅ Created src/constants/ (game data, app constants)
+- ✅ Created src/utils/ (calculations, formatting, validation)
+- ✅ Committed all infrastructure code (3 commits total)
+
 **In Progress:**
 - ⏳ npm install --legacy-peer-deps (running in background)
 
 **Next Steps:**
-1. Create TypeScript types for Firestore schema (src/types/firestore.ts)
-2. Create Firebase initialization (src/lib/firebase.ts)
-3. Create authentication service structure
-4. Wait for npm install to complete
-5. Test that project runs with `npm start`
-6. User creates Firebase project in Console (docs/FIREBASE_SETUP.md)
-7. User configures .env with Firebase credentials
+1. Wait for npm install to complete
+2. Test that project runs with `npm start`
+3. Fix any TypeScript errors
+4. User creates Firebase project in Console (docs/FIREBASE_SETUP.md)
+5. User configures .env with Firebase credentials
+6. Create authentication service and hooks
+7. Build login/signup screens
