@@ -47,5 +47,4 @@ Thumbs.db
 firebase-debug.log
 firestore-debug.log
 ui-debug.log
-firestore.rules
-storage.rules
+# Note: firestore.rules and storage.rules are committed (they're source code)
