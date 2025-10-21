@@ -29,13 +29,17 @@
 - [x] Create firestore.rules (security rules)
 - [x] Create storage.rules (image upload rules)
 - [x] Write FIREBASE_SETUP.md guide
+- [x] Create TypeScript types for Firestore schema
+- [x] Create src/lib/firebase.ts initialization
+- [x] Create game calculation utilities
+- [x] Create formatting utilities
+- [x] Create validation utilities
+- [x] Create constants (game data, app config)
 - [ ] Create Firebase project in Console (requires user action)
 - [ ] Enable Authentication in Firebase Console
 - [ ] Enable Firestore Database in Firebase Console
 - [ ] Enable Storage in Firebase Console
 - [ ] Deploy security rules to Firebase
-- [ ] Create TypeScript types for Firestore schema
-- [ ] Create src/lib/firebase.ts initialization
 
 ### Authentication (Week 2)
 - [ ] Implement authentication service
@@ -124,16 +128,21 @@ src/
 - ✅ Created src/lib/firebase.ts (Firebase initialization)
 - ✅ Created src/constants/ (game data, app constants)
 - ✅ Created src/utils/ (calculations, formatting, validation)
-- ✅ Committed all infrastructure code (3 commits total)
+- ✅ Fixed npm install symlink issues (.npmrc + npx)
+- ✅ Committed all infrastructure code (5 commits total)
 
 **In Progress:**
-- ⏳ npm install --legacy-peer-deps (running in background)
+- ⏳ npm install --legacy-peer-deps (running with bin-links=false)
 
-**Next Steps:**
-1. Wait for npm install to complete
-2. Test that project runs with `npm start`
-3. Fix any TypeScript errors
-4. User creates Firebase project in Console (docs/FIREBASE_SETUP.md)
-5. User configures .env with Firebase credentials
-6. Create authentication service and hooks
-7. Build login/signup screens
+**Ready to Work On (no npm needed):**
+- 📝 Create authentication service structure (src/services/auth.ts)
+- 📝 Plan React hooks architecture
+- 📝 Design UI component structure
+
+**Next Steps (after npm install):**
+1. Test that project runs with `npm start`
+2. Fix any TypeScript/import errors
+3. User creates Firebase project in Console (docs/FIREBASE_SETUP.md)
+4. User configures .env with Firebase credentials
+5. Build authentication screens
+6. Implement auth hooks
