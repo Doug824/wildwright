@@ -5,26 +5,49 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Primary - Emerald (Nature/Druid theme)
-        primary: {
-          50: '#ecfdf5',
-          100: '#d1fae5',
-          500: '#10b981',
-          600: '#059669',
-          700: '#047857',
-          900: '#064e3b',
+        // Deep Forest Green - Background
+        forest: {
+          50: '#e6efe9',
+          100: '#cfe0d6',
+          200: '#a7c3b4',
+          300: '#7fa694',
+          400: '#588a74',
+          500: '#2f6f56',
+          600: '#234f3c',
+          700: '#1f3527',   // Main app background
+          800: '#15231a',
+          900: '#0d1510',
         },
-        // Secondary - Amber (Wild/Primal theme)
-        secondary: {
-          400: '#fbbf24',
-          500: '#f59e0b',
-          600: '#d97706',
+        // Bronze - Borders & Accents
+        bronze: {
+          400: '#C79256',
+          500: '#B97A3D',   // Primary bronze
+          600: '#8F5A24',
         },
-        // Accent - Purple (Magic theme)
-        accent: {
-          500: '#8b5cf6',
-          600: '#7c3aed',
+        // Parchment - Card Backgrounds
+        parchment: {
+          50: '#F7F3E8',
+          100: '#F0E8D5',   // Main card fill
+          200: '#E9E3D2',
+          300: '#DCCEB1',
         },
+        // Cyan Mist - Glows & Progress
+        mist: {
+          300: '#CDE4E2',
+          400: '#A9D9D4',
+          500: '#7FC9C0',   // Cyan glow
+        },
+      },
+      borderRadius: {
+        xl2: '1.25rem',
+      },
+      boxShadow: {
+        leaf: '0 6px 18px rgba(0,0,0,0.25)',
+        glow: '0 0 24px rgba(127,201,192,0.45)',
+      },
+      fontFamily: {
+        display: ['"Crimson Pro"', 'serif'],
+        ui: ['Inter', 'System'],
       },
     },
   },

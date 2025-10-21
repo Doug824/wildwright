@@ -4,38 +4,24 @@
     "slug": "wildwright",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./src/assets/icon.png",
     "userInterfaceStyle": "dark",
     "scheme": "wildwright",
     "splash": {
-      "image": "./src/assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#0f172a"
+      "backgroundColor": "#1f3527"
     },
-    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.phoenixgames.wildwright"
     },
     "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./src/assets/adaptive-icon.png",
-        "backgroundColor": "#0f172a"
-      },
       "package": "com.phoenixgames.wildwright"
     },
     "web": {
-      "favicon": "./src/assets/favicon.png",
       "bundler": "metro"
     },
     "plugins": [
-      "expo-router",
-      [
-        "expo-image-picker",
-        {
-          "photosPermission": "The app accesses your photos to let you upload form images."
-        }
-      ]
+      "expo-router"
     ],
     "experiments": {
       "typedRoutes": true
