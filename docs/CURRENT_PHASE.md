@@ -43,19 +43,20 @@
 - [ ] Storage - DEFERRED (requires paid plan, using external image URLs instead)
 
 ### Authentication (Week 2)
-- [ ] Implement authentication service
-- [ ] Create auth hooks (useAuth, useUser)
+- [x] Implement authentication service
+- [x] Create auth hooks (useAuth, useUser)
 - [ ] Build login screen
 - [ ] Build signup screen
 - [ ] Build password reset flow
-- [ ] Implement email link (magic link) auth
+- [x] Implement email link (magic link) auth (service layer)
 
-### Offline Support (Week 2)
-- [ ] Set up TanStack Query
-- [ ] Configure AsyncStorage persistence
-- [ ] Create query hooks for characters
-- [ ] Create query hooks for wild shape forms
-- [ ] Test offline functionality
+### Offline Support (Week 2) ✅ COMPLETE
+- [x] Set up TanStack Query with AsyncStorage
+- [x] Configure AsyncStorage persistence
+- [x] Create query hooks for characters (useCharacters, useCharacter + mutations)
+- [x] Create query hooks for wild shape forms (useForms, useCharacterForms + mutations)
+- [x] Create query hooks for templates (useTemplates with search/filter)
+- [ ] Test offline functionality (requires npm install complete)
 
 ### Base UI Components (Week 2)
 - [ ] Create Button component
