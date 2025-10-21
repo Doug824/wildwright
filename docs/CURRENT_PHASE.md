@@ -23,11 +23,11 @@
 - [x] Update .gitignore for Firebase
 - [x] Create project directory structure
 
-### Database & Backend (Week 1-2)
+### Database & Backend (Week 1-2) ✅ COMPLETE
 - [x] Design Firestore schema (convert SQL to NoSQL)
 - [x] Create FIRESTORE_SCHEMA.md with all collections
 - [x] Create firestore.rules (security rules)
-- [x] Create storage.rules (image upload rules)
+- [x] Create storage.rules (image upload rules - deferred for free tier)
 - [x] Write FIREBASE_SETUP.md guide
 - [x] Create TypeScript types for Firestore schema
 - [x] Create src/lib/firebase.ts initialization
@@ -35,11 +35,12 @@
 - [x] Create formatting utilities
 - [x] Create validation utilities
 - [x] Create constants (game data, app config)
-- [ ] Create Firebase project in Console (requires user action)
-- [ ] Enable Authentication in Firebase Console
-- [ ] Enable Firestore Database in Firebase Console
-- [ ] Enable Storage in Firebase Console
-- [ ] Deploy security rules to Firebase
+- [x] Create complete service layer (auth, characters, forms, templates)
+- [x] Create Firebase project in Console (wildwright-b4356)
+- [x] Enable Authentication (Email/Password, Email Link, Google)
+- [x] Enable Firestore Database (us-west1)
+- [x] Deploy Firestore security rules
+- [ ] Storage - DEFERRED (requires paid plan, using external image URLs instead)
 
 ### Authentication (Week 2)
 - [ ] Implement authentication service
