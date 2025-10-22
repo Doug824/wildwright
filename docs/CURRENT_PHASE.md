@@ -2,13 +2,13 @@
 
 **Context:** docs/PROJECT_SCHEMA.md (sections 1-32)
 
-**Current phase:** Phase 2: Authentication & UI (Week 2-3)
+**Current phase:** Phase 3: Character Management (Week 3-4)
 
-**Last completed:** WildWright UI Kit with forest/parchment theme complete
+**Last completed:** Character Detail Screen with real-time wildshape form switching
 
-**Next task:** Build authentication screens (login, signup, password reset)
+**Next task:** Test character detail screen, then build wildshape form creation wizard
 
-**Blockers:** None - npm install complete, all infrastructure ready
+**Blockers:** None - Metro bundler cache needs clearing with `npm start -- --clear`
 
 ---
 
@@ -42,13 +42,14 @@
 - [x] Deploy Firestore security rules
 - [ ] Storage - DEFERRED (requires paid plan, using external image URLs instead)
 
-### Authentication (Week 2)
+### Authentication (Week 2) ✅ COMPLETE
 - [x] Implement authentication service
 - [x] Create auth hooks (useAuth, useUser)
-- [ ] Build login screen
-- [ ] Build signup screen
-- [ ] Build password reset flow
+- [x] Build login screen (sign-in.tsx)
+- [x] Build signup screen (sign-up.tsx)
+- [x] Build password reset flow (forgot-password.tsx)
 - [x] Implement email link (magic link) auth (service layer)
+- [x] Auth routing (redirect based on auth state)
 
 ### Offline Support (Week 2) ✅ COMPLETE
 - [x] Set up TanStack Query with AsyncStorage
@@ -58,8 +59,8 @@
 - [x] Create query hooks for templates (useTemplates with search/filter)
 - [ ] Test offline functionality (requires npm install complete)
 
-### Base UI Components (Week 2) ✅ COMPLETE
-- [x] Create WildWright UI Kit (7 components)
+### Base UI Components (Week 2-3) ✅ COMPLETE
+- [x] Create WildWright UI Kit (11 components)
   - Card component (parchment with bronze borders)
   - Heading components (H1-H4 with Crimson Pro)
   - Chip component (tags for abilities/traits)
@@ -67,13 +68,38 @@
   - Stat component (labeled stat display)
   - Tabs component (horizontal navigation)
   - AttackRow component (attack display)
+  - Button component (5 variants, 3 sizes, loading states)
+  - Input component (themed text fields with validation)
+  - ProgressSteps component (multi-step wizard indicator)
+  - Select component (dropdown picker for React Native)
 - [x] Create theme configuration (forest/parchment/bronze/mist)
 - [x] Create typography system (display + ui fonts)
 - [x] Create playsheet mock demo screen
 - [x] Create cn() utility for conditional classNames
-- [ ] Create Button component (form inputs)
-- [ ] Create Input component (text fields)
-- [ ] Create Loading/Spinner component
+
+### Character Management (Week 3) - IN PROGRESS
+- [x] Character creation wizard (3-step form)
+  - Basic info (name, edition, level)
+  - Ability scores (STR, DEX, CON, INT, WIS, CHA)
+  - Combat stats (HP, AC, saves, BAB)
+- [x] Character list screen
+  - Grid of character cards
+  - Stats display (HP, AC, Wisdom)
+  - Daily uses tracking
+  - Empty state with CTA
+- [x] Character detail screen (NEW!)
+  - Character header with level/edition
+  - Wildshape form selector
+  - Real-time stat calculations when switching forms
+  - Ability scores with modifiers
+  - Combat stats (HP, AC, movement speeds)
+  - Natural attacks with dice notation
+  - Senses display
+- [x] Tab navigation (Home + Characters)
+- [ ] Wildshape form creation wizard
+- [ ] Form list/browser screen
+- [ ] HP tracking and daily uses management
+- [ ] Character editing
 
 ---
 
@@ -234,3 +260,52 @@ src/
 - 🎨 Theme matches design spec perfectly!
 
 **Lines of Code:** +500 (Total: ~3,700+)
+
+---
+
+### Session 3: Character Management & Web Support (2025-10-22)
+
+**Dependency Fixes:**
+- ✅ Fixed Babel config (removed NativeWind plugin causing bundler errors)
+- ✅ Installed expo-linking package (required for expo-router)
+- ✅ Installed web dependencies (react-dom@18.3.1, react-native-web)
+- ✅ Fixed Firebase Auth for web compatibility
+- ✅ App now runs successfully on web browser
+
+**Character Detail Screen (NEW!):**
+- ✅ Created src/app/(tabs)/character/[id].tsx
+- ✅ Character header (name, level, edition chip, daily uses)
+- ✅ Wildshape form selector (base form + beast forms)
+- ✅ **Real-time stat calculations** when switching forms
+- ✅ Ability scores display with modifiers
+- ✅ Combat stats (HP, AC, movement speeds including swim/climb/fly)
+- ✅ Natural attacks with dice notation (e.g., "Bite +14, 1d8+9")
+- ✅ Senses display (low-light, scent, darkvision, etc.)
+- ✅ Form filtering by druid level
+- ✅ Beautiful themed UI matching design spec
+
+**Routing & Auth:**
+- ✅ Updated root index.tsx with auth-based routing
+- ✅ Redirect to sign-in if unauthenticated
+- ✅ Redirect to tabs if authenticated
+- ✅ Navigation from character list to detail working
+
+**Git Commits:**
+- ✅ Commit #15: "Add character list screen and tab navigation"
+- ✅ Commit #16: "Add Character Creation Wizard with multi-step form"
+
+**Session 3 Status:**
+- ✅ Character detail screen with form switching - COMPLETE
+- ✅ Web development environment - WORKING
+- ✅ Real-time stat transformations - WORKING
+- ⏳ Need to test with cleared Metro cache
+- ⏳ Wildshape form creation wizard - PENDING
+
+**Lines of Code:** +320 (Total: ~6,000+)
+
+**Next Steps:**
+1. Clear Metro cache: `npm start -- --clear`
+2. Test character detail screen on web
+3. Build wildshape form creation wizard
+4. Add HP tracking and daily use management
+
