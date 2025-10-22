@@ -6,7 +6,7 @@
  */
 
 import { useState } from 'react';
-import { ScrollView, View, Text, Pressable, Alert } from 'react-native';
+import { ScrollView, View, Text, Pressable, Alert, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { H2 } from '@/components/ui/Heading';
 import { Card } from '@/components/ui/Card';
@@ -14,6 +14,39 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useAuth } from '@/hooks';
 import { validateEmail, validatePassword } from '@/utils/validation';
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#1A3A2E',
+    paddingHorizontal: 16,
+  },
+  content: {
+    paddingVertical: 48,
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  subtitle: {
+    color: '#D4C5A9',
+    fontFamily: 'System',
+    textAlign: 'center',
+    marginTop: 8,
+  },
+  signInContainer: {
+    marginTop: 32,
+  },
+  signInText: {
+    color: '#E8DCC8',
+    fontFamily: 'System',
+    textAlign: 'center',
+  },
+  signInLink: {
+    color: '#B97A3D',
+    fontWeight: '600',
+  },
+});
 
 export default function SignUpScreen() {
   const router = useRouter();
@@ -63,12 +96,12 @@ export default function SignUpScreen() {
   };
 
   return (
-    <ScrollView className="flex-1 bg-forest-700 px-4">
-      <View className="py-12">
+    <ScrollView style={styles.container}>
+      <View style={styles.content}>
         {/* Header */}
-        <View className="items-center mb-8">
-          <H2 className="mb-2">Create Account</H2>
-          <Text className="text-parchment-300 font-ui text-center">
+        <View style={styles.header}>
+          <H2>Create Account</H2>
+          <Text style={styles.subtitle}>
             Join WildWright and track your transformations
           </Text>
         </View>
@@ -134,11 +167,11 @@ export default function SignUpScreen() {
         </Card>
 
         {/* Sign In Link */}
-        <View className="mt-8">
+        <View style={styles.signInContainer}>
           <Pressable onPress={() => router.push('/sign-in')}>
-            <Text className="text-parchment-200 font-ui text-center">
+            <Text style={styles.signInText}>
               Already have an account?{' '}
-              <Text className="text-bronze-500 font-semibold">Sign In</Text>
+              <Text style={styles.signInLink}>Sign In</Text>
             </Text>
           </Pressable>
         </View>

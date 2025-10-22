@@ -5,7 +5,7 @@
  * Shows character name, level, and key stats on each card.
  */
 
-import { ScrollView, View, Text, Pressable, ActivityIndicator } from 'react-native';
+import { ScrollView, View, Text, Pressable, ActivityIndicator, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { H2 } from '@/components/ui/Heading';
 import { Card } from '@/components/ui/Card';
@@ -14,15 +14,113 @@ import { Chip } from '@/components/ui/Chip';
 import { Stat } from '@/components/ui/Stat';
 import { useCharacters } from '@/hooks';
 
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#1A3A2E',
+    paddingHorizontal: 16,
+  },
+  content: {
+    paddingVertical: 48,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  characterGrid: {
+    gap: 16,
+  },
+  characterHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
+  characterInfo: {
+    flex: 1,
+  },
+  characterName: {
+    fontFamily: 'System',
+    color: '#F9F5EB',
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  characterSubtitle: {
+    fontFamily: 'System',
+    color: '#D4C5A9',
+    fontSize: 14,
+  },
+  stats: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(185, 122, 61, 0.4)',
+    paddingTop: 12,
+  },
+  dailyUses: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(185, 122, 61, 0.4)',
+  },
+  dailyUsesText: {
+    fontFamily: 'System',
+    color: '#D4C5A9',
+    fontSize: 12,
+  },
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: 32,
+  },
+  emptyTitle: {
+    fontFamily: 'System',
+    color: '#E8DCC8',
+    fontSize: 20,
+    marginBottom: 8,
+  },
+  emptySubtitle: {
+    fontFamily: 'System',
+    color: '#D4C5A9',
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: '#1A3A2E',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingText: {
+    color: '#E8DCC8',
+    fontFamily: 'System',
+    marginTop: 16,
+  },
+  errorContainer: {
+    flex: 1,
+    backgroundColor: '#1A3A2E',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+  },
+  errorText: {
+    color: '#EF4444',
+    fontFamily: 'System',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+});
+
 export default function CharacterListScreen() {
   const router = useRouter();
   const { data: characters, isLoading, error } = useCharacters();
 
   if (isLoading) {
     return (
-      <View className="flex-1 bg-forest-700 items-center justify-center">
+      <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#7FC9C0" />
-        <Text className="text-parchment-200 font-ui mt-4">
+        <Text style={styles.loadingText}>
           Loading characters...
         </Text>
       </View>
@@ -31,8 +129,8 @@ export default function CharacterListScreen() {
 
   if (error) {
     return (
-      <View className="flex-1 bg-forest-700 items-center justify-center px-4">
-        <Text className="text-red-400 font-ui text-center mb-4">
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>
           Error loading characters
         </Text>
         <Button onPress={() => router.back()}>Go Back</Button>
@@ -41,10 +139,10 @@ export default function CharacterListScreen() {
   }
 
   return (
-    <ScrollView className="flex-1 bg-forest-700 px-4">
-      <View className="py-12">
+    <ScrollView style={styles.container}>
+      <View style={styles.content}>
         {/* Header */}
-        <View className="flex-row justify-between items-center mb-6">
+        <View style={styles.header}>
           <H2>My Characters</H2>
           <Button
             size="sm"
@@ -56,7 +154,7 @@ export default function CharacterListScreen() {
 
         {/* Character Grid */}
         {characters && characters.length > 0 ? (
-          <View className="gap-4">
+          <View style={styles.characterGrid}>
             {characters.map((character) => {
               const totalAC =
                 (character.baseStats.ac?.base || 10) +
@@ -74,12 +172,12 @@ export default function CharacterListScreen() {
                 >
                   <Card>
                     {/* Character Header */}
-                    <View className="flex-row justify-between items-start mb-3">
-                      <View className="flex-1">
-                        <Text className="font-display text-parchment-50 text-xl font-bold">
+                    <View style={styles.characterHeader}>
+                      <View style={styles.characterInfo}>
+                        <Text style={styles.characterName}>
                           {character.name}
                         </Text>
-                        <Text className="font-ui text-parchment-300 text-sm">
+                        <Text style={styles.characterSubtitle}>
                           Level {character.baseStats.level} Druid
                         </Text>
                       </View>
@@ -95,7 +193,7 @@ export default function CharacterListScreen() {
                     </View>
 
                     {/* Stats */}
-                    <View className="flex-row flex-wrap border-t border-bronze-500/40 pt-3">
+                    <View style={styles.stats}>
                       <Stat
                         label="HP"
                         value={`${character.baseStats.hp?.current || 0}/${
@@ -112,8 +210,8 @@ export default function CharacterListScreen() {
 
                     {/* Daily Uses */}
                     {character.dailyUsesMax !== null && (
-                      <View className="mt-3 pt-3 border-t border-bronze-500/40">
-                        <Text className="font-ui text-parchment-300 text-xs">
+                      <View style={styles.dailyUses}>
+                        <Text style={styles.dailyUsesText}>
                           Wild Shape Uses: {character.dailyUsesCurrent}/
                           {character.dailyUsesMax}
                         </Text>
@@ -127,11 +225,11 @@ export default function CharacterListScreen() {
         ) : (
           // Empty State
           <Card>
-            <View className="items-center py-8">
-              <Text className="font-display text-parchment-200 text-xl mb-2">
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyTitle}>
                 No Characters Yet
               </Text>
-              <Text className="font-ui text-parchment-300 text-center mb-6">
+              <Text style={styles.emptySubtitle}>
                 Create your first druid to start tracking wild shapes
               </Text>
               <Button onPress={() => router.push('/character/create')}>

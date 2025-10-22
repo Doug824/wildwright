@@ -5,7 +5,7 @@
  */
 
 import { useState } from 'react';
-import { ScrollView, View, Text, Pressable, Alert } from 'react-native';
+import { ScrollView, View, Text, Pressable, Alert, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { H2 } from '@/components/ui/Heading';
 import { Card } from '@/components/ui/Card';
@@ -13,6 +13,53 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useAuth } from '@/hooks';
 import { validateEmail } from '@/utils/validation';
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#1A3A2E',
+    paddingHorizontal: 16,
+  },
+  content: {
+    paddingVertical: 48,
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  subtitle: {
+    color: '#D4C5A9',
+    fontFamily: 'System',
+    textAlign: 'center',
+    marginTop: 8,
+  },
+  emailText: {
+    color: '#F9F5EB',
+    fontWeight: '600',
+  },
+  messageText: {
+    color: '#E8DCC8',
+    fontFamily: 'System',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  signInContainer: {
+    marginTop: 12,
+  },
+  signInText: {
+    color: '#E8DCC8',
+    fontFamily: 'System',
+    textAlign: 'center',
+    fontSize: 14,
+  },
+  signInLink: {
+    color: '#B97A3D',
+    fontWeight: '600',
+  },
+  buttonMargin: {
+    marginBottom: 12,
+  },
+});
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
@@ -43,18 +90,18 @@ export default function ForgotPasswordScreen() {
 
   if (sent) {
     return (
-      <ScrollView className="flex-1 bg-forest-700 px-4">
-        <View className="py-12">
-          <View className="items-center mb-8">
-            <H2 className="mb-2">Check Your Email</H2>
-            <Text className="text-parchment-300 font-ui text-center">
+      <ScrollView style={styles.container}>
+        <View style={styles.content}>
+          <View style={styles.header}>
+            <H2>Check Your Email</H2>
+            <Text style={styles.subtitle}>
               We've sent password reset instructions to{'\n'}
-              <Text className="text-parchment-100 font-semibold">{email}</Text>
+              <Text style={styles.emailText}>{email}</Text>
             </Text>
           </View>
 
           <Card>
-            <Text className="text-parchment-200 font-ui mb-4 text-center">
+            <Text style={styles.messageText}>
               Click the link in the email to reset your password. The link will expire in 1 hour.
             </Text>
 
@@ -71,12 +118,12 @@ export default function ForgotPasswordScreen() {
   }
 
   return (
-    <ScrollView className="flex-1 bg-forest-700 px-4">
-      <View className="py-12">
+    <ScrollView style={styles.container}>
+      <View style={styles.content}>
         {/* Header */}
-        <View className="items-center mb-8">
-          <H2 className="mb-2">Reset Password</H2>
-          <Text className="text-parchment-300 font-ui text-center">
+        <View style={styles.header}>
+          <H2>Reset Password</H2>
+          <Text style={styles.subtitle}>
             Enter your email to receive reset instructions
           </Text>
         </View>
@@ -97,19 +144,20 @@ export default function ForgotPasswordScreen() {
             error={error}
           />
 
-          <Button
-            onPress={handleResetPassword}
-            loading={loading}
-            fullWidth
-            className="mb-3"
-          >
-            Send Reset Link
-          </Button>
+          <View style={styles.buttonMargin}>
+            <Button
+              onPress={handleResetPassword}
+              loading={loading}
+              fullWidth
+            >
+              Send Reset Link
+            </Button>
+          </View>
 
           <Pressable onPress={() => router.push('/sign-in')}>
-            <Text className="text-parchment-200 font-ui text-center text-sm">
+            <Text style={styles.signInText}>
               Remember your password?{' '}
-              <Text className="text-bronze-500 font-semibold">Sign In</Text>
+              <Text style={styles.signInLink}>Sign In</Text>
             </Text>
           </Pressable>
         </Card>

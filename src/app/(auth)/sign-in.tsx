@@ -6,13 +6,71 @@
  */
 
 import { useState } from 'react';
-import { ScrollView, View, Text, Pressable, Alert } from 'react-native';
+import { ScrollView, View, Text, Pressable, Alert, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { H2 } from '@/components/ui/Heading';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useAuth } from '@/hooks';
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#1A3A2E',
+    paddingHorizontal: 16,
+  },
+  content: {
+    paddingVertical: 48,
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  subtitle: {
+    color: '#D4C5A9',
+    fontFamily: 'System',
+    textAlign: 'center',
+    marginTop: 8,
+  },
+  dividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 24,
+  },
+  divider: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#2A4A3A',
+  },
+  dividerText: {
+    marginHorizontal: 16,
+    color: '#D4C5A9',
+    fontFamily: 'System',
+    fontSize: 14,
+  },
+  signUpContainer: {
+    marginTop: 32,
+  },
+  signUpText: {
+    color: '#E8DCC8',
+    fontFamily: 'System',
+    textAlign: 'center',
+  },
+  signUpLink: {
+    color: '#B97A3D',
+    fontWeight: '600',
+  },
+  forgotPassword: {
+    color: '#B97A3D',
+    fontFamily: 'System',
+    textAlign: 'center',
+    fontSize: 14,
+  },
+  buttonMargin: {
+    marginBottom: 12,
+  },
+});
 
 export default function SignInScreen() {
   const router = useRouter();
@@ -40,12 +98,12 @@ export default function SignInScreen() {
   };
 
   return (
-    <ScrollView className="flex-1 bg-forest-700 px-4">
-      <View className="py-12">
+    <ScrollView style={styles.container}>
+      <View style={styles.content}>
         {/* Header */}
-        <View className="items-center mb-8">
-          <H2 className="mb-2">Welcome Back</H2>
-          <Text className="text-parchment-300 font-ui text-center">
+        <View style={styles.header}>
+          <H2>Welcome Back</H2>
+          <Text style={styles.subtitle}>
             Sign in to access your wild shapes
           </Text>
         </View>
@@ -71,27 +129,28 @@ export default function SignInScreen() {
             autoCapitalize="none"
           />
 
-          <Button
-            onPress={handleSignIn}
-            loading={loading}
-            fullWidth
-            className="mb-3"
-          >
-            Sign In
-          </Button>
+          <View style={styles.buttonMargin}>
+            <Button
+              onPress={handleSignIn}
+              loading={loading}
+              fullWidth
+            >
+              Sign In
+            </Button>
+          </View>
 
           <Pressable onPress={() => router.push('/forgot-password')}>
-            <Text className="text-bronze-500 font-ui text-center text-sm">
+            <Text style={styles.forgotPassword}>
               Forgot password?
             </Text>
           </Pressable>
         </Card>
 
         {/* Divider */}
-        <View className="flex-row items-center my-6">
-          <View className="flex-1 h-px bg-forest-600" />
-          <Text className="mx-4 text-parchment-300 font-ui text-sm">OR</Text>
-          <View className="flex-1 h-px bg-forest-600" />
+        <View style={styles.dividerContainer}>
+          <View style={styles.divider} />
+          <Text style={styles.dividerText}>OR</Text>
+          <View style={styles.divider} />
         </View>
 
         {/* Google Sign In */}
@@ -106,11 +165,11 @@ export default function SignInScreen() {
         </Card>
 
         {/* Sign Up Link */}
-        <View className="mt-8">
+        <View style={styles.signUpContainer}>
           <Pressable onPress={() => router.push('/sign-up')}>
-            <Text className="text-parchment-200 font-ui text-center">
+            <Text style={styles.signUpText}>
               Don't have an account?{' '}
-              <Text className="text-bronze-500 font-semibold">Sign Up</Text>
+              <Text style={styles.signUpLink}>Sign Up</Text>
             </Text>
           </Pressable>
         </View>
