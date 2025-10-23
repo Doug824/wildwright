@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
   },
   formsContainer: {
     marginTop: 12,
-    gap: 8,
+    gap: 12,
   },
   formButton: {
     padding: 12,
@@ -360,6 +360,15 @@ export default function CharacterDetailScreen() {
                     No wildshape forms yet. Create one to get started!
                   </Text>
                 )}
+
+                {/* Create New Form Button */}
+                <Button
+                  variant="secondary"
+                  onPress={() => router.push(`/character/forms/create?characterId=${id}`)}
+                  fullWidth
+                >
+                  + Create New Form
+                </Button>
               </View>
             </Card>
 

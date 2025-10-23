@@ -46,6 +46,13 @@ export default function CharacterLayout() {
           headerBackTitle: 'Back',
         }}
       />
+      <Stack.Screen
+        name="forms/create"
+        options={{
+          title: 'Create Wildshape Form',
+          headerBackTitle: 'Back',
+        }}
+      />
     </Stack>
   );
 }
