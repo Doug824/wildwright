@@ -6,7 +6,7 @@
  */
 
 import { useState } from 'react';
-import { ScrollView, View, Text, Pressable, Alert, StyleSheet } from 'react-native';
+import { ScrollView, View, Text, Pressable, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { H2 } from '@/components/ui/Heading';
 import { Card } from '@/components/ui/Card';
@@ -46,6 +46,13 @@ const styles = StyleSheet.create({
     color: '#B97A3D',
     fontWeight: '600',
   },
+  errorText: {
+    color: '#FCA5A5', // Red-400
+    fontSize: 14,
+    textAlign: 'center',
+    marginTop: 12,
+    marginBottom: 12,
+  },
 });
 
 export default function SignUpScreen() {
@@ -63,6 +70,7 @@ export default function SignUpScreen() {
     password?: string;
     confirmPassword?: string;
   }>({});
+  const [generalError, setGeneralError] = useState('');
 
   const validate = (): boolean => {
     const newErrors: typeof errors = {};
@@ -82,6 +90,7 @@ export default function SignUpScreen() {
   };
 
   const handleSignUp = async () => {
+    setGeneralError(''); // Clear previous errors
     if (!validate()) return;
 
     try {
@@ -89,7 +98,7 @@ export default function SignUpScreen() {
       await signUp(email, password, displayName || undefined);
       // Navigation will be handled by auth state change
     } catch (error: any) {
-      Alert.alert('Sign Up Failed', error.message || 'Could not create account');
+      setGeneralError(error.message || 'Could not create account');
     } finally {
       setLoading(false);
     }
@@ -164,6 +173,12 @@ export default function SignUpScreen() {
           >
             Create Account
           </Button>
+
+          {generalError && (
+            <Text style={styles.errorText}>
+              {generalError}
+            </Text>
+          )}
         </Card>
 
         {/* Sign In Link */}

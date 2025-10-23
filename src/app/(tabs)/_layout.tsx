@@ -12,12 +12,17 @@ export default function TabsLayout() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: '#1f3527', // forest-700
+          backgroundColor: '#1A3A2E', // forest-700 darker
           borderTopColor: '#B97A3D', // bronze-500
-          borderTopWidth: 1,
+          borderTopWidth: 2,
+          height: 60,
         },
-        tabBarActiveTintColor: '#7FC9C0', // mist-500
-        tabBarInactiveTintColor: '#DCCEB1', // parchment-300
+        tabBarActiveTintColor: '#7FC9C0', // cyan glow
+        tabBarInactiveTintColor: '#D4C5A9', // parchment-300
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: '600',
+        },
       }}
     >
       <Tabs.Screen
@@ -32,6 +37,7 @@ export default function TabsLayout() {
         options={{
           title: 'Characters',
           tabBarLabel: 'Characters',
+          headerShown: false,
         }}
       />
     </Tabs>

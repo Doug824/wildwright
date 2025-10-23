@@ -5,33 +5,80 @@
  * Supports all standard TextInput props.
  */
 
-import { View, Text, TextInput, TextInputProps } from 'react-native';
+import { View, Text, TextInput, TextInputProps, StyleSheet } from 'react-native';
 import { useState } from 'react';
-import { cn } from '@/utils/cn';
 
 export interface InputProps extends TextInputProps {
   label?: string;
   error?: string;
   helper?: string;
-  containerClassName?: string;
 }
+
+const styles = StyleSheet.create({
+  container: {
+    marginBottom: 16,
+  },
+  label: {
+    color: '#8B7355', // Dark brown for contrast on parchment
+    fontSize: 12,
+    marginBottom: 8,
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
+    fontWeight: '700',
+    textShadowColor: 'rgba(0, 0, 0, 0.1)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 1,
+  },
+  input: {
+    backgroundColor: '#234235', // Forest-800
+    borderWidth: 2,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: '#F9F5EB', // Parchment-50
+  },
+  inputFocused: {
+    borderColor: '#B97A3D', // Bronze
+    shadowColor: '#7FC9C0', // Cyan glow
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  inputUnfocused: {
+    borderColor: '#2A4A3A', // Forest-600
+  },
+  inputError: {
+    borderColor: '#EF4444', // Red-500
+  },
+  helperText: {
+    fontSize: 12,
+    marginTop: 8,
+  },
+  helperTextNormal: {
+    color: '#D4C5A9', // Parchment-300
+  },
+  helperTextError: {
+    color: '#FCA5A5', // Red-400
+  },
+});
 
 export function Input({
   label,
   error,
   helper,
-  containerClassName = '',
-  className = '',
+  style,
   ...props
 }: InputProps) {
   const [isFocused, setIsFocused] = useState(false);
   const hasError = !!error;
 
   return (
-    <View className={cn('mb-4', containerClassName)}>
+    <View style={styles.container}>
       {/* Label */}
       {label && (
-        <Text className="text-parchment-200 font-ui text-sm mb-2 uppercase tracking-wide">
+        <Text style={styles.label}>
           {label}
         </Text>
       )}
@@ -41,23 +88,23 @@ export function Input({
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
         placeholderTextColor="#DCCEB1"
-        className={cn(
-          'bg-forest-800 border-2 rounded-xl px-4 py-3 font-ui text-base text-parchment-50',
-          isFocused && !hasError && 'border-bronze-500',
-          !isFocused && !hasError && 'border-forest-600',
-          hasError && 'border-red-500',
-          className
-        )}
+        style={[
+          styles.input,
+          isFocused && !hasError && styles.inputFocused,
+          !isFocused && !hasError && styles.inputUnfocused,
+          hasError && styles.inputError,
+          style,
+        ]}
         {...props}
       />
 
       {/* Helper or Error Text */}
       {(helper || error) && (
         <Text
-          className={cn(
-            'font-ui text-xs mt-2',
-            hasError ? 'text-red-400' : 'text-parchment-300'
-          )}
+          style={[
+            styles.helperText,
+            hasError ? styles.helperTextError : styles.helperTextNormal,
+          ]}
         >
           {error || helper}
         </Text>

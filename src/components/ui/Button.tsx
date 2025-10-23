@@ -5,8 +5,7 @@
  * Includes loading state with spinner.
  */
 
-import { Pressable, Text, ActivityIndicator, View, PressableProps } from 'react-native';
-import { cn } from '@/utils/cn';
+import { Pressable, Text, ActivityIndicator, View, PressableProps, StyleSheet } from 'react-native';
 
 export interface ButtonProps extends Omit<PressableProps, 'style'> {
   children: React.ReactNode;
@@ -15,8 +14,119 @@ export interface ButtonProps extends Omit<PressableProps, 'style'> {
   loading?: boolean;
   disabled?: boolean;
   fullWidth?: boolean;
-  className?: string;
 }
+
+const styles = StyleSheet.create({
+  // Base button styles
+  button: {
+    borderRadius: 16,
+    borderWidth: 3,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    overflow: 'hidden',
+  },
+
+  // Variant styles
+  primary: {
+    backgroundColor: '#C68647', // Richer bronze
+    borderColor: '#E8B882', // Light bronze for glow effect
+  },
+  secondary: {
+    backgroundColor: '#2A4A3A', // Forest-600
+    borderColor: '#1A3A2E',
+  },
+  outline: {
+    backgroundColor: 'transparent',
+    borderColor: '#B97A3D', // Bronze
+  },
+  ghost: {
+    backgroundColor: 'transparent',
+    borderColor: 'transparent',
+  },
+  danger: {
+    backgroundColor: '#DC2626', // Red-600
+    borderColor: '#B91C1C',
+  },
+
+  // Pressed states
+  primaryPressed: {
+    backgroundColor: '#A66B2E',
+  },
+  secondaryPressed: {
+    backgroundColor: '#1A3A2E',
+  },
+  outlinePressed: {
+    backgroundColor: 'rgba(185, 122, 61, 0.1)',
+  },
+  ghostPressed: {
+    backgroundColor: 'rgba(42, 74, 58, 0.2)',
+  },
+  dangerPressed: {
+    backgroundColor: '#B91C1C',
+  },
+
+  // Size styles
+  sm: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  md: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  lg: {
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+  },
+
+  // Text styles
+  text: {
+    fontWeight: '700',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+  },
+  textSm: {
+    fontSize: 13,
+  },
+  textMd: {
+    fontSize: 15,
+  },
+  textLg: {
+    fontSize: 17,
+  },
+  textPrimary: {
+    color: '#F9F5EB', // Parchment-50
+  },
+  textSecondary: {
+    color: '#F0E8D5', // Parchment-100
+  },
+  textOutline: {
+    color: '#B97A3D', // Bronze
+  },
+  textGhost: {
+    color: '#E8DCC8', // Parchment-200
+  },
+  textDanger: {
+    color: '#FFFFFF',
+  },
+
+  // Other styles
+  fullWidth: {
+    width: '100%',
+  },
+  disabled: {
+    opacity: 0.5,
+  },
+  loadingIcon: {
+    marginRight: 8,
+  },
+  innerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});
 
 export function Button({
   children,
@@ -25,96 +135,85 @@ export function Button({
   loading = false,
   disabled = false,
   fullWidth = false,
-  className = '',
   ...props
 }: ButtonProps) {
   const isDisabled = disabled || loading;
 
-  // Variant styles
-  const variantClasses = {
-    primary: 'bg-bronze-500 border-bronze-600',
-    secondary: 'bg-forest-600 border-forest-700',
-    outline: 'bg-transparent border-bronze-500',
-    ghost: 'bg-transparent border-transparent',
-    danger: 'bg-red-600 border-red-700',
-  };
+  // Variant style mapping
+  const variantStyle = {
+    primary: styles.primary,
+    secondary: styles.secondary,
+    outline: styles.outline,
+    ghost: styles.ghost,
+    danger: styles.danger,
+  }[variant];
 
-  const variantTextClasses = {
-    primary: 'text-parchment-50',
-    secondary: 'text-parchment-100',
-    outline: 'text-bronze-500',
-    ghost: 'text-parchment-200',
-    danger: 'text-white',
-  };
+  const pressedVariantStyle = {
+    primary: styles.primaryPressed,
+    secondary: styles.secondaryPressed,
+    outline: styles.outlinePressed,
+    ghost: styles.ghostPressed,
+    danger: styles.dangerPressed,
+  }[variant];
 
-  const pressedVariantClasses = {
-    primary: 'bg-bronze-600',
-    secondary: 'bg-forest-700',
-    outline: 'bg-bronze-500/10',
-    ghost: 'bg-forest-600/20',
-    danger: 'bg-red-700',
-  };
+  // Size style mapping
+  const sizeStyle = {
+    sm: styles.sm,
+    md: styles.md,
+    lg: styles.lg,
+  }[size];
 
-  // Size styles
-  const sizeClasses = {
-    sm: 'px-3 py-2',
-    md: 'px-4 py-3',
-    lg: 'px-6 py-4',
-  };
+  const textSizeStyle = {
+    sm: styles.textSm,
+    md: styles.textMd,
+    lg: styles.textLg,
+  }[size];
 
-  const sizeTextClasses = {
-    sm: 'text-sm',
-    md: 'text-base',
-    lg: 'text-lg',
-  };
+  // Text color mapping
+  const textColorStyle = {
+    primary: styles.textPrimary,
+    secondary: styles.textSecondary,
+    outline: styles.textOutline,
+    ghost: styles.textGhost,
+    danger: styles.textDanger,
+  }[variant];
+
+  // Loading indicator color
+  const loadingColor = variant === 'outline' ? '#B97A3D' : '#F0E8D5';
 
   return (
     <Pressable
       disabled={isDisabled}
-      className={cn(
-        'rounded-xl border-2 items-center justify-center flex-row',
-        variantClasses[variant],
-        sizeClasses[size],
-        fullWidth && 'w-full',
-        isDisabled && 'opacity-50',
-        className
-      )}
       style={({ pressed }) => [
+        styles.button,
+        variantStyle,
+        sizeStyle,
+        fullWidth && styles.fullWidth,
+        isDisabled && styles.disabled,
+        pressed && !isDisabled && pressedVariantStyle,
         {
-          shadowColor: variant === 'primary' || variant === 'danger' ? '#000' : undefined,
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: pressed ? 0.1 : 0.2,
-          shadowRadius: pressed ? 2 : 4,
-          elevation: pressed ? 2 : 4,
+          // Enhanced shadow and glow for primary button
+          shadowColor: variant === 'primary' ? '#B97A3D' : (variant === 'danger' ? '#DC2626' : '#000'),
+          shadowOffset: { width: 0, height: pressed ? 2 : 4 },
+          shadowOpacity: pressed ? 0.3 : 0.6,
+          shadowRadius: pressed ? 6 : 12,
+          elevation: pressed ? 4 : 8,
         },
       ]}
       {...props}
     >
-      {({ pressed }) => (
-        <View
-          className={cn(
-            'flex-row items-center justify-center',
-            pressed && !isDisabled && pressedVariantClasses[variant]
-          )}
-        >
-          {loading && (
-            <ActivityIndicator
-              size="small"
-              color={variant === 'outline' ? '#B97A3D' : '#F0E8D5'}
-              className="mr-2"
-            />
-          )}
-          <Text
-            className={cn(
-              'font-ui font-semibold',
-              sizeTextClasses[size],
-              variantTextClasses[variant]
-            )}
-          >
-            {children}
-          </Text>
-        </View>
-      )}
+      <View style={styles.innerContainer}>
+        {loading && (
+          <ActivityIndicator
+            size="small"
+            color={loadingColor}
+            style={styles.loadingIcon}
+          />
+        )}
+        <Text style={[styles.text, textSizeStyle, textColorStyle]}>
+          {children}
+        </Text>
+      </View>
     </Pressable>
   );
 }

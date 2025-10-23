@@ -8,7 +8,8 @@
  */
 
 import { useState } from 'react';
-import { ScrollView, View, Text, Alert } from 'react-native';
+import { ScrollView, View, Text, StyleSheet } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { H2, H3 } from '@/components/ui/Heading';
 import { Card } from '@/components/ui/Card';
@@ -20,11 +21,111 @@ import type { GameEdition, AbilityScores, ACBreakdown } from '@/types/firestore'
 
 const STEPS = ['Basic Info', 'Abilities', 'Combat Stats'];
 
+const styles = StyleSheet.create({
+  gradient: {
+    flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+    paddingHorizontal: 16,
+  },
+  container: {
+    paddingVertical: 48,
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  subtitle: {
+    color: '#D4C5A9', // parchment-300
+    fontFamily: 'System',
+    textAlign: 'center',
+    marginTop: 8,
+  },
+  sectionTitle: {
+    marginBottom: 16,
+    color: '#B97A3D', // bronze-500
+  },
+  twoColumnRow: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  flexOne: {
+    flex: 1,
+  },
+  editionSelector: {
+    marginTop: 8,
+  },
+  editionLabel: {
+    color: '#E8DCC8', // parchment-200
+    fontFamily: 'System',
+    fontSize: 14,
+    marginBottom: 8,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  editionButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  abilityScoresRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  halfWidth: {
+    flex: 1,
+    minWidth: '45%',
+  },
+  sectionLabel: {
+    color: '#E8DCC8', // parchment-200
+    fontFamily: 'System',
+    fontSize: 14,
+    marginBottom: 12,
+  },
+  threeColumnRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 16,
+  },
+  thirdWidth: {
+    flex: 1,
+    minWidth: '30%',
+  },
+  twoColumnRowNoWrap: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 16,
+  },
+  navigationButtons: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 24,
+  },
+  errorText: {
+    color: '#EF4444', // red-400
+    fontFamily: 'System',
+    textAlign: 'center',
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  successText: {
+    color: '#7FC9C0', // cyan
+    fontFamily: 'System',
+    textAlign: 'center',
+    marginTop: 16,
+    marginBottom: 8,
+  },
+});
+
 export default function CharacterCreateScreen() {
   const router = useRouter();
   const { mutate: createCharacter, isPending } = useCreateCharacter();
 
   const [currentStep, setCurrentStep] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   // Step 1: Basic Info
   const [name, setName] = useState('');
@@ -65,6 +166,7 @@ export default function CharacterCreateScreen() {
   const handleNext = () => {
     if (currentStep < STEPS.length - 1) {
       setCurrentStep((prev) => prev + 1);
+      setError(null);
     } else {
       handleSubmit();
     }
@@ -73,12 +175,16 @@ export default function CharacterCreateScreen() {
   const handleBack = () => {
     if (currentStep > 0) {
       setCurrentStep((prev) => prev - 1);
+      setError(null);
     } else {
       router.back();
     }
   };
 
   const handleSubmit = () => {
+    setError(null);
+    setSuccess(null);
+
     const abilityScores: AbilityScores = {
       str: parseInt(str),
       dex: parseInt(dex),
@@ -146,239 +252,271 @@ export default function CharacterCreateScreen() {
 
     createCharacter(characterData, {
       onSuccess: () => {
-        Alert.alert('Success!', `${name} has been created!`, [
-          { text: 'OK', onPress: () => router.back() },
-        ]);
+        setSuccess(`${name} has been created!`);
+        setTimeout(() => router.back(), 2000);
       },
       onError: (error: any) => {
-        Alert.alert('Error', error.message || 'Could not create character');
+        setError(error.message || 'Could not create character');
       },
     });
   };
 
   return (
-    <ScrollView className="flex-1 bg-forest-700 px-4">
-      <View className="py-12">
-        {/* Header */}
-        <View className="items-center mb-6">
-          <H2 className="mb-2">Create Character</H2>
-          <Text className="text-parchment-300 font-ui text-center">
-            Build your druid for wild shape tracking
-          </Text>
-        </View>
+    <LinearGradient
+      colors={['#0A1F1A', '#1A3A2E', '#234A3E', '#1A3A2E']}
+      style={styles.gradient}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+    >
+      <ScrollView style={styles.scrollView}>
+        <View style={styles.container}>
+          {/* Header */}
+          <View style={styles.header}>
+            <H2>Create Character</H2>
+            <Text style={styles.subtitle}>
+              Build your druid for wild shape tracking
+            </Text>
+          </View>
 
-        {/* Progress Indicator */}
-        <ProgressSteps steps={STEPS} currentStep={currentStep} />
+          {/* Progress Indicator */}
+          <ProgressSteps steps={STEPS} currentStep={currentStep} />
 
-        {/* Step 1: Basic Info */}
-        {currentStep === 0 && (
-          <Card>
-            <H3 className="mb-4 text-bronze-500">Basic Information</H3>
+          {/* Error Message */}
+          {error && <Text style={styles.errorText}>{error}</Text>}
 
-            <Input
-              label="Character Name"
-              value={name}
-              onChangeText={setName}
-              placeholder="Moonfire the Wise"
-              autoCapitalize="words"
-            />
+          {/* Success Message */}
+          {success && <Text style={styles.successText}>{success}</Text>}
 
-            <View className="flex-row gap-4">
-              <Input
-                label="Level"
-                value={level}
-                onChangeText={setLevel}
-                placeholder="1"
-                keyboardType="number-pad"
-                containerClassName="flex-1"
-              />
+          {/* Step 1: Basic Info */}
+          {currentStep === 0 && (
+            <Card>
+              <H3 style={styles.sectionTitle}>Basic Information</H3>
 
               <Input
-                label="Druid Level"
-                value={druidLevel}
-                onChangeText={setDruidLevel}
-                placeholder="1"
-                keyboardType="number-pad"
-                containerClassName="flex-1"
-                helper="Effective level"
+                label="Character Name"
+                value={name}
+                onChangeText={setName}
+                placeholder="Moonfire the Wise"
+                autoCapitalize="words"
               />
-            </View>
 
-            <View className="mt-2">
-              <Text className="text-parchment-200 font-ui text-sm mb-2 uppercase tracking-wide">
-                Game Edition
-              </Text>
-              <View className="flex-row gap-2">
-                {(['pf1e', 'dnd5e', 'pf2e'] as GameEdition[]).map((ed) => (
-                  <Button
-                    key={ed}
-                    variant={edition === ed ? 'primary' : 'outline'}
-                    size="sm"
-                    onPress={() => setEdition(ed)}
-                  >
-                    {ed === 'pf1e' ? 'PF1e' : ed === 'dnd5e' ? 'D&D 5e' : 'PF2e'}
-                  </Button>
-                ))}
+              <View style={styles.twoColumnRow}>
+                <View style={styles.flexOne}>
+                  <Input
+                    label="Level"
+                    value={level}
+                    onChangeText={setLevel}
+                    placeholder="1"
+                    keyboardType="number-pad"
+                  />
+                </View>
+
+                <View style={styles.flexOne}>
+                  <Input
+                    label="Druid Level"
+                    value={druidLevel}
+                    onChangeText={setDruidLevel}
+                    placeholder="1"
+                    keyboardType="number-pad"
+                    helper="Effective level"
+                  />
+                </View>
               </View>
+
+              <View style={styles.editionSelector}>
+                <Text style={styles.editionLabel}>
+                  Game Edition
+                </Text>
+                <View style={styles.editionButtons}>
+                  {(['pf1e', 'dnd5e', 'pf2e'] as GameEdition[]).map((ed) => (
+                    <Button
+                      key={ed}
+                      variant={edition === ed ? 'primary' : 'outline'}
+                      size="sm"
+                      onPress={() => setEdition(ed)}
+                    >
+                      {ed === 'pf1e' ? 'PF1e' : ed === 'dnd5e' ? 'D&D 5e' : 'PF2e'}
+                    </Button>
+                  ))}
+                </View>
+              </View>
+            </Card>
+          )}
+
+          {/* Step 2: Ability Scores */}
+          {currentStep === 1 && (
+            <Card>
+              <H3 style={styles.sectionTitle}>Ability Scores</H3>
+
+              <View style={styles.abilityScoresRow}>
+                <View style={styles.halfWidth}>
+                  <Input
+                    label="Strength"
+                    value={str}
+                    onChangeText={setStr}
+                    keyboardType="number-pad"
+                  />
+                </View>
+                <View style={styles.halfWidth}>
+                  <Input
+                    label="Dexterity"
+                    value={dex}
+                    onChangeText={setDex}
+                    keyboardType="number-pad"
+                  />
+                </View>
+              </View>
+
+              <View style={styles.abilityScoresRow}>
+                <View style={styles.halfWidth}>
+                  <Input
+                    label="Constitution"
+                    value={con}
+                    onChangeText={setCon}
+                    keyboardType="number-pad"
+                  />
+                </View>
+                <View style={styles.halfWidth}>
+                  <Input
+                    label="Intelligence"
+                    value={int}
+                    onChangeText={setInt}
+                    keyboardType="number-pad"
+                  />
+                </View>
+              </View>
+
+              <View style={styles.abilityScoresRow}>
+                <View style={styles.halfWidth}>
+                  <Input
+                    label="Wisdom"
+                    value={wis}
+                    onChangeText={setWis}
+                    keyboardType="number-pad"
+                  />
+                </View>
+                <View style={styles.halfWidth}>
+                  <Input
+                    label="Charisma"
+                    value={cha}
+                    onChangeText={setCha}
+                    keyboardType="number-pad"
+                  />
+                </View>
+              </View>
+            </Card>
+          )}
+
+          {/* Step 3: Combat Stats */}
+          {currentStep === 2 && (
+            <Card>
+              <H3 style={styles.sectionTitle}>Combat Statistics</H3>
+
+              <Text style={styles.sectionLabel}>
+                ARMOR CLASS
+              </Text>
+              <View style={styles.threeColumnRow}>
+                <View style={styles.thirdWidth}>
+                  <Input
+                    label="Base"
+                    value={acBase}
+                    onChangeText={setAcBase}
+                    keyboardType="number-pad"
+                  />
+                </View>
+                <View style={styles.thirdWidth}>
+                  <Input
+                    label="Armor"
+                    value={acArmor}
+                    onChangeText={setAcArmor}
+                    keyboardType="number-pad"
+                  />
+                </View>
+                <View style={styles.thirdWidth}>
+                  <Input
+                    label="Shield"
+                    value={acShield}
+                    onChangeText={setAcShield}
+                    keyboardType="number-pad"
+                  />
+                </View>
+              </View>
+
+              <Text style={styles.sectionLabel}>
+                HIT POINTS & BAB
+              </Text>
+              <View style={styles.twoColumnRowNoWrap}>
+                <View style={styles.flexOne}>
+                  <Input
+                    label="Max HP"
+                    value={hpMax}
+                    onChangeText={setHpMax}
+                    keyboardType="number-pad"
+                  />
+                </View>
+                <View style={styles.flexOne}>
+                  <Input
+                    label="Base Attack"
+                    value={bab}
+                    onChangeText={setBab}
+                    keyboardType="number-pad"
+                  />
+                </View>
+              </View>
+
+              <Text style={styles.sectionLabel}>
+                SAVING THROWS
+              </Text>
+              <View style={styles.threeColumnRow}>
+                <View style={styles.thirdWidth}>
+                  <Input
+                    label="Fortitude"
+                    value={fortSave}
+                    onChangeText={setFortSave}
+                    keyboardType="number-pad"
+                  />
+                </View>
+                <View style={styles.thirdWidth}>
+                  <Input
+                    label="Reflex"
+                    value={refSave}
+                    onChangeText={setRefSave}
+                    keyboardType="number-pad"
+                  />
+                </View>
+                <View style={styles.thirdWidth}>
+                  <Input
+                    label="Will"
+                    value={willSave}
+                    onChangeText={setWillSave}
+                    keyboardType="number-pad"
+                  />
+                </View>
+              </View>
+            </Card>
+          )}
+
+          {/* Navigation Buttons */}
+          <View style={styles.navigationButtons}>
+            <View style={styles.flexOne}>
+              <Button variant="outline" onPress={handleBack} fullWidth>
+                {currentStep === 0 ? 'Cancel' : 'Back'}
+              </Button>
             </View>
-          </Card>
-        )}
 
-        {/* Step 2: Ability Scores */}
-        {currentStep === 1 && (
-          <Card>
-            <H3 className="mb-4 text-bronze-500">Ability Scores</H3>
-
-            <View className="flex-row flex-wrap gap-2">
-              <Input
-                label="Strength"
-                value={str}
-                onChangeText={setStr}
-                keyboardType="number-pad"
-                containerClassName="flex-1 min-w-[45%]"
-              />
-              <Input
-                label="Dexterity"
-                value={dex}
-                onChangeText={setDex}
-                keyboardType="number-pad"
-                containerClassName="flex-1 min-w-[45%]"
-              />
+            <View style={styles.flexOne}>
+              <Button
+                onPress={handleNext}
+                loading={isPending}
+                disabled={!canProceed()}
+                fullWidth
+              >
+                {currentStep === STEPS.length - 1 ? 'Create' : 'Next'}
+              </Button>
             </View>
-
-            <View className="flex-row flex-wrap gap-2">
-              <Input
-                label="Constitution"
-                value={con}
-                onChangeText={setCon}
-                keyboardType="number-pad"
-                containerClassName="flex-1 min-w-[45%]"
-              />
-              <Input
-                label="Intelligence"
-                value={int}
-                onChangeText={setInt}
-                keyboardType="number-pad"
-                containerClassName="flex-1 min-w-[45%]"
-              />
-            </View>
-
-            <View className="flex-row flex-wrap gap-2">
-              <Input
-                label="Wisdom"
-                value={wis}
-                onChangeText={setWis}
-                keyboardType="number-pad"
-                containerClassName="flex-1 min-w-[45%]"
-              />
-              <Input
-                label="Charisma"
-                value={cha}
-                onChangeText={setCha}
-                keyboardType="number-pad"
-                containerClassName="flex-1 min-w-[45%]"
-              />
-            </View>
-          </Card>
-        )}
-
-        {/* Step 3: Combat Stats */}
-        {currentStep === 2 && (
-          <Card>
-            <H3 className="mb-4 text-bronze-500">Combat Statistics</H3>
-
-            <Text className="text-parchment-200 font-ui text-sm mb-3">
-              ARMOR CLASS
-            </Text>
-            <View className="flex-row flex-wrap gap-2 mb-4">
-              <Input
-                label="Base"
-                value={acBase}
-                onChangeText={setAcBase}
-                keyboardType="number-pad"
-                containerClassName="flex-1 min-w-[30%]"
-              />
-              <Input
-                label="Armor"
-                value={acArmor}
-                onChangeText={setAcArmor}
-                keyboardType="number-pad"
-                containerClassName="flex-1 min-w-[30%]"
-              />
-              <Input
-                label="Shield"
-                value={acShield}
-                onChangeText={setAcShield}
-                keyboardType="number-pad"
-                containerClassName="flex-1 min-w-[30%]"
-              />
-            </View>
-
-            <Text className="text-parchment-200 font-ui text-sm mb-3">
-              HIT POINTS & BAB
-            </Text>
-            <View className="flex-row gap-2 mb-4">
-              <Input
-                label="Max HP"
-                value={hpMax}
-                onChangeText={setHpMax}
-                keyboardType="number-pad"
-                containerClassName="flex-1"
-              />
-              <Input
-                label="Base Attack"
-                value={bab}
-                onChangeText={setBab}
-                keyboardType="number-pad"
-                containerClassName="flex-1"
-              />
-            </View>
-
-            <Text className="text-parchment-200 font-ui text-sm mb-3">
-              SAVING THROWS
-            </Text>
-            <View className="flex-row flex-wrap gap-2">
-              <Input
-                label="Fortitude"
-                value={fortSave}
-                onChangeText={setFortSave}
-                keyboardType="number-pad"
-                containerClassName="flex-1 min-w-[30%]"
-              />
-              <Input
-                label="Reflex"
-                value={refSave}
-                onChangeText={setRefSave}
-                keyboardType="number-pad"
-                containerClassName="flex-1 min-w-[30%]"
-              />
-              <Input
-                label="Will"
-                value={willSave}
-                onChangeText={setWillSave}
-                keyboardType="number-pad"
-                containerClassName="flex-1 min-w-[30%]"
-              />
-            </View>
-          </Card>
-        )}
-
-        {/* Navigation Buttons */}
-        <View className="flex-row gap-3 mt-6">
-          <Button variant="outline" onPress={handleBack} className="flex-1">
-            {currentStep === 0 ? 'Cancel' : 'Back'}
-          </Button>
-
-          <Button
-            onPress={handleNext}
-            loading={isPending}
-            disabled={!canProceed()}
-            className="flex-1"
-          >
-            {currentStep === STEPS.length - 1 ? 'Create' : 'Next'}
-          </Button>
+          </View>
         </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </LinearGradient>
   );
 }

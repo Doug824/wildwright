@@ -6,7 +6,8 @@
  */
 
 import { useState } from 'react';
-import { ScrollView, View, Text, Pressable, Alert, StyleSheet } from 'react-native';
+import { ScrollView, View, Text, Pressable, StyleSheet } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { H2 } from '@/components/ui/Heading';
 import { Card } from '@/components/ui/Card';
@@ -15,39 +16,58 @@ import { Input } from '@/components/ui/Input';
 import { useAuth } from '@/hooks';
 
 const styles = StyleSheet.create({
+  gradient: {
+    flex: 1,
+  },
   container: {
     flex: 1,
-    backgroundColor: '#1A3A2E',
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
   },
   content: {
-    paddingVertical: 48,
+    paddingVertical: 60,
+    maxWidth: 480,
+    width: '100%',
+    alignSelf: 'center',
   },
   header: {
     alignItems: 'center',
-    marginBottom: 32,
+    marginBottom: 40,
   },
   subtitle: {
-    color: '#D4C5A9',
+    color: '#E8DCC8',
     fontFamily: 'System',
+    fontSize: 16,
     textAlign: 'center',
-    marginTop: 8,
+    marginTop: 12,
+    letterSpacing: 0.5,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   dividerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 24,
+    marginVertical: 32,
   },
   divider: {
     flex: 1,
-    height: 1,
-    backgroundColor: '#2A4A3A',
+    height: 2,
+    backgroundColor: '#3A5A4A',
+    shadowColor: '#7FC9C0',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
   },
   dividerText: {
-    marginHorizontal: 16,
-    color: '#D4C5A9',
+    marginHorizontal: 20,
+    color: '#B97A3D',
     fontFamily: 'System',
     fontSize: 14,
+    fontWeight: '600',
+    letterSpacing: 2,
+    textShadowColor: 'rgba(0, 0, 0, 0.4)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   signUpContainer: {
     marginTop: 32,
@@ -70,6 +90,13 @@ const styles = StyleSheet.create({
   buttonMargin: {
     marginBottom: 12,
   },
+  errorText: {
+    color: '#FCA5A5', // Red-400
+    fontSize: 14,
+    textAlign: 'center',
+    marginTop: 12,
+    marginBottom: 12,
+  },
 });
 
 export default function SignInScreen() {
@@ -79,10 +106,13 @@ export default function SignInScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSignIn = async () => {
+    setError(''); // Clear previous errors
+
     if (!email || !password) {
-      Alert.alert('Error', 'Please enter email and password');
+      setError('Please enter email and password');
       return;
     }
 
@@ -91,15 +121,21 @@ export default function SignInScreen() {
       await signIn(email, password);
       // Navigation will be handled by auth state change
     } catch (error: any) {
-      Alert.alert('Sign In Failed', error.message || 'Invalid credentials');
+      setError(error.message || 'Invalid credentials');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.content}>
+    <LinearGradient
+      colors={['#0A1F1A', '#1A3A2E', '#234A3E', '#1A3A2E']}
+      style={styles.gradient}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+    >
+      <ScrollView style={styles.container}>
+        <View style={styles.content}>
         {/* Header */}
         <View style={styles.header}>
           <H2>Welcome Back</H2>
@@ -139,6 +175,12 @@ export default function SignInScreen() {
             </Button>
           </View>
 
+          {error && (
+            <Text style={styles.errorText}>
+              {error}
+            </Text>
+          )}
+
           <Pressable onPress={() => router.push('/forgot-password')}>
             <Text style={styles.forgotPassword}>
               Forgot password?
@@ -173,7 +215,8 @@ export default function SignInScreen() {
             </Text>
           </Pressable>
         </View>
-      </View>
-    </ScrollView>
+        </View>
+      </ScrollView>
+    </LinearGradient>
   );
 }

@@ -4,25 +4,54 @@
  * Used for displaying tags like "Beast Shape I", "Flanking", "Aquatic", etc.
  */
 
-import { Text, View, ViewProps } from 'react-native';
+import { Text, View, ViewProps, StyleSheet } from 'react-native';
 
-export interface ChipProps extends ViewProps {
+export interface ChipProps extends Omit<ViewProps, 'style'> {
   label: string;
   variant?: 'default' | 'mist';
-  className?: string;
 }
 
-export function Chip({ label, variant = 'default', className = '', ...props }: ChipProps) {
-  const variantClasses = variant === 'mist'
-    ? 'bg-mist-500/20 border-mist-500 text-mist-300'
-    : 'bg-forest-600 border-bronze-500 text-parchment-100';
+const styles = StyleSheet.create({
+  container: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 9999,
+    borderWidth: 1,
+    marginRight: 8,
+    marginBottom: 8,
+  },
+  default: {
+    backgroundColor: '#2A4A3A', // Forest-600
+    borderColor: '#B97A3D', // Bronze-500
+  },
+  mist: {
+    backgroundColor: 'rgba(127, 201, 192, 0.2)', // Mist-500/20
+    borderColor: '#7FC9C0', // Mist-500
+  },
+  text: {
+    fontSize: 12,
+  },
+  textDefault: {
+    color: '#F0E8D5', // Parchment-100
+  },
+  textMist: {
+    color: '#7FC9C0', // Mist-300
+  },
+});
 
+export function Chip({ label, variant = 'default', ...props }: ChipProps) {
   return (
     <View
-      className={`px-2 py-1 rounded-full border mr-2 mb-2 ${variantClasses} ${className}`}
+      style={[
+        styles.container,
+        variant === 'mist' ? styles.mist : styles.default,
+      ]}
       {...props}
     >
-      <Text className={`font-ui text-xs ${variant === 'mist' ? 'text-mist-300' : 'text-parchment-100'}`}>
+      <Text style={[
+        styles.text,
+        variant === 'mist' ? styles.textMist : styles.textDefault,
+      ]}>
         {label}
       </Text>
     </View>

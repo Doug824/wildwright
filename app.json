@@ -6,16 +6,23 @@
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "scheme": "wildwright",
+    "icon": "./assets/icon.png",
     "splash": {
+      "image": "./assets/icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#1f3527"
+      "backgroundColor": "#1A3A2E"
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.phoenixgames.wildwright"
+      "bundleIdentifier": "com.phoenixgames.wildwright",
+      "icon": "./assets/icon.png"
     },
     "android": {
-      "package": "com.phoenixgames.wildwright"
+      "package": "com.phoenixgames.wildwright",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#1A3A2E"
+      }
     },
     "web": {
       "bundler": "metro"

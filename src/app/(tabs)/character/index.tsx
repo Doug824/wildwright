@@ -6,6 +6,7 @@
  */
 
 import { ScrollView, View, Text, Pressable, ActivityIndicator, StyleSheet } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { H2 } from '@/components/ui/Heading';
 import { Card } from '@/components/ui/Card';
@@ -15,9 +16,11 @@ import { Stat } from '@/components/ui/Stat';
 import { useCharacters } from '@/hooks';
 
 const styles = StyleSheet.create({
+  gradient: {
+    flex: 1,
+  },
   container: {
     flex: 1,
-    backgroundColor: '#1A3A2E',
     paddingHorizontal: 16,
   },
   content: {
@@ -139,8 +142,14 @@ export default function CharacterListScreen() {
   }
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.content}>
+    <LinearGradient
+      colors={['#0A1F1A', '#1A3A2E', '#234A3E', '#1A3A2E']}
+      style={styles.gradient}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+    >
+      <ScrollView style={styles.container}>
+        <View style={styles.content}>
         {/* Header */}
         <View style={styles.header}>
           <H2>My Characters</H2>
@@ -238,7 +247,8 @@ export default function CharacterListScreen() {
             </View>
           </Card>
         )}
-      </View>
-    </ScrollView>
+        </View>
+      </ScrollView>
+    </LinearGradient>
   );
 }

@@ -6,17 +6,26 @@
  */
 
 import { useEffect } from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { useRouter, Redirect } from 'expo-router';
 import { useAuth } from '@/hooks';
 
+const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: '#1A3A2E', // Forest-700
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});
+
 export default function Index() {
-  const { user, isLoading } = useAuth();
+  const { user, loading } = useAuth();
   const router = useRouter();
 
-  if (isLoading) {
+  if (loading) {
     return (
-      <View className="flex-1 bg-forest-700 items-center justify-center">
+      <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#7FC9C0" />
       </View>
     );
