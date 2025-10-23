@@ -19,20 +19,22 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   label: {
-    color: '#D4C5A9', // Parchment-300
+    color: '#4A3426', // Dark brown for readability
     fontSize: 12,
     textTransform: 'uppercase',
     letterSpacing: 1.5,
-  },
-  value: {
-    color: '#F9F5EB', // Parchment-50
-    fontSize: 24,
     fontWeight: '600',
   },
+  value: {
+    color: '#1A0F08', // Almost black for maximum readability
+    fontSize: 24,
+    fontWeight: '700',
+  },
   sub: {
-    color: '#D4C5A9', // Parchment-300
+    color: '#2C1810', // Dark brown
     fontSize: 12,
     marginTop: 2,
+    fontWeight: '600',
   },
 });
 

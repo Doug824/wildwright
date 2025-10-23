@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
   },
   characterName: {
     fontFamily: 'System',
-    color: '#2C1810', // Deep brown for readability
+    color: '#1A0F08', // Almost black for readability
     fontSize: 20,
     fontWeight: 'bold',
     // Subtle magical glow
@@ -56,8 +56,9 @@ const styles = StyleSheet.create({
   },
   characterSubtitle: {
     fontFamily: 'System',
-    color: '#4A3426', // Warm brown for contrast
+    color: '#2C1810', // Dark brown for contrast
     fontSize: 14,
+    fontWeight: '600',
   },
   stats: {
     flexDirection: 'row',
@@ -74,8 +75,9 @@ const styles = StyleSheet.create({
   },
   dailyUsesText: {
     fontFamily: 'System',
-    color: '#4A3426', // Better contrast
+    color: '#2C1810', // Dark brown
     fontSize: 12,
+    fontWeight: '600',
   },
   emptyState: {
     alignItems: 'center',

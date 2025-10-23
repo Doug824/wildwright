@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   characterName: {
-    color: '#2C1810', // Deep brown for readability
+    color: '#1A0F08', // Almost black for readability
     fontSize: 24,
     fontWeight: 'bold',
     textShadowColor: '#7FD1A8',
@@ -71,8 +71,9 @@ const styles = StyleSheet.create({
   },
   characterSubtitle: {
     fontFamily: 'System',
-    color: '#4A3426', // Warm brown
+    color: '#2C1810', // Dark brown
     fontSize: 16,
+    fontWeight: '600',
   },
   dailyUses: {
     marginTop: 12,
@@ -82,8 +83,9 @@ const styles = StyleSheet.create({
   },
   dailyUsesText: {
     fontFamily: 'System',
-    color: '#4A3426', // Better contrast
+    color: '#2C1810', // Dark brown
     fontSize: 14,
+    fontWeight: '600',
   },
   formsContainer: {
     marginTop: 12,
@@ -104,20 +106,22 @@ const styles = StyleSheet.create({
   },
   formButtonTitle: {
     fontFamily: 'System',
-    color: '#2C1810', // Deep brown
-    fontWeight: '600',
+    color: '#1A0F08', // Almost black
+    fontWeight: '700',
   },
   formButtonSubtitle: {
     fontFamily: 'System',
-    color: '#4A3426', // Warm brown
+    color: '#2C1810', // Dark brown
     fontSize: 12,
     marginTop: 4,
+    fontWeight: '600',
   },
   noFormsText: {
     fontFamily: 'System',
-    color: '#4A3426', // Better contrast
+    color: '#2C1810', // Dark brown
     fontSize: 14,
     fontStyle: 'italic',
+    fontWeight: '600',
   },
   statsRow: {
     flexDirection: 'row',
@@ -133,8 +137,9 @@ const styles = StyleSheet.create({
   },
   senseText: {
     fontFamily: 'System',
-    color: '#4A3426', // Better contrast
+    color: '#2C1810', // Dark brown
     fontSize: 14,
+    fontWeight: '600',
   },
   bottomSpacer: {
     height: 32,

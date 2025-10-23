@@ -10,7 +10,7 @@ export interface HeadingProps extends TextProps {}
 
 const styles = StyleSheet.create({
   h1: {
-    color: '#2C1810', // Deep forest brown for readability
+    color: '#1A0F08', // Almost black for maximum readability on parchment
     fontSize: 40,
     fontWeight: '700',
     letterSpacing: 2,
@@ -21,9 +21,9 @@ const styles = StyleSheet.create({
     textShadowRadius: 20,
   },
   h2: {
-    color: '#2C1810', // Deep forest brown
+    color: '#1A0F08', // Almost black for readability
     fontSize: 34,
-    fontWeight: '600',
+    fontWeight: '700',
     letterSpacing: 1.5,
     textAlign: 'center',
     // Magical druidic green glow
@@ -32,9 +32,9 @@ const styles = StyleSheet.create({
     textShadowRadius: 16,
   },
   h3: {
-    color: '#3D2817', // Rich brown
+    color: '#1A0F08', // Almost black for readability
     fontSize: 26,
-    fontWeight: '600',
+    fontWeight: '700',
     letterSpacing: 1,
     // Subtle magical glow
     textShadowColor: '#6B9F7F',
@@ -42,9 +42,9 @@ const styles = StyleSheet.create({
     textShadowRadius: 10,
   },
   h4: {
-    color: '#4A3426', // Warm brown
+    color: '#2C1810', // Dark brown
     fontSize: 20,
-    fontWeight: '500',
+    fontWeight: '600',
     letterSpacing: 0.5,
   },
 });
