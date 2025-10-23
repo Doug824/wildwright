@@ -6,7 +6,7 @@
  */
 
 import { useState } from 'react';
-import { ScrollView, View, Text, ActivityIndicator, Pressable, StyleSheet } from 'react-native';
+import { ScrollView, View, Text, ActivityIndicator, Pressable, ImageBackground, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { H2, H3 } from '@/components/ui/Heading';
@@ -19,6 +19,13 @@ import { useCharacter, useCharacterForms } from '@/hooks';
 import { AbilityScores, NaturalAttack, WildShapeFormWithId } from '@/types/firestore';
 
 const styles = StyleSheet.create({
+  backgroundImage: {
+    flex: 1,
+  },
+  darkOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(10, 20, 15, 0.75)',
+  },
   gradient: {
     flex: 1,
   },
@@ -213,13 +220,14 @@ export default function CharacterDetailScreen() {
 
   if (isLoading) {
     return (
-      <LinearGradient
-        colors={['#0D1A12', '#1A2A1E', '#0F2419', '#152B1F', '#0A1F15']}
-        style={styles.gradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        locations={[0, 0.3, 0.5, 0.7, 1]}
-      >
+      <View style={{ flex: 1 }}>
+        <ImageBackground
+          source={require('../../../../assets/forest-background.png')}
+          style={styles.backgroundImage}
+          resizeMode="cover"
+          imageStyle={{ width: '100%', height: '100%' }}
+        >
+          <View style={styles.darkOverlay}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#7FC9C0" />
           <Text style={styles.loadingText}>
@@ -232,13 +240,14 @@ export default function CharacterDetailScreen() {
 
   if (error || !character) {
     return (
-      <LinearGradient
-        colors={['#0D1A12', '#1A2A1E', '#0F2419', '#152B1F', '#0A1F15']}
-        style={styles.gradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        locations={[0, 0.3, 0.5, 0.7, 1]}
-      >
+      <View style={{ flex: 1 }}>
+        <ImageBackground
+          source={require('../../../../assets/forest-background.png')}
+          style={styles.backgroundImage}
+          resizeMode="cover"
+          imageStyle={{ width: '100%', height: '100%' }}
+        >
+          <View style={styles.darkOverlay}>
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>
             Error loading character
@@ -259,13 +268,14 @@ export default function CharacterDetailScreen() {
         }}
       />
 
-      <LinearGradient
-        colors={['#0D1A12', '#1A2A1E', '#0F2419', '#152B1F', '#0A1F15']}
-        style={styles.gradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        locations={[0, 0.3, 0.5, 0.7, 1]}
-      >
+      <View style={{ flex: 1 }}>
+        <ImageBackground
+          source={require('../../../../assets/forest-background.png')}
+          style={styles.backgroundImage}
+          resizeMode="cover"
+          imageStyle={{ width: '100%', height: '100%' }}
+        >
+          <View style={styles.darkOverlay}>
         <ScrollView style={styles.scrollView}>
           <View style={styles.content}>
             {/* Character Header */}
@@ -455,7 +465,9 @@ export default function CharacterDetailScreen() {
             <View style={styles.bottomSpacer} />
           </View>
         </ScrollView>
-      </LinearGradient>
+          </View>
+        </ImageBackground>
+      </View>
     </>
   );
 }

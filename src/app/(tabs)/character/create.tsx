@@ -8,7 +8,7 @@
  */
 
 import { useState } from 'react';
-import { ScrollView, View, Text, StyleSheet } from 'react-native';
+import { ScrollView, View, Text, ImageBackground, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { H2, H3 } from '@/components/ui/Heading';
@@ -22,6 +22,13 @@ import type { GameEdition, AbilityScores, ACBreakdown } from '@/types/firestore'
 const STEPS = ['Basic Info', 'Abilities', 'Combat Stats'];
 
 const styles = StyleSheet.create({
+  backgroundImage: {
+    flex: 1,
+  },
+  darkOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(10, 20, 15, 0.75)',
+  },
   gradient: {
     flex: 1,
   },
@@ -270,14 +277,15 @@ export default function CharacterCreateScreen() {
   };
 
   return (
-    <LinearGradient
-      colors={['#0D1A12', '#1A2A1E', '#0F2419', '#152B1F', '#0A1F15']}
-      style={styles.gradient}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      locations={[0, 0.3, 0.5, 0.7, 1]}
-    >
-      <ScrollView style={styles.scrollView}>
+    <View style={{ flex: 1 }}>
+      <ImageBackground
+        source={require('../../../../assets/forest-background.png')}
+        style={styles.backgroundImage}
+        resizeMode="cover"
+        imageStyle={{ width: '100%', height: '100%' }}
+      >
+        <View style={styles.darkOverlay}>
+          <ScrollView style={styles.scrollView}>
         <View style={styles.container}>
           {/* Header */}
           <View style={styles.header}>
@@ -524,8 +532,10 @@ export default function CharacterCreateScreen() {
               </Button>
             </View>
           </View>
+          </View>
+        </ScrollView>
         </View>
-      </ScrollView>
-    </LinearGradient>
+      </ImageBackground>
+    </View>
   );
 }

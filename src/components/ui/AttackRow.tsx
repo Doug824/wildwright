@@ -30,22 +30,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   name: {
-    color: '#F9F5EB', // Parchment-50
+    color: '#1A0F08', // Almost black for readability
     fontSize: 16,
+    fontWeight: '700',
     marginRight: 12,
   },
   bonus: {
-    color: '#E8DCC8', // Parchment-200
+    color: '#2C1810', // Dark brown
     fontSize: 14,
+    fontWeight: '600',
   },
   damage: {
-    color: '#F9F5EB', // Parchment-50
+    color: '#1A0F08', // Almost black
     fontSize: 16,
+    fontWeight: '700',
     marginRight: 8,
   },
   trait: {
-    color: '#E8DCC8', // Parchment-200
+    color: '#4A3426', // Dark brown
     fontSize: 12,
+    fontWeight: '600',
   },
 });
 

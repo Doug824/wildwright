@@ -97,38 +97,6 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 20,
     transform: [{ rotate: '-5deg' }],
   },
-  // Leaf accent decorations
-  leafAccent: {
-    position: 'absolute',
-    width: 20,
-    height: 20,
-    backgroundColor: '#6B9F7F', // Druidic green
-    opacity: 0.3,
-  },
-  leafTopLeft: {
-    top: 12,
-    left: 12,
-    borderRadius: 10,
-    transform: [{ rotate: '45deg' }],
-  },
-  leafTopRight: {
-    top: 12,
-    right: 12,
-    borderRadius: 10,
-    transform: [{ rotate: '-45deg' }],
-  },
-  leafBottomLeft: {
-    bottom: 12,
-    left: 12,
-    borderRadius: 10,
-    transform: [{ rotate: '-45deg' }],
-  },
-  leafBottomRight: {
-    bottom: 12,
-    right: 12,
-    borderRadius: 10,
-    transform: [{ rotate: '45deg' }],
-  },
   // Magical energy line accents
   energyLine: {
     position: 'absolute',
@@ -169,12 +137,6 @@ export function Card({ style, children, ...props }: CardProps) {
         <View style={[styles.vineCorner, styles.vineTopRight]} />
         <View style={[styles.vineCorner, styles.vineBottomLeft]} />
         <View style={[styles.vineCorner, styles.vineBottomRight]} />
-
-        {/* Leaf accent decorations */}
-        <View style={[styles.leafAccent, styles.leafTopLeft]} />
-        <View style={[styles.leafAccent, styles.leafTopRight]} />
-        <View style={[styles.leafAccent, styles.leafBottomLeft]} />
-        <View style={[styles.leafAccent, styles.leafBottomRight]} />
 
         {/* Magical energy lines */}
         <View style={[styles.energyLine, styles.energyTop]} />

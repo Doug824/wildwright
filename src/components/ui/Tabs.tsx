@@ -26,11 +26,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   textActive: {
-    color: '#F9F5EB', // Parchment-50
-    fontWeight: '600',
+    color: '#1A0F08', // Almost black for readability
+    fontWeight: '700',
   },
   textInactive: {
-    color: '#E8DCC8', // Parchment-200
+    color: '#4A3426', // Dark brown
+    fontWeight: '500',
   },
 });
 

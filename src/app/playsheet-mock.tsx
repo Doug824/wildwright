@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { ScrollView, View, Text, StyleSheet } from 'react-native';
+import { ScrollView, View, Text, ImageBackground, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Card } from '@/components/ui/Card';
 import { H2 } from '@/components/ui/Heading';
@@ -17,6 +17,13 @@ import { Tabs } from '@/components/ui/Tabs';
 import { AttackRow } from '@/components/ui/AttackRow';
 
 const styles = StyleSheet.create({
+  backgroundImage: {
+    flex: 1,
+  },
+  darkOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(10, 20, 15, 0.75)',
+  },
   gradient: {
     flex: 1,
   },
@@ -86,13 +93,15 @@ export default function PlaysheetMock() {
   const [active, setActive] = React.useState(tabs[0]);
 
   return (
-    <LinearGradient
-      colors={['#0A1F1A', '#1A3A2E', '#234A3E', '#1A3A2E']}
-      style={styles.gradient}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-    >
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+    <View style={{ flex: 1 }}>
+      <ImageBackground
+        source={require('../../assets/forest-background.png')}
+        style={styles.backgroundImage}
+        resizeMode="cover"
+        imageStyle={{ width: '100%', height: '100%' }}
+      >
+        <View style={styles.darkOverlay}>
+          <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
         {/* Header Card - Leopard Form (matches reference design) */}
         <Card style={styles.cardMargin}>
           <View style={styles.headerRow}>
@@ -206,7 +215,9 @@ export default function PlaysheetMock() {
 
         {/* Bottom Padding */}
         <View style={styles.bottomPadding} />
-      </ScrollView>
-    </LinearGradient>
+        </ScrollView>
+        </View>
+      </ImageBackground>
+    </View>
   );
 }
