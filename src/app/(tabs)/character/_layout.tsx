@@ -11,7 +11,15 @@ export default function CharacterLayout() {
   return (
     <Stack
       screenOptions={{
-        headerShown: false,
+        headerShown: true,
+        headerStyle: {
+          backgroundColor: '#1A3A2E', // Deep forest
+        },
+        headerTintColor: '#F9F5EB', // Light parchment for text/icons
+        headerTitleStyle: {
+          fontWeight: '600',
+          color: '#F9F5EB',
+        },
         contentStyle: {
           backgroundColor: '#0A1F1A', // forest-900 background
         },
@@ -20,19 +28,22 @@ export default function CharacterLayout() {
       <Stack.Screen
         name="index"
         options={{
-          title: 'Characters',
+          title: 'My Characters',
+          headerShown: false, // No back button on list (it's the home)
         }}
       />
       <Stack.Screen
         name="create"
         options={{
           title: 'Create Character',
+          headerBackTitle: 'Back',
         }}
       />
       <Stack.Screen
         name="[id]"
         options={{
           title: 'Character Details',
+          headerBackTitle: 'Back',
         }}
       />
     </Stack>

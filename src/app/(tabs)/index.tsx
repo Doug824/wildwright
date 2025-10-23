@@ -5,12 +5,13 @@
  * For now, redirects to character list or shows placeholder.
  */
 
-import { View, Text, Image, ImageBackground, StyleSheet } from 'react-native';
+import { View, Text, Image, ImageBackground, StyleSheet, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { H2 } from '@/components/ui/Heading';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { signOut } from '@/services/authService';
 
 const styles = StyleSheet.create({
   backgroundImage: {
@@ -22,6 +23,22 @@ const styles = StyleSheet.create({
   },
   gradient: {
     flex: 1,
+  },
+  logoutButton: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: 'rgba(139, 69, 69, 0.7)', // Semi-transparent red
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#B85555',
+  },
+  logoutText: {
+    color: '#FFE5E5',
+    fontSize: 14,
+    fontWeight: '600',
   },
   container: {
     flex: 1,
@@ -62,6 +79,15 @@ const styles = StyleSheet.create({
 export default function HomeScreen() {
   const router = useRouter();
 
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      // Expo router will automatically redirect to sign-in due to auth state change
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
   return (
     <ImageBackground
       source={require('../../../assets/forest-background.png')}
@@ -69,6 +95,11 @@ export default function HomeScreen() {
       resizeMode="cover"
     >
       <View style={styles.darkOverlay}>
+        {/* Logout Button */}
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Text style={styles.logoutText}>Log Out</Text>
+        </TouchableOpacity>
+
         <View style={styles.container}>
         <Card>
           <View style={styles.cardContent}>
