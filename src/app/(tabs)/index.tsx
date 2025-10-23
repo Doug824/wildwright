@@ -89,11 +89,13 @@ export default function HomeScreen() {
   };
 
   return (
-    <ImageBackground
-      source={require('../../../assets/forest-background.png')}
-      style={styles.backgroundImage}
-      resizeMode="cover"
-    >
+    <View style={{ flex: 1 }}>
+      <ImageBackground
+        source={require('../../../assets/forest-background.png')}
+        style={styles.backgroundImage}
+        resizeMode="cover"
+        imageStyle={{ width: '100%', height: '100%' }}
+      >
       <View style={styles.darkOverlay}>
         {/* Logout Button */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
@@ -132,7 +134,8 @@ export default function HomeScreen() {
           </View>
         </Card>
         </View>
-      </View>
-    </ImageBackground>
+        </View>
+      </ImageBackground>
+    </View>
   );
 }
