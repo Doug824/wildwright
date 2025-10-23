@@ -59,7 +59,7 @@ export default function HomeScreen() {
         <Card>
           <View style={styles.cardContent}>
             <Image
-              source={require('@/assets/icon.png')}
+              source={require('../../../assets/icon.png')}
               style={styles.logo}
               resizeMode="contain"
             />
