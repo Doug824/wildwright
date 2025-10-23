@@ -1,8 +1,7 @@
 /**
- * Button Component - Interactive buttons for the WildWright UI
+ * Button Component - Epic Druidic Buttons
  *
- * Supports multiple variants (primary, secondary, outline, ghost) and sizes.
- * Includes loading state with spinner.
+ * Natural wood and earth-inspired interactive buttons with magical energy.
  */
 
 import { Pressable, Text, ActivityIndicator, View, PressableProps, StyleSheet } from 'react-native';
@@ -19,72 +18,86 @@ export interface ButtonProps extends Omit<PressableProps, 'style'> {
 const styles = StyleSheet.create({
   // Base button styles
   button: {
-    borderRadius: 16,
+    borderRadius: 12,
     borderWidth: 3,
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
     overflow: 'hidden',
+    position: 'relative',
+  },
+
+  // Magical energy overlay for primary buttons
+  magicOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(127, 209, 168, 0.15)', // Ethereal green
+    borderRadius: 12,
   },
 
   // Variant styles
   primary: {
-    backgroundColor: '#C68647', // Richer bronze
-    borderColor: '#E8B882', // Light bronze for glow effect
+    backgroundColor: '#5C7A5E', // Deep forest green
+    borderColor: '#7FD1A8', // Magical green glow border
   },
   secondary: {
-    backgroundColor: '#2A4A3A', // Forest-600
-    borderColor: '#1A3A2E',
+    backgroundColor: '#8B7355', // Rich earth brown
+    borderColor: '#B8977E',
   },
   outline: {
     backgroundColor: 'transparent',
-    borderColor: '#B97A3D', // Bronze
+    borderColor: '#6B9F7F', // Natural green
   },
   ghost: {
     backgroundColor: 'transparent',
     borderColor: 'transparent',
   },
   danger: {
-    backgroundColor: '#DC2626', // Red-600
-    borderColor: '#B91C1C',
+    backgroundColor: '#8B4545', // Deep crimson
+    borderColor: '#B85555',
   },
 
   // Pressed states
   primaryPressed: {
-    backgroundColor: '#A66B2E',
+    backgroundColor: '#4A6249',
   },
   secondaryPressed: {
-    backgroundColor: '#1A3A2E',
+    backgroundColor: '#725F46',
   },
   outlinePressed: {
-    backgroundColor: 'rgba(185, 122, 61, 0.1)',
+    backgroundColor: 'rgba(107, 159, 127, 0.2)',
   },
   ghostPressed: {
-    backgroundColor: 'rgba(42, 74, 58, 0.2)',
+    backgroundColor: 'rgba(92, 122, 94, 0.15)',
   },
   dangerPressed: {
-    backgroundColor: '#B91C1C',
+    backgroundColor: '#723636',
   },
 
   // Size styles
   sm: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
   },
   md: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: 18,
+    paddingVertical: 14,
   },
   lg: {
-    paddingHorizontal: 24,
-    paddingVertical: 16,
+    paddingHorizontal: 26,
+    paddingVertical: 18,
   },
 
   // Text styles
   text: {
     fontWeight: '700',
-    letterSpacing: 1,
+    letterSpacing: 1.2,
     textTransform: 'uppercase',
+    position: 'relative',
+    zIndex: 1,
   },
   textSm: {
     fontSize: 13,
@@ -96,19 +109,23 @@ const styles = StyleSheet.create({
     fontSize: 17,
   },
   textPrimary: {
-    color: '#F9F5EB', // Parchment-50
+    color: '#F9F5EB', // Light parchment
+    textShadowColor: '#7FD1A8',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 6,
   },
   textSecondary: {
-    color: '#F0E8D5', // Parchment-100
+    color: '#F0E8D5', // Parchment
   },
   textOutline: {
-    color: '#B97A3D', // Bronze
+    color: '#5C7A5E', // Forest green
+    fontWeight: '700',
   },
   textGhost: {
-    color: '#E8DCC8', // Parchment-200
+    color: '#6B9F7F', // Natural green
   },
   textDanger: {
-    color: '#FFFFFF',
+    color: '#FFE5E5',
   },
 
   // Other styles
@@ -125,6 +142,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    position: 'relative',
+    zIndex: 1,
   },
 });
 
@@ -179,7 +198,7 @@ export function Button({
   }[variant];
 
   // Loading indicator color
-  const loadingColor = variant === 'outline' ? '#B97A3D' : '#F0E8D5';
+  const loadingColor = variant === 'outline' ? '#5C7A5E' : '#F0E8D5';
 
   return (
     <Pressable
@@ -192,16 +211,19 @@ export function Button({
         isDisabled && styles.disabled,
         pressed && !isDisabled && pressedVariantStyle,
         {
-          // Enhanced shadow and glow for primary button
-          shadowColor: variant === 'primary' ? '#B97A3D' : (variant === 'danger' ? '#DC2626' : '#000'),
-          shadowOffset: { width: 0, height: pressed ? 2 : 4 },
-          shadowOpacity: pressed ? 0.3 : 0.6,
-          shadowRadius: pressed ? 6 : 12,
-          elevation: pressed ? 4 : 8,
+          // Magical glow shadow (druidic green for primary, natural for others)
+          shadowColor: variant === 'primary' ? '#7FD1A8' : (variant === 'danger' ? '#B85555' : '#2C1810'),
+          shadowOffset: { width: 0, height: pressed ? 3 : 6 },
+          shadowOpacity: pressed ? 0.4 : 0.7,
+          shadowRadius: pressed ? 10 : 18,
+          elevation: pressed ? 6 : 12,
         },
       ]}
       {...props}
     >
+      {/* Magical energy overlay for primary buttons */}
+      {variant === 'primary' && <View style={styles.magicOverlay} />}
+
       <View style={styles.innerContainer}>
         {loading && (
           <ActivityIndicator

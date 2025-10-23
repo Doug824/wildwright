@@ -1,7 +1,7 @@
 /**
- * Heading Components - Display typography for the WildWright UI
+ * Heading Components - Epic Druidic Typography
  *
- * Beautiful serif headings with epic glow effects.
+ * Magical forest-inspired headings with ethereal glows.
  */
 
 import { Text, TextProps, StyleSheet } from 'react-native';
@@ -10,40 +10,47 @@ export interface HeadingProps extends TextProps {}
 
 const styles = StyleSheet.create({
   h1: {
-    color: '#F9F5EB', // Parchment-50
-    fontSize: 36,
+    color: '#2C1810', // Deep forest brown for readability
+    fontSize: 40,
     fontWeight: '700',
-    letterSpacing: 1,
+    letterSpacing: 2,
     textAlign: 'center',
-    textShadowColor: '#7FC9C0',
+    // Magical druidic green glow
+    textShadowColor: '#7FD1A8',
     textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 12,
+    textShadowRadius: 20,
   },
   h2: {
-    color: '#F9F5EB', // Parchment-50
-    fontSize: 32,
+    color: '#2C1810', // Deep forest brown
+    fontSize: 34,
     fontWeight: '600',
-    letterSpacing: 0.8,
+    letterSpacing: 1.5,
     textAlign: 'center',
-    textShadowColor: '#7FC9C0',
+    // Magical druidic green glow
+    textShadowColor: '#7FD1A8',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 16,
+  },
+  h3: {
+    color: '#3D2817', // Rich brown
+    fontSize: 26,
+    fontWeight: '600',
+    letterSpacing: 1,
+    // Subtle magical glow
+    textShadowColor: '#6B9F7F',
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 10,
   },
-  h3: {
-    color: '#F0E8D5', // Parchment-100
-    fontSize: 24,
+  h4: {
+    color: '#4A3426', // Warm brown
+    fontSize: 20,
     fontWeight: '500',
     letterSpacing: 0.5,
-  },
-  h4: {
-    color: '#F0E8D5', // Parchment-100
-    fontSize: 18,
-    fontWeight: '500',
   },
 });
 
 /**
- * H1 - Large display heading with cyan glow
+ * H1 - Large display heading with powerful magical glow
  */
 export function H1({ style, ...props }: HeadingProps) {
   return (
@@ -55,7 +62,7 @@ export function H1({ style, ...props }: HeadingProps) {
 }
 
 /**
- * H2 - Section heading with cyan glow
+ * H2 - Section heading with magical glow
  */
 export function H2({ style, ...props }: HeadingProps) {
   return (
@@ -67,7 +74,7 @@ export function H2({ style, ...props }: HeadingProps) {
 }
 
 /**
- * H3 - Subsection heading
+ * H3 - Subsection heading with subtle glow
  */
 export function H3({ style, ...props }: HeadingProps) {
   return (

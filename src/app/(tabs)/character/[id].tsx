@@ -62,13 +62,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   characterName: {
-    color: '#F9F5EB', // parchment-50
+    color: '#2C1810', // Deep brown for readability
     fontSize: 24,
     fontWeight: 'bold',
+    textShadowColor: '#7FD1A8',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 8,
   },
   characterSubtitle: {
     fontFamily: 'System',
-    color: '#D4C5A9', // parchment-300
+    color: '#4A3426', // Warm brown
     fontSize: 16,
   },
   dailyUses: {
@@ -79,7 +82,7 @@ const styles = StyleSheet.create({
   },
   dailyUsesText: {
     fontFamily: 'System',
-    color: '#D4C5A9', // parchment-300
+    color: '#4A3426', // Better contrast
     fontSize: 14,
   },
   formsContainer: {
@@ -101,18 +104,18 @@ const styles = StyleSheet.create({
   },
   formButtonTitle: {
     fontFamily: 'System',
-    color: '#F9F5EB', // parchment-50
+    color: '#2C1810', // Deep brown
     fontWeight: '600',
   },
   formButtonSubtitle: {
     fontFamily: 'System',
-    color: '#D4C5A9', // parchment-300
+    color: '#4A3426', // Warm brown
     fontSize: 12,
     marginTop: 4,
   },
   noFormsText: {
     fontFamily: 'System',
-    color: '#D4C5A9', // parchment-400
+    color: '#4A3426', // Better contrast
     fontSize: 14,
     fontStyle: 'italic',
   },
@@ -130,7 +133,7 @@ const styles = StyleSheet.create({
   },
   senseText: {
     fontFamily: 'System',
-    color: '#E8DCC8', // parchment-200
+    color: '#4A3426', // Better contrast
     fontSize: 14,
   },
   bottomSpacer: {
@@ -206,10 +209,11 @@ export default function CharacterDetailScreen() {
   if (isLoading) {
     return (
       <LinearGradient
-        colors={['#0A1F1A', '#1A3A2E', '#234A3E', '#1A3A2E']}
+        colors={['#0D1A12', '#1A2A1E', '#0F2419', '#152B1F', '#0A1F15']}
         style={styles.gradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
+        locations={[0, 0.3, 0.5, 0.7, 1]}
       >
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#7FC9C0" />
@@ -224,10 +228,11 @@ export default function CharacterDetailScreen() {
   if (error || !character) {
     return (
       <LinearGradient
-        colors={['#0A1F1A', '#1A3A2E', '#234A3E', '#1A3A2E']}
+        colors={['#0D1A12', '#1A2A1E', '#0F2419', '#152B1F', '#0A1F15']}
         style={styles.gradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
+        locations={[0, 0.3, 0.5, 0.7, 1]}
       >
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>
@@ -250,10 +255,11 @@ export default function CharacterDetailScreen() {
       />
 
       <LinearGradient
-        colors={['#0A1F1A', '#1A3A2E', '#234A3E', '#1A3A2E']}
+        colors={['#0D1A12', '#1A2A1E', '#0F2419', '#152B1F', '#0A1F15']}
         style={styles.gradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
+        locations={[0, 0.3, 0.5, 0.7, 1]}
       >
         <ScrollView style={styles.scrollView}>
           <View style={styles.content}>

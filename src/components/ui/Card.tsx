@@ -1,8 +1,8 @@
 /**
- * Card Component - Ornate parchment card with decorative bronze borders
+ * Card Component - Epic Druidic Torn Parchment Card
  *
- * The foundation of the WildWright UI - a beautiful parchment-style card
- * with ornate bronze borders, corner decorations, and dramatic shadows.
+ * Inspired by ancient forest magic and weathered tomes.
+ * Features torn edges, vine decorations, magical glows, and rich depth.
  */
 
 import { View, ViewProps, StyleSheet } from 'react-native';
@@ -10,69 +10,150 @@ import { View, ViewProps, StyleSheet } from 'react-native';
 export interface CardProps extends ViewProps {}
 
 const styles = StyleSheet.create({
+  // Outer container with magical glow
   cardOuter: {
     position: 'relative',
-    // Outer glow effect
-    shadowColor: '#7FC9C0',
+    // Magical glow effect (ethereal green)
+    shadowColor: '#6B9F7F',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.15,
-    shadowRadius: 20,
+    shadowOpacity: 0.4,
+    shadowRadius: 25,
   },
+  // Main card body
   card: {
-    backgroundColor: '#F0E8D5', // Parchment
-    borderWidth: 3,
-    borderColor: '#B97A3D', // Bronze
-    borderRadius: 24,
-    padding: 28,
-    // Dramatic shadow for depth
+    backgroundColor: '#E8DCC8', // Warm aged parchment
+    borderWidth: 0, // No border - we'll use decorative elements
+    borderRadius: 8,
+    padding: 32,
+    // Dramatic shadow for depth (card floating above surface)
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.5,
-    shadowRadius: 30,
-    elevation: 16,
+    shadowOffset: { width: 0, height: 15 },
+    shadowOpacity: 0.7,
+    shadowRadius: 40,
+    elevation: 20,
+    position: 'relative',
+    // Simulate torn/organic edges with overflow
+    overflow: 'hidden',
+  },
+  // Aged parchment texture overlay
+  parchmentOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(139, 115, 85, 0.05)', // Subtle brown texture
+    borderRadius: 8,
+  },
+  // Inner border with organic feel
+  cardInner: {
+    borderWidth: 2,
+    borderColor: '#8B7355', // Deep brown inner border
+    borderRadius: 6,
+    padding: 8,
+    margin: -6,
     position: 'relative',
   },
-  cardInner: {
-    borderWidth: 1,
-    borderColor: 'rgba(185, 122, 61, 0.3)', // Semi-transparent bronze inner border
-    borderRadius: 20,
-    padding: 4,
-    margin: -4,
+  // Decorative vine corner elements
+  vineCorner: {
+    position: 'absolute',
+    width: 40,
+    height: 40,
   },
-  cornerDecoration: {
+  vineTopLeft: {
+    top: -8,
+    left: -8,
+    borderLeftWidth: 3,
+    borderTopWidth: 3,
+    borderColor: '#5C7A5E', // Moss green vine
+    borderTopLeftRadius: 20,
+    // Add organic curve
+    transform: [{ rotate: '-5deg' }],
+  },
+  vineTopRight: {
+    top: -8,
+    right: -8,
+    borderRightWidth: 3,
+    borderTopWidth: 3,
+    borderColor: '#5C7A5E',
+    borderTopRightRadius: 20,
+    transform: [{ rotate: '5deg' }],
+  },
+  vineBottomLeft: {
+    bottom: -8,
+    left: -8,
+    borderLeftWidth: 3,
+    borderBottomWidth: 3,
+    borderColor: '#5C7A5E',
+    borderBottomLeftRadius: 20,
+    transform: [{ rotate: '5deg' }],
+  },
+  vineBottomRight: {
+    bottom: -8,
+    right: -8,
+    borderRightWidth: 3,
+    borderBottomWidth: 3,
+    borderColor: '#5C7A5E',
+    borderBottomRightRadius: 20,
+    transform: [{ rotate: '-5deg' }],
+  },
+  // Leaf accent decorations
+  leafAccent: {
     position: 'absolute',
     width: 20,
     height: 20,
-    borderColor: '#D4A574', // Light bronze for decoration
-    borderWidth: 2,
+    backgroundColor: '#6B9F7F', // Druidic green
+    opacity: 0.3,
   },
-  cornerTopLeft: {
-    top: 8,
-    left: 8,
-    borderRightWidth: 0,
-    borderBottomWidth: 0,
-    borderTopLeftRadius: 8,
+  leafTopLeft: {
+    top: 12,
+    left: 12,
+    borderRadius: 10,
+    transform: [{ rotate: '45deg' }],
   },
-  cornerTopRight: {
-    top: 8,
-    right: 8,
-    borderLeftWidth: 0,
-    borderBottomWidth: 0,
-    borderTopRightRadius: 8,
+  leafTopRight: {
+    top: 12,
+    right: 12,
+    borderRadius: 10,
+    transform: [{ rotate: '-45deg' }],
   },
-  cornerBottomLeft: {
-    bottom: 8,
-    left: 8,
-    borderRightWidth: 0,
-    borderTopWidth: 0,
-    borderBottomLeftRadius: 8,
+  leafBottomLeft: {
+    bottom: 12,
+    left: 12,
+    borderRadius: 10,
+    transform: [{ rotate: '-45deg' }],
   },
-  cornerBottomRight: {
-    bottom: 8,
-    right: 8,
-    borderLeftWidth: 0,
-    borderTopWidth: 0,
-    borderBottomRightRadius: 8,
+  leafBottomRight: {
+    bottom: 12,
+    right: 12,
+    borderRadius: 10,
+    transform: [{ rotate: '45deg' }],
+  },
+  // Magical energy line accents
+  energyLine: {
+    position: 'absolute',
+    height: 2,
+    backgroundColor: '#7FD1A8',
+    opacity: 0.4,
+    shadowColor: '#7FD1A8',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 8,
+  },
+  energyTop: {
+    top: 4,
+    left: 60,
+    right: 60,
+  },
+  energyBottom: {
+    bottom: 4,
+    left: 60,
+    right: 60,
+  },
+  // Content container
+  content: {
+    position: 'relative',
+    zIndex: 1,
   },
 });
 
@@ -80,15 +161,30 @@ export function Card({ style, children, ...props }: CardProps) {
   return (
     <View style={styles.cardOuter}>
       <View style={[styles.card, style]} {...props}>
-        {/* Decorative corner elements */}
-        <View style={[styles.cornerDecoration, styles.cornerTopLeft]} />
-        <View style={[styles.cornerDecoration, styles.cornerTopRight]} />
-        <View style={[styles.cornerDecoration, styles.cornerBottomLeft]} />
-        <View style={[styles.cornerDecoration, styles.cornerBottomRight]} />
+        {/* Parchment texture overlay */}
+        <View style={styles.parchmentOverlay} />
+
+        {/* Vine corner decorations */}
+        <View style={[styles.vineCorner, styles.vineTopLeft]} />
+        <View style={[styles.vineCorner, styles.vineTopRight]} />
+        <View style={[styles.vineCorner, styles.vineBottomLeft]} />
+        <View style={[styles.vineCorner, styles.vineBottomRight]} />
+
+        {/* Leaf accent decorations */}
+        <View style={[styles.leafAccent, styles.leafTopLeft]} />
+        <View style={[styles.leafAccent, styles.leafTopRight]} />
+        <View style={[styles.leafAccent, styles.leafBottomLeft]} />
+        <View style={[styles.leafAccent, styles.leafBottomRight]} />
+
+        {/* Magical energy lines */}
+        <View style={[styles.energyLine, styles.energyTop]} />
+        <View style={[styles.energyLine, styles.energyBottom]} />
 
         {/* Content with inner border */}
         <View style={styles.cardInner}>
-          {children}
+          <View style={styles.content}>
+            {children}
+          </View>
         </View>
       </View>
     </View>

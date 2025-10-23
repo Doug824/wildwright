@@ -37,14 +37,14 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   subtitle: {
-    color: '#D4C5A9', // parchment-300
+    color: '#C8E6D7', // Light green-tinted parchment for visibility on dark bg
     fontFamily: 'System',
     textAlign: 'center',
     marginTop: 8,
   },
   sectionTitle: {
     marginBottom: 16,
-    color: '#B97A3D', // bronze-500
+    color: '#3D2817', // Deep brown for readability on parchment
   },
   twoColumnRow: {
     flexDirection: 'row',
@@ -57,12 +57,13 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   editionLabel: {
-    color: '#E8DCC8', // parchment-200
+    color: '#4A3426', // Brown for better contrast
     fontFamily: 'System',
     fontSize: 14,
     marginBottom: 8,
     textTransform: 'uppercase',
     letterSpacing: 1,
+    fontWeight: '600',
   },
   editionButtons: {
     flexDirection: 'row',
@@ -78,10 +79,11 @@ const styles = StyleSheet.create({
     minWidth: '45%',
   },
   sectionLabel: {
-    color: '#E8DCC8', // parchment-200
+    color: '#4A3426', // Brown for better contrast
     fontFamily: 'System',
     fontSize: 14,
     marginBottom: 12,
+    fontWeight: '600',
   },
   threeColumnRow: {
     flexDirection: 'row',
@@ -104,18 +106,24 @@ const styles = StyleSheet.create({
     marginTop: 24,
   },
   errorText: {
-    color: '#EF4444', // red-400
+    color: '#FFE5E5', // Light red for visibility on dark bg
     fontFamily: 'System',
     textAlign: 'center',
     marginTop: 16,
     marginBottom: 8,
+    backgroundColor: 'rgba(139, 69, 69, 0.5)',
+    padding: 12,
+    borderRadius: 8,
   },
   successText: {
-    color: '#7FC9C0', // cyan
+    color: '#C8E6D7', // Light green for visibility on dark bg
     fontFamily: 'System',
     textAlign: 'center',
     marginTop: 16,
     marginBottom: 8,
+    backgroundColor: 'rgba(107, 159, 127, 0.3)',
+    padding: 12,
+    borderRadius: 8,
   },
 });
 
@@ -263,10 +271,11 @@ export default function CharacterCreateScreen() {
 
   return (
     <LinearGradient
-      colors={['#0A1F1A', '#1A3A2E', '#234A3E', '#1A3A2E']}
+      colors={['#0D1A12', '#1A2A1E', '#0F2419', '#152B1F', '#0A1F15']}
       style={styles.gradient}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
+      locations={[0, 0.3, 0.5, 0.7, 1]}
     >
       <ScrollView style={styles.scrollView}>
         <View style={styles.container}>

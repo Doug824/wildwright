@@ -26,22 +26,29 @@ const styles = StyleSheet.create({
     paddingVertical: 32,
   },
   logo: {
-    width: 120,
-    height: 120,
-    marginBottom: 16,
-    borderRadius: 60,
-    borderWidth: 3,
-    borderColor: '#B97A3D', // Bronze border
+    width: 130,
+    height: 130,
+    marginBottom: 20,
+    borderRadius: 65,
+    borderWidth: 4,
+    borderColor: '#7FD1A8', // Magical green border
+    // Magical glow around logo
+    shadowColor: '#7FD1A8',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 20,
   },
   subtitle: {
-    color: '#D4C5A9', // Parchment-300
+    color: '#4A3426', // Deep brown for readability on parchment
     fontSize: 16,
     textAlign: 'center',
-    marginBottom: 24,
+    marginBottom: 28,
     marginTop: 12,
+    letterSpacing: 0.5,
+    fontWeight: '500',
   },
   buttonSpacing: {
-    marginBottom: 12,
+    marginBottom: 14,
   },
 });
 
@@ -50,10 +57,11 @@ export default function HomeScreen() {
 
   return (
     <LinearGradient
-      colors={['#0A1F1A', '#1A3A2E', '#234A3E', '#1A3A2E']}
+      colors={['#0D1A12', '#1A2A1E', '#0F2419', '#152B1F', '#0A1F15']}
       style={styles.gradient}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
+      locations={[0, 0.3, 0.5, 0.7, 1]}
     >
       <View style={styles.container}>
         <Card>
