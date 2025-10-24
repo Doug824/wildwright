@@ -133,7 +133,7 @@ export default function WildShapeFormCreateScreen() {
   const [conDelta, setConDelta] = useState('+0');
   const [intDelta, setIntDelta] = useState('2');
   const [wisDelta, setWisDelta] = useState('10');
-  const [chaDelta, setCha Delta] = useState('10');
+  const [chaDelta, setChaDelta] = useState('10');
 
   // Step 3: Combat Stats
   const [naturalArmor, setNaturalArmor] = useState('10');
