@@ -234,7 +234,9 @@ export default function CharacterDetailScreen() {
             Loading character...
           </Text>
         </View>
-      </LinearGradient>
+          </View>
+        </ImageBackground>
+      </View>
     );
   }
 
@@ -254,7 +256,9 @@ export default function CharacterDetailScreen() {
           </Text>
           <Button onPress={() => router.back()}>Go Back</Button>
         </View>
-      </LinearGradient>
+          </View>
+        </ImageBackground>
+      </View>
     );
   }
 
