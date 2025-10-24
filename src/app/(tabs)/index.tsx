@@ -11,7 +11,7 @@ import { useRouter } from 'expo-router';
 import { H2 } from '@/components/ui/Heading';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { signOut } from '@/services/authService';
+import { signOut } from '@/services/auth.service';
 
 const styles = StyleSheet.create({
   backgroundImage: {
