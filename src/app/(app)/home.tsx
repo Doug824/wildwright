@@ -57,12 +57,12 @@ const styles = StyleSheet.create({
   formName: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#1A0F08',
+    color: '#4A3426',
     marginBottom: 4,
   },
   formSubtitle: {
     fontSize: 14,
-    color: '#4A3426',
+    color: '#6B5344',
     marginBottom: 12,
   },
   chipRow: {
@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#1A0F08',
+    color: '#4A3426',
   },
   emptyFormCard: {
     marginBottom: 16,
@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#1A0F08',
+    color: '#4A3426',
     marginBottom: 8,
     textAlign: 'center',
   },
@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
   favoriteName: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#1A0F08',
+    color: '#4A3426',
     marginBottom: 4,
   },
   favoriteSubtitle: {
@@ -154,16 +154,16 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 16,
     left: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     backgroundColor: 'rgba(42, 74, 58, 0.9)',
-    borderRadius: 8,
-    borderWidth: 2,
+    borderRadius: 6,
+    borderWidth: 1,
     borderColor: '#7FD1A8',
     shadowColor: '#7FD1A8',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
     zIndex: 10,
   },
   backButtonPressed: {
@@ -172,8 +172,37 @@ const styles = StyleSheet.create({
   },
   backText: {
     color: '#F9F5EB',
-    fontSize: 14,
-    fontWeight: '700',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  logoutButton: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: 'rgba(42, 74, 58, 0.9)',
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#7FD1A8',
+    zIndex: 10,
+  },
+  logoutButtonPressed: {
+    backgroundColor: 'rgba(42, 74, 58, 1)',
+    transform: [{ scale: 0.95 }],
+  },
+  logoutText: {
+    color: '#F9F5EB',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  quickActionsRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 16,
+  },
+  quickActionButton: {
+    flex: 1,
   },
 });
 
@@ -204,6 +233,11 @@ export default function DashboardScreen() {
     router.back();
   };
 
+  const handleLogout = () => {
+    // TODO: Add auth logout
+    router.replace('/(auth)/sign-in');
+  };
+
   return (
     <View style={styles.container}>
       <LivingForestBg>
@@ -216,6 +250,17 @@ export default function DashboardScreen() {
           onPress={handleBackToCharacterPicker}
         >
           <Text style={styles.backText}>← Characters</Text>
+        </Pressable>
+
+        {/* Logout Button */}
+        <Pressable
+          style={({ pressed }) => [
+            styles.logoutButton,
+            pressed && styles.logoutButtonPressed
+          ]}
+          onPress={handleLogout}
+        >
+          <Text style={styles.logoutText}>Log Out</Text>
         </Pressable>
 
         <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -272,7 +317,7 @@ export default function DashboardScreen() {
                   Choose a wildshape form to begin your transformation
                 </Text>
                 <Button onPress={handleAssumeShape}>
-                  Assume Shape
+                  Wildshape
                 </Button>
               </View>
             </MistCard>
@@ -282,23 +327,23 @@ export default function DashboardScreen() {
           <View style={styles.quickActions}>
             <Text style={styles.sectionTitle}>Quick Actions</Text>
 
-            <Button
-              variant="default"
-              onPress={handleAssumeShape}
-              fullWidth
-              style={styles.actionButton}
-            >
-              🌿 Assume New Shape
-            </Button>
+            <View style={styles.quickActionsRow}>
+              <Button
+                variant="default"
+                onPress={handleAssumeShape}
+                style={styles.quickActionButton}
+              >
+                🌿 Wildshape
+              </Button>
 
-            <Button
-              variant="outline"
-              onPress={handleRest}
-              fullWidth
-              style={styles.actionButton}
-            >
-              ⏰ Rest (Reset Uses)
-            </Button>
+              <Button
+                variant="outline"
+                onPress={handleRest}
+                style={styles.quickActionButton}
+              >
+                ⏰ Rest
+              </Button>
+            </View>
           </View>
 
           {/* Favorites */}
