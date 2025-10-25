@@ -26,11 +26,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    padding: 16,
-    paddingTop: 60,
+    padding: 12,
+    paddingTop: 52,
+    paddingBottom: 80,
   },
   cardMargin: {
-    marginBottom: 12,
+    marginBottom: 6,
   },
   headerRow: {
     flexDirection: 'row',
@@ -41,65 +42,68 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   subtitle: {
-    color: '#2A4A3A', // forest-600
-    fontSize: 13,
-    marginTop: 2,
+    color: '#4A3426',
+    fontSize: 11,
+    marginTop: 1,
   },
   chipRow: {
     flexDirection: 'row',
-    marginTop: 8,
+    marginTop: 4,
     flexWrap: 'wrap',
+    gap: 4,
   },
   statsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    gap: 4,
   },
   statsRowSpaced: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginTop: 4,
+    marginTop: 2,
+    gap: 4,
   },
   tabContent: {
-    marginTop: 12,
+    marginTop: 6,
   },
   sectionTitle: {
-    color: '#1A0F08', // Almost black for readability on parchment
-    fontSize: 18,
+    color: '#4A3426',
+    fontSize: 14,
     fontWeight: '700',
-    marginBottom: 12,
+    marginBottom: 6,
     textShadowColor: '#7FD1A8',
     textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 4,
+    textShadowRadius: 3,
   },
   sectionSpacing: {
-    marginTop: 16,
-    paddingTop: 16,
+    marginTop: 8,
+    paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(185, 122, 61, 0.4)', // bronze-500/40
+    borderTopColor: 'rgba(185, 122, 61, 0.3)',
   },
   infoText: {
-    color: '#2C1810', // Dark brown for better readability on parchment
-    fontSize: 14,
-    marginTop: 16,
+    color: '#4A3426',
+    fontSize: 11,
+    marginTop: 6,
     fontWeight: '600',
   },
   bottomPadding: {
-    height: 100,
+    height: 20,
   },
   backButton: {
     position: 'absolute',
     top: 16,
     left: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     backgroundColor: 'rgba(42, 74, 58, 0.9)',
-    borderRadius: 8,
-    borderWidth: 2,
+    borderRadius: 6,
+    borderWidth: 1,
     borderColor: '#7FD1A8',
     shadowColor: '#7FD1A8',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
     zIndex: 10,
   },
   backButtonPressed: {
@@ -108,14 +112,14 @@ const styles = StyleSheet.create({
   },
   backText: {
     color: '#F9F5EB',
-    fontSize: 14,
-    fontWeight: '700',
+    fontSize: 12,
+    fontWeight: '600',
   },
   footerActions: {
     flexDirection: 'row',
     gap: 8,
-    marginTop: 16,
-    marginBottom: 20,
+    marginTop: 8,
+    marginBottom: 4,
   },
 });
 
