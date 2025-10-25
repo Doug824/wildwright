@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
   },
   h2: {
     color: '#1A0F08', // Almost black for readability
-    fontSize: 34,
+    fontSize: 28,
     fontWeight: '700',
     letterSpacing: 1.5,
     textAlign: 'center',

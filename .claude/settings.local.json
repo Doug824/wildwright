@@ -15,7 +15,8 @@
       "Bash(npm cache verify:*)",
       "Bash(npx --version)",
       "Read(//mnt/c/Users/Doug_/Downloads/**)",
-      "Read(//mnt/c/Users/Doug_/Desktop/WildWright Dev Testing/**)"
+      "Read(//mnt/c/Users/Doug_/Desktop/WildWright Dev Testing/**)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []

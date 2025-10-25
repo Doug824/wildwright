@@ -24,7 +24,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#E8DCC8', // Warm aged parchment
     borderWidth: 0, // No border - we'll use decorative elements
     borderRadius: 8,
-    padding: 32,
+    padding: 20,
     // Dramatic shadow for depth (card floating above surface)
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 15 },

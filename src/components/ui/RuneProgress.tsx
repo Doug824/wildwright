@@ -18,11 +18,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   circle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    borderWidth: 2,
-    borderColor: '#7FC9C0', // Mist-500
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    borderWidth: 3,
+    borderColor: '#5C9F96', // Darker mist for visibility
+    backgroundColor: 'rgba(127, 201, 192, 0.25)', // Light mist background
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#7FC9C0',
@@ -32,14 +33,16 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   text: {
-    color: '#7FC9C0', // Mist-300
+    color: '#1A0F08', // Almost black for readability
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   label: {
     color: '#E8DCC8', // Parchment-200
-    fontSize: 12,
+    fontSize: 10,
     marginTop: 4,
+    fontWeight: '600',
+    textAlign: 'center',
   },
 });
 

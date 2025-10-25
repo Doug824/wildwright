@@ -16,18 +16,18 @@ export interface StatProps extends Omit<ViewProps, 'style'> {
 const styles = StyleSheet.create({
   container: {
     marginRight: 16,
-    marginBottom: 12,
+    marginBottom: 8,
   },
   label: {
     color: '#4A3426', // Dark brown for readability
-    fontSize: 12,
+    fontSize: 11,
     textTransform: 'uppercase',
     letterSpacing: 1.5,
     fontWeight: '600',
   },
   value: {
     color: '#1A0F08', // Almost black for maximum readability
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '700',
   },
   sub: {

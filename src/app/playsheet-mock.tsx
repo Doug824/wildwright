@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   cardMargin: {
-    marginBottom: 16,
+    marginBottom: 12,
   },
   headerRow: {
     flexDirection: 'row',
@@ -46,12 +46,12 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     color: '#2A4A3A', // forest-600
-    fontSize: 14,
-    marginTop: 4,
+    fontSize: 13,
+    marginTop: 2,
   },
   chipRow: {
     flexDirection: 'row',
-    marginTop: 12,
+    marginTop: 8,
     flexWrap: 'wrap',
   },
   statsRow: {
@@ -61,16 +61,19 @@ const styles = StyleSheet.create({
   statsRowSpaced: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginTop: 8,
+    marginTop: 4,
   },
   tabContent: {
     marginTop: 12,
   },
   sectionTitle: {
-    color: '#F9F5EB', // parchment-50
+    color: '#1A0F08', // Almost black for readability on parchment
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: '700',
     marginBottom: 12,
+    textShadowColor: '#7FD1A8',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 4,
   },
   sectionSpacing: {
     marginTop: 16,
@@ -79,9 +82,10 @@ const styles = StyleSheet.create({
     borderTopColor: 'rgba(185, 122, 61, 0.4)', // bronze-500/40
   },
   infoText: {
-    color: '#D4C5A9', // parchment-300
+    color: '#2C1810', // Dark brown for better readability on parchment
     fontSize: 14,
     marginTop: 16,
+    fontWeight: '600',
   },
   bottomPadding: {
     height: 32,
@@ -116,7 +120,7 @@ export default function PlaysheetMock() {
                 <Chip label="Pounce" variant="mist" />
               </View>
             </View>
-            <RuneProgress used={2} total={4} />
+            <RuneProgress used={2} total={4} label="Uses Left" />
           </View>
         </Card>
 

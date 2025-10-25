@@ -14,28 +14,30 @@ export interface ChipProps extends Omit<ViewProps, 'style'> {
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingVertical: 3,
     borderRadius: 9999,
     borderWidth: 1,
     marginRight: 8,
-    marginBottom: 8,
+    marginBottom: 6,
   },
   default: {
     backgroundColor: '#2A4A3A', // Forest-600
     borderColor: '#B97A3D', // Bronze-500
   },
   mist: {
-    backgroundColor: 'rgba(127, 201, 192, 0.2)', // Mist-500/20
-    borderColor: '#7FC9C0', // Mist-500
+    backgroundColor: 'rgba(127, 201, 192, 0.35)', // Mist-500/35 - more solid
+    borderColor: '#5C9F96', // Darker mist for better visibility
+    borderWidth: 2,
   },
   text: {
     fontSize: 12,
+    fontWeight: '600',
   },
   textDefault: {
     color: '#F0E8D5', // Parchment-100
   },
   textMist: {
-    color: '#7FC9C0', // Mist-300
+    color: '#1A0F08', // Almost black for better readability
   },
 });
 

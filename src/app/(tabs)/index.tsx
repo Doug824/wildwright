@@ -5,7 +5,7 @@
  * For now, redirects to character list or shows placeholder.
  */
 
-import { View, Text, Image, ImageBackground, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, Image, ImageBackground, StyleSheet, TouchableOpacity, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { H2 } from '@/components/ui/Heading';
@@ -29,16 +29,25 @@ const styles = StyleSheet.create({
     top: 16,
     right: 16,
     paddingHorizontal: 16,
-    paddingVertical: 8,
-    backgroundColor: 'rgba(139, 69, 69, 0.7)', // Semi-transparent red
+    paddingVertical: 10,
+    backgroundColor: 'rgba(42, 74, 58, 0.9)', // Forest green with transparency
     borderRadius: 8,
     borderWidth: 2,
-    borderColor: '#B85555',
+    borderColor: '#7FD1A8', // Magical green border
+    shadowColor: '#7FD1A8',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+  },
+  logoutButtonPressed: {
+    backgroundColor: 'rgba(42, 74, 58, 1)', // Darker when pressed
+    transform: [{ scale: 0.95 }],
   },
   logoutText: {
-    color: '#FFE5E5',
+    color: '#F9F5EB', // Parchment color for readability
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
   container: {
     flex: 1,
@@ -53,7 +62,7 @@ const styles = StyleSheet.create({
     width: 130,
     height: 130,
     marginBottom: 20,
-    borderRadius: 65,
+    borderRadius: 16, // Rounded square instead of circle
     borderWidth: 4,
     borderColor: '#7FD1A8', // Magical green border
     // Magical glow around logo
@@ -81,10 +90,14 @@ export default function HomeScreen() {
 
   const handleLogout = async () => {
     try {
+      console.log('Logging out...');
       await signOut();
-      // Expo router will automatically redirect to sign-in due to auth state change
+      console.log('Logged out successfully');
+      // Manually navigate to auth screen
+      router.replace('/(auth)/sign-in');
     } catch (error) {
       console.error('Logout error:', error);
+      alert('Failed to logout. Please try again.');
     }
   };
 
@@ -98,9 +111,15 @@ export default function HomeScreen() {
       >
       <View style={styles.darkOverlay}>
         {/* Logout Button */}
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+        <Pressable
+          style={({ pressed }) => [
+            styles.logoutButton,
+            pressed && styles.logoutButtonPressed
+          ]}
+          onPress={handleLogout}
+        >
           <Text style={styles.logoutText}>Log Out</Text>
-        </TouchableOpacity>
+        </Pressable>
 
         <View style={styles.container}>
         <Card>

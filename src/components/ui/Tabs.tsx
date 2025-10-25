@@ -15,8 +15,10 @@ export interface TabsProps extends Omit<ViewProps, 'style'> {
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: '#B97A3D', // Bronze-500
+    borderBottomWidth: 2,
+    borderBottomColor: '#7FD1A8', // Magical green for visibility
+    paddingBottom: 4,
+    marginBottom: 12,
   },
   tab: {
     marginRight: 16,
@@ -26,11 +28,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   textActive: {
-    color: '#1A0F08', // Almost black for readability
+    color: '#F9F5EB', // Parchment for visibility on dark background
     fontWeight: '700',
+    textShadowColor: '#7FD1A8',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 8,
   },
   textInactive: {
-    color: '#4A3426', // Dark brown
+    color: '#D4C5A9', // Lighter parchment for inactive
     fontWeight: '500',
   },
 });
