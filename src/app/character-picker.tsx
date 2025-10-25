@@ -87,16 +87,12 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 16,
     right: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     backgroundColor: 'rgba(42, 74, 58, 0.9)',
-    borderRadius: 8,
-    borderWidth: 2,
+    borderRadius: 6,
+    borderWidth: 1,
     borderColor: '#7FD1A8',
-    shadowColor: '#7FD1A8',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
     zIndex: 10,
   },
   logoutButtonPressed: {
@@ -105,9 +101,8 @@ const styles = StyleSheet.create({
   },
   logoutText: {
     color: '#F9F5EB',
-    fontSize: 14,
-    fontWeight: '700',
-    letterSpacing: 0.5,
+    fontSize: 12,
+    fontWeight: '600',
   },
 });
 
@@ -194,7 +189,7 @@ export default function CharacterPickerScreen() {
         <ScrollView contentContainerStyle={styles.scrollContent}>
           {/* Header */}
           <View style={styles.header}>
-            <H2>Choose Your Druid</H2>
+            <H2 style={{ color: '#F9F5EB', textShadowColor: '#7FD1A8', textShadowRadius: 16 }}>Choose Your Druid</H2>
             <Text style={styles.subtitle}>
               Select a character to begin your wild journey
             </Text>

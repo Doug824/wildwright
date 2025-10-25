@@ -6,7 +6,7 @@
  */
 
 import { useState } from 'react';
-import { ScrollView, View, Text, Pressable, StyleSheet, Alert } from 'react-native';
+import { ScrollView, View, Text, Pressable, StyleSheet, Alert, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { H2 } from '@/components/ui/Heading';
@@ -138,6 +138,11 @@ export default function SignInScreen() {
         <View style={styles.content}>
         {/* Header */}
         <View style={styles.header}>
+          <Image
+            source={require('../../../assets/icon.png')}
+            style={{ width: 100, height: 100, marginBottom: 16, borderRadius: 16 }}
+            resizeMode="contain"
+          />
           <H2>Welcome Back</H2>
           <Text style={styles.subtitle}>
             Sign in to access your wild shapes
