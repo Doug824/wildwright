@@ -180,6 +180,8 @@ export default function CharacterScreen() {
   const [damageStatModifier, setDamageStatModifier] = useState<'STR' | 'DEX' | 'WIS'>('STR');
   const [damageMultiplier, setDamageMultiplier] = useState<'1' | '1.5' | '2'>('1');
   const [baseHP, setBaseHP] = useState('64');
+  const [miscAttackBonus, setMiscAttackBonus] = useState('0');
+  const [miscDamageBonus, setMiscDamageBonus] = useState('0');
 
   // Feats/Traits
   const [activeFeats, setActiveFeats] = useState<Set<string>>(
@@ -213,7 +215,25 @@ export default function CharacterScreen() {
 
   const handleSave = () => {
     // TODO: Save to Firestore (needs Firestore rules)
-    console.log('Character data:', { name, level, effectiveDruidLevel, str, dex, con: con, int, wis, cha });
+    console.log('Character data:', {
+      name,
+      level,
+      effectiveDruidLevel,
+      baseStats: { str, dex, con, int, wis, cha },
+      combatStats: {
+        baseAttackBonus,
+        baseHP,
+        baseNaturalArmor,
+        saves: { fort: fortSave, ref: refSave, will: willSave },
+        acBonuses: { armor: armorBonus, deflection: deflectionBonus, shield: shieldBonus, dodge: dodgeBonus },
+        attackStatModifier,
+        damageStatModifier,
+        damageMultiplier,
+        miscAttackBonus,
+        miscDamageBonus,
+      },
+      feats: Array.from(activeFeats),
+    });
     if (isNew) {
       // Navigate directly to app shell for now
       alert('Character created! (Note: Firestore rules needed for persistence)');
@@ -505,8 +525,34 @@ export default function CharacterScreen() {
               </View>
             </View>
 
+            <Text style={styles.selectLabel}>Misc Bonuses (from gear, buffs, etc.)</Text>
+            <View style={styles.statsGrid}>
+              <View style={styles.statInput}>
+                <Text style={styles.label}>Attack</Text>
+                <TextInput
+                  style={styles.input}
+                  value={miscAttackBonus}
+                  onChangeText={setMiscAttackBonus}
+                  keyboardType="numeric"
+                  placeholder="0"
+                  placeholderTextColor="#8B7355"
+                />
+              </View>
+              <View style={styles.statInput}>
+                <Text style={styles.label}>Damage</Text>
+                <TextInput
+                  style={styles.input}
+                  value={miscDamageBonus}
+                  onChangeText={setMiscDamageBonus}
+                  keyboardType="numeric"
+                  placeholder="0"
+                  placeholderTextColor="#8B7355"
+                />
+              </View>
+            </View>
+
             <Text style={styles.helpText}>
-              These stats are used to calculate your wildshape combat values
+              These stats are used to calculate your wildshape combat values. Misc bonuses include things like Amulet of Mighty Fists, enhancement bonuses, etc.
             </Text>
           </BarkCard>
 
