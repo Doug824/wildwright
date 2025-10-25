@@ -6,7 +6,7 @@
  */
 
 import { useState } from 'react';
-import { ScrollView, View, Text, Pressable, StyleSheet } from 'react-native';
+import { ScrollView, View, Text, Pressable, StyleSheet, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { H2 } from '@/components/ui/Heading';

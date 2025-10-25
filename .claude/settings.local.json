@@ -17,7 +17,9 @@
       "Read(//mnt/c/Users/Doug_/Downloads/**)",
       "Read(//mnt/c/Users/Doug_/Desktop/WildWright Dev Testing/**)",
       "Bash(cat:*)",
-      "Bash(tail:*)"
+      "Bash(tail:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)"
     ],
     "deny": [],
     "ask": []
