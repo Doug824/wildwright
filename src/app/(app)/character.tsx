@@ -183,11 +183,14 @@ export default function CharacterScreen() {
   };
 
   const handleSave = () => {
-    // TODO: Save to Firestore
-    alert('Character saved!');
+    // TODO: Save to Firestore (needs Firestore rules)
+    console.log('Character data:', { name, level, effectiveDruidLevel, str, dex, con: con, int, wis, cha });
     if (isNew) {
-      // Navigate back to character picker after creating
-      router.replace('/character-picker');
+      // Navigate directly to app shell for now
+      alert('Character created! (Note: Firestore rules needed for persistence)');
+      router.replace('/(app)/home');
+    } else {
+      alert('Character saved!');
     }
   };
 
