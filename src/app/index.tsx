@@ -2,7 +2,7 @@
  * Root Index Screen
  *
  * Handles initial routing based on authentication state.
- * Redirects to sign-in if not authenticated, or tabs if authenticated.
+ * Redirects to sign-in if not authenticated, or character picker if authenticated.
  */
 
 import { useEffect } from 'react';
@@ -33,7 +33,7 @@ export default function Index() {
 
   // Redirect based on auth state
   if (user) {
-    return <Redirect href="/(tabs)" />;
+    return <Redirect href="/character-picker" />;
   } else {
     return <Redirect href="/(auth)/sign-in" />;
   }
