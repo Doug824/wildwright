@@ -175,7 +175,7 @@ export default function FormsScreen() {
   };
 
   const handleCreateForm = () => {
-    router.push('/(tabs)/character/forms/create');
+    router.push('/(app)/forms/create');
   };
 
   const handleCloneFromLibrary = () => {
