@@ -130,7 +130,10 @@ export default function CharacterPickerScreen() {
   }, [user]);
 
   const loadCharacters = async () => {
-    if (!user) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
 
     try {
       const q = query(
@@ -144,8 +147,13 @@ export default function CharacterPickerScreen() {
       })) as Character[];
 
       setCharacters(chars);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading characters:', error);
+      // Handle permissions error gracefully - just show empty state
+      if (error.code === 'permission-denied') {
+        console.warn('Firestore permissions not configured yet. Showing empty state.');
+      }
+      setCharacters([]);
     } finally {
       setLoading(false);
     }

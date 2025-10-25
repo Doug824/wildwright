@@ -13,6 +13,11 @@ export default function RootLayout() {
         }}
       >
         <Stack.Screen name="index" />
+        <Stack.Screen name="(auth)" />
+        <Stack.Screen name="character-picker" />
+        <Stack.Screen name="(app)" />
+        <Stack.Screen name="(tabs)" options={{ href: null }} />
+        <Stack.Screen name="playsheet-mock" options={{ href: null }} />
       </Stack>
     </>
   );
