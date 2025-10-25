@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#1A0F08',
+    color: '#4A3426',
     marginBottom: 16,
   },
   settingRow: {
@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
   },
   settingLabel: {
     fontSize: 16,
-    color: '#1A0F08',
+    color: '#4A3426',
     fontWeight: '600',
   },
   settingValue: {
@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
   },
   accountValue: {
     fontSize: 16,
-    color: '#1A0F08',
+    color: '#4A3426',
     fontWeight: '600',
   },
   dangerZone: {
