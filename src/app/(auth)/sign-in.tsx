@@ -7,19 +7,20 @@
 
 import { useState } from 'react';
 import { ScrollView, View, Text, Pressable, StyleSheet, Alert, Image } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { H2 } from '@/components/ui/Heading';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { LivingForestBg } from '@/components/ui/LivingForestBg';
+import { GlowHalo } from '@/components/ui/GlowHalo';
 import { useAuth } from '@/hooks';
 
 const styles = StyleSheet.create({
-  gradient: {
+  container: {
     flex: 1,
   },
-  container: {
+  scrollContainer: {
     flex: 1,
     paddingHorizontal: 20,
   },
@@ -33,16 +34,35 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 40,
   },
+  logoContainer: {
+    marginBottom: 20,
+  },
+  logo: {
+    width: 120,
+    height: 120,
+    borderRadius: 20,
+  },
+  appTitle: {
+    color: '#F9F5EB',
+    fontSize: 36,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginBottom: 8,
+    textShadowColor: '#7FD1A8',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 16,
+    letterSpacing: 2,
+  },
   subtitle: {
     color: '#E8DCC8',
     fontFamily: 'System',
     fontSize: 16,
     textAlign: 'center',
-    marginTop: 12,
+    marginTop: 8,
     letterSpacing: 0.5,
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
     textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
+    textShadowRadius: 3,
   },
   dividerContainer: {
     flexDirection: 'row',
@@ -128,26 +148,24 @@ export default function SignInScreen() {
   };
 
   return (
-    <LinearGradient
-      colors={['#0A1F1A', '#1A3A2E', '#234A3E', '#1A3A2E']}
-      style={styles.gradient}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-    >
-      <ScrollView style={styles.container}>
-        <View style={styles.content}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Image
-            source={require('../../../assets/icon.png')}
-            style={{ width: 100, height: 100, marginBottom: 16, borderRadius: 16 }}
-            resizeMode="contain"
-          />
-          <H2>Welcome Back</H2>
-          <Text style={styles.subtitle}>
-            Sign in to access your wild shapes
-          </Text>
-        </View>
+    <View style={styles.container}>
+      <LivingForestBg>
+        <ScrollView style={styles.scrollContainer}>
+          <View style={styles.content}>
+            {/* Header */}
+            <View style={styles.header}>
+              <GlowHalo color="green" style={styles.logoContainer}>
+                <Image
+                  source={require('../../../assets/icon.png')}
+                  style={styles.logo}
+                  resizeMode="contain"
+                />
+              </GlowHalo>
+              <Text style={styles.appTitle}>WildWright</Text>
+              <Text style={styles.subtitle}>
+                Sign in to access your wild shapes
+              </Text>
+            </View>
 
         {/* Sign In Form */}
         <Card>
@@ -220,8 +238,9 @@ export default function SignInScreen() {
             </Text>
           </Pressable>
         </View>
-        </View>
-      </ScrollView>
-    </LinearGradient>
+          </View>
+        </ScrollView>
+      </LivingForestBg>
+    </View>
   );
 }
