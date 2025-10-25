@@ -119,10 +119,10 @@ export default function SignInScreen() {
     try {
       setLoading(true);
       await signIn(email, password);
-      // Navigation will be handled by auth state change
+      // Force navigate after successful sign in
+      router.replace('/character-picker');
     } catch (error: any) {
       setError(error.message || 'Invalid credentials');
-    } finally {
       setLoading(false);
     }
   };
