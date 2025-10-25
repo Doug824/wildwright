@@ -6,7 +6,7 @@
  */
 
 import { useState } from 'react';
-import { View, Text, ScrollView, Pressable, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, Pressable, StyleSheet, Modal } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { LivingForestBg } from '@/components/ui/LivingForestBg';
 import { BarkCard } from '@/components/ui/BarkCard';
@@ -16,6 +16,8 @@ import { H2, H3 } from '@/components/ui/Heading';
 import { Button } from '@/components/ui/Button';
 import { Chip } from '@/components/ui/Chip';
 import { RuneProgress } from '@/components/ui/RuneProgress';
+import { Stat } from '@/components/ui/Stat';
+import { AttackRow } from '@/components/ui/AttackRow';
 
 const styles = StyleSheet.create({
   container: {
@@ -132,11 +134,11 @@ const styles = StyleSheet.create({
   favoritesRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    justifyContent: 'space-between',
     marginBottom: 16,
   },
   favoriteCard: {
     width: '48%',
-    marginRight: '2%',
     marginBottom: 12,
     padding: 16,
   },
@@ -147,8 +149,15 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   favoriteSubtitle: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#6B5344',
+    marginBottom: 2,
+  },
+  favoriteMovement: {
+    fontSize: 10,
+    color: '#8B7355',
+    marginTop: 4,
+    fontStyle: 'italic',
   },
   backButton: {
     position: 'absolute',
@@ -204,6 +213,67 @@ const styles = StyleSheet.create({
   quickActionButton: {
     flex: 1,
   },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    width: '100%',
+    maxWidth: 500,
+    maxHeight: '90%',
+  },
+  modalScroll: {
+    maxHeight: '100%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 16,
+  },
+  modalHeaderContent: {
+    flex: 1,
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#4A3426',
+    marginBottom: 4,
+  },
+  modalSubtitle: {
+    fontSize: 13,
+    color: '#6B5344',
+    marginBottom: 8,
+  },
+  modalSection: {
+    marginBottom: 16,
+  },
+  modalSectionTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#4A3426',
+    marginBottom: 8,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 16,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 12,
+  },
+  chipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginBottom: 8,
+  },
 });
 
 export default function DashboardScreen() {
@@ -212,9 +282,42 @@ export default function DashboardScreen() {
   const [activeForm, setActiveForm] = useState<any>(null); // Will be populated from DB
   const [dailyUsesLeft, setDailyUsesLeft] = useState(2);
   const [totalDailyUses, setTotalDailyUses] = useState(4);
+  const [selectedFormModal, setSelectedFormModal] = useState<any>(null);
 
   // Mock character name - will come from params/context
   const characterName = 'Thornclaw';
+
+  // Mock favorite forms - will come from DB filtered by favorite status
+  const favoriteForms = [
+    {
+      id: '1',
+      name: 'Leopard',
+      size: 'Large',
+      spell: 'Beast Shape III',
+      movement: '40 ft, Climb 20 ft',
+      attacks: [
+        { name: 'Bite', bonus: '+14', damage: '1d8+9', trait: 'Grab' },
+        { name: 'Claw', bonus: '+14', damage: '1d4+9' },
+        { name: 'Claw', bonus: '+14', damage: '1d4+9' },
+      ],
+      abilities: ['Pounce', 'Low-light vision', 'Scent'],
+      stats: { hp: 64, ac: 19, speed: '40 ft' },
+    },
+    {
+      id: '2',
+      name: 'Bear',
+      size: 'Large',
+      spell: 'Beast Shape II',
+      movement: '40 ft, Swim 20 ft',
+      attacks: [
+        { name: 'Bite', bonus: '+12', damage: '1d8+7' },
+        { name: 'Claw', bonus: '+12', damage: '1d6+7', trait: 'Grab' },
+        { name: 'Claw', bonus: '+12', damage: '1d6+7', trait: 'Grab' },
+      ],
+      abilities: ['Low-light vision', 'Scent'],
+      stats: { hp: 70, ac: 17, speed: '40 ft' },
+    },
+  ];
 
   const handleAssumeShape = () => {
     router.push('/(app)/forms');
@@ -236,6 +339,23 @@ export default function DashboardScreen() {
   const handleLogout = () => {
     // TODO: Add auth logout
     router.replace('/(auth)/sign-in');
+  };
+
+  const handleOpenFormModal = (form: any) => {
+    setSelectedFormModal(form);
+  };
+
+  const handleCloseFormModal = () => {
+    setSelectedFormModal(null);
+  };
+
+  const handleAssumeFormFromModal = () => {
+    if (selectedFormModal) {
+      setActiveForm(selectedFormModal);
+      setDailyUsesLeft(prev => Math.max(0, prev - 1));
+      setSelectedFormModal(null);
+      // TODO: Save to DB
+    }
   };
 
   return (
@@ -281,8 +401,9 @@ export default function DashboardScreen() {
                       {activeForm.size} • {activeForm.spell}
                     </Text>
                     <View style={styles.chipRow}>
-                      <Chip label="Pounce" variant="mist" />
-                      <Chip label="Flanking" variant="default" />
+                      {activeForm.abilities.slice(0, 3).map((ability: string, idx: number) => (
+                        <Chip key={idx} label={ability} variant="mist" />
+                      ))}
                     </View>
                   </View>
                   <RuneProgress used={dailyUsesLeft} total={totalDailyUses} label="Uses Left" />
@@ -291,15 +412,15 @@ export default function DashboardScreen() {
                 <View style={styles.statsPreview}>
                   <View style={styles.statQuick}>
                     <Text style={styles.statLabel}>HP</Text>
-                    <Text style={styles.statValue}>64</Text>
+                    <Text style={styles.statValue}>{activeForm.stats.hp}</Text>
                   </View>
                   <View style={styles.statQuick}>
                     <Text style={styles.statLabel}>AC</Text>
-                    <Text style={styles.statValue}>19</Text>
+                    <Text style={styles.statValue}>{activeForm.stats.ac}</Text>
                   </View>
                   <View style={styles.statQuick}>
                     <Text style={styles.statLabel}>Speed</Text>
-                    <Text style={styles.statValue}>40 ft</Text>
+                    <Text style={styles.statValue}>{activeForm.stats.speed}</Text>
                   </View>
                 </View>
 
@@ -349,23 +470,109 @@ export default function DashboardScreen() {
           {/* Favorites */}
           <View>
             <Text style={styles.sectionTitle}>Favorite Forms</Text>
-            <View style={styles.favoritesRow}>
-              <Pressable onPress={handleAssumeShape}>
-                <MistCard intensity="light" style={styles.favoriteCard}>
-                  <Text style={styles.favoriteName}>Leopard</Text>
-                  <Text style={styles.favoriteSubtitle}>Large • Beast III</Text>
-                </MistCard>
-              </Pressable>
-
-              <Pressable onPress={handleAssumeShape}>
-                <MistCard intensity="light" style={styles.favoriteCard}>
-                  <Text style={styles.favoriteName}>Bear</Text>
-                  <Text style={styles.favoriteSubtitle}>Large • Beast II</Text>
-                </MistCard>
-              </Pressable>
-            </View>
+            {favoriteForms.length > 0 ? (
+              <View style={styles.favoritesRow}>
+                {favoriteForms.map((form) => (
+                  <Pressable key={form.id} onPress={() => handleOpenFormModal(form)}>
+                    <BarkCard style={styles.favoriteCard}>
+                      <Text style={styles.favoriteName}>{form.name}</Text>
+                      <Text style={styles.favoriteSubtitle}>
+                        {form.size} • {form.spell}
+                      </Text>
+                      <Text style={styles.favoriteMovement}>
+                        {form.movement}
+                      </Text>
+                    </BarkCard>
+                  </Pressable>
+                ))}
+              </View>
+            ) : (
+              <MistCard intensity="light">
+                <Text style={{ textAlign: 'center', color: '#6B5344', padding: 20 }}>
+                  No favorite forms yet. Star a form to add it here!
+                </Text>
+              </MistCard>
+            )}
           </View>
         </ScrollView>
+
+        {/* Form Detail Modal */}
+        <Modal
+          visible={!!selectedFormModal}
+          transparent
+          animationType="fade"
+          onRequestClose={handleCloseFormModal}
+        >
+          <Pressable style={styles.modalOverlay} onPress={handleCloseFormModal}>
+            <Pressable onPress={(e) => e.stopPropagation()}>
+              <View style={styles.modalContent}>
+                <BarkCard>
+                  <ScrollView style={styles.modalScroll}>
+                    {selectedFormModal && (
+                      <>
+                        {/* Header */}
+                        <View style={styles.modalHeader}>
+                          <View style={styles.modalHeaderContent}>
+                            <Text style={styles.modalTitle}>{selectedFormModal.name}</Text>
+                            <Text style={styles.modalSubtitle}>
+                              {selectedFormModal.size} • {selectedFormModal.spell}
+                            </Text>
+                            <View style={styles.chipRow}>
+                              {selectedFormModal.abilities.map((ability: string, idx: number) => (
+                                <Chip key={idx} label={ability} variant="mist" />
+                              ))}
+                            </View>
+                          </View>
+                        </View>
+
+                        {/* Stats */}
+                        <View style={styles.modalSection}>
+                          <Text style={styles.modalSectionTitle}>Stats</Text>
+                          <View style={styles.statsRow}>
+                            <Stat label="HP" value={selectedFormModal.stats.hp.toString()} />
+                            <Stat label="AC" value={selectedFormModal.stats.ac.toString()} />
+                            <Stat label="Speed" value={selectedFormModal.movement} />
+                          </View>
+                        </View>
+
+                        {/* Attacks */}
+                        <View style={styles.modalSection}>
+                          <Text style={styles.modalSectionTitle}>Natural Attacks</Text>
+                          {selectedFormModal.attacks.map((attack: any, idx: number) => (
+                            <AttackRow
+                              key={idx}
+                              name={attack.name}
+                              bonus={attack.bonus}
+                              damage={attack.damage}
+                              trait={attack.trait}
+                            />
+                          ))}
+                        </View>
+
+                        {/* Actions */}
+                        <View style={styles.modalActions}>
+                          <Button
+                            variant="outline"
+                            onPress={handleCloseFormModal}
+                            style={{ flex: 1 }}
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            onPress={handleAssumeFormFromModal}
+                            style={{ flex: 1 }}
+                          >
+                            Assume Form
+                          </Button>
+                        </View>
+                      </>
+                    )}
+                  </ScrollView>
+                </BarkCard>
+              </View>
+            </Pressable>
+          </Pressable>
+        </Modal>
       </LivingForestBg>
     </View>
   );
