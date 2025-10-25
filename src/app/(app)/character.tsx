@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#1A0F08',
+    color: '#4A3426',
     marginBottom: 16,
     textShadowColor: '#7FD1A8',
     textShadowOffset: { width: 0, height: 0 },
@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
     borderColor: '#8B7355',
     padding: 12,
     fontSize: 16,
-    color: '#1A0F08',
+    color: '#4A3426',
     fontWeight: '600',
   },
   statsGrid: {
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
   sliderValue: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#1A0F08',
+    color: '#4A3426',
     textAlign: 'center',
     marginBottom: 12,
   },
@@ -132,6 +132,20 @@ const styles = StyleSheet.create({
     marginTop: 20,
     marginBottom: 40,
   },
+  selectRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 8,
+    marginBottom: 16,
+  },
+  selectLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#4A3426',
+    marginBottom: 8,
+    marginTop: 8,
+  },
 });
 
 export default function CharacterScreen() {
@@ -151,6 +165,21 @@ export default function CharacterScreen() {
   const [int, setInt] = useState('12');
   const [wis, setWis] = useState('18');
   const [cha, setCha] = useState('10');
+
+  // Combat Stats
+  const [baseAttackBonus, setBaseAttackBonus] = useState('7');
+  const [baseNaturalArmor, setBaseNaturalArmor] = useState('0');
+  const [dodgeBonus, setDodgeBonus] = useState('0');
+  const [fortSave, setFortSave] = useState('8');
+  const [refSave, setRefSave] = useState('5');
+  const [willSave, setWillSave] = useState('8');
+  const [armorBonus, setArmorBonus] = useState('0');
+  const [deflectionBonus, setDeflectionBonus] = useState('0');
+  const [shieldBonus, setShieldBonus] = useState('0');
+  const [attackStatModifier, setAttackStatModifier] = useState<'STR' | 'DEX' | 'WIS'>('STR');
+  const [damageStatModifier, setDamageStatModifier] = useState<'STR' | 'DEX' | 'WIS'>('STR');
+  const [damageMultiplier, setDamageMultiplier] = useState<'1' | '1.5' | '2'>('1');
+  const [baseHP, setBaseHP] = useState('64');
 
   // Feats/Traits
   const [activeFeats, setActiveFeats] = useState<Set<string>>(
@@ -314,6 +343,170 @@ export default function CharacterScreen() {
             </View>
             <Text style={styles.helpText}>
               These are your character's natural ability scores
+            </Text>
+          </BarkCard>
+
+          {/* Combat Stats */}
+          <BarkCard style={styles.sectionCard}>
+            <Text style={styles.sectionTitle}>Combat Stats</Text>
+
+            <View style={styles.statsGrid}>
+              <View style={styles.statInput}>
+                <Text style={styles.label}>BAB</Text>
+                <TextInput
+                  style={styles.input}
+                  value={baseAttackBonus}
+                  onChangeText={setBaseAttackBonus}
+                  keyboardType="numeric"
+                  placeholder="7"
+                  placeholderTextColor="#8B7355"
+                />
+              </View>
+              <View style={styles.statInput}>
+                <Text style={styles.label}>Base HP</Text>
+                <TextInput
+                  style={styles.input}
+                  value={baseHP}
+                  onChangeText={setBaseHP}
+                  keyboardType="numeric"
+                  placeholder="64"
+                  placeholderTextColor="#8B7355"
+                />
+              </View>
+              <View style={styles.statInput}>
+                <Text style={styles.label}>Nat Armor</Text>
+                <TextInput
+                  style={styles.input}
+                  value={baseNaturalArmor}
+                  onChangeText={setBaseNaturalArmor}
+                  keyboardType="numeric"
+                  placeholder="0"
+                  placeholderTextColor="#8B7355"
+                />
+              </View>
+            </View>
+
+            <View style={styles.statsGrid}>
+              <View style={styles.statInput}>
+                <Text style={styles.label}>Fort</Text>
+                <TextInput
+                  style={styles.input}
+                  value={fortSave}
+                  onChangeText={setFortSave}
+                  keyboardType="numeric"
+                />
+              </View>
+              <View style={styles.statInput}>
+                <Text style={styles.label}>Ref</Text>
+                <TextInput
+                  style={styles.input}
+                  value={refSave}
+                  onChangeText={setRefSave}
+                  keyboardType="numeric"
+                />
+              </View>
+              <View style={styles.statInput}>
+                <Text style={styles.label}>Will</Text>
+                <TextInput
+                  style={styles.input}
+                  value={willSave}
+                  onChangeText={setWillSave}
+                  keyboardType="numeric"
+                />
+              </View>
+            </View>
+
+            <View style={styles.statsGrid}>
+              <View style={styles.statInput}>
+                <Text style={styles.label}>Armor</Text>
+                <TextInput
+                  style={styles.input}
+                  value={armorBonus}
+                  onChangeText={setArmorBonus}
+                  keyboardType="numeric"
+                  placeholder="0"
+                  placeholderTextColor="#8B7355"
+                />
+              </View>
+              <View style={styles.statInput}>
+                <Text style={styles.label}>Deflect</Text>
+                <TextInput
+                  style={styles.input}
+                  value={deflectionBonus}
+                  onChangeText={setDeflectionBonus}
+                  keyboardType="numeric"
+                  placeholder="0"
+                  placeholderTextColor="#8B7355"
+                />
+              </View>
+              <View style={styles.statInput}>
+                <Text style={styles.label}>Shield</Text>
+                <TextInput
+                  style={styles.input}
+                  value={shieldBonus}
+                  onChangeText={setShieldBonus}
+                  keyboardType="numeric"
+                  placeholder="0"
+                  placeholderTextColor="#8B7355"
+                />
+              </View>
+            </View>
+
+            <View style={styles.statsGrid}>
+              <View style={styles.statInput}>
+                <Text style={styles.label}>Dodge</Text>
+                <TextInput
+                  style={styles.input}
+                  value={dodgeBonus}
+                  onChangeText={setDodgeBonus}
+                  keyboardType="numeric"
+                  placeholder="0"
+                  placeholderTextColor="#8B7355"
+                />
+              </View>
+            </View>
+
+            <Text style={styles.selectLabel}>Attack Stat Modifier</Text>
+            <View style={styles.selectRow}>
+              <View onTouchEnd={() => setAttackStatModifier('STR')}>
+                <Chip label="STR" variant={attackStatModifier === 'STR' ? 'mist' : 'default'} />
+              </View>
+              <View onTouchEnd={() => setAttackStatModifier('DEX')}>
+                <Chip label="DEX" variant={attackStatModifier === 'DEX' ? 'mist' : 'default'} />
+              </View>
+              <View onTouchEnd={() => setAttackStatModifier('WIS')}>
+                <Chip label="WIS" variant={attackStatModifier === 'WIS' ? 'mist' : 'default'} />
+              </View>
+            </View>
+
+            <Text style={styles.selectLabel}>Damage Stat Modifier</Text>
+            <View style={styles.selectRow}>
+              <View onTouchEnd={() => setDamageStatModifier('STR')}>
+                <Chip label="STR" variant={damageStatModifier === 'STR' ? 'mist' : 'default'} />
+              </View>
+              <View onTouchEnd={() => setDamageStatModifier('DEX')}>
+                <Chip label="DEX" variant={damageStatModifier === 'DEX' ? 'mist' : 'default'} />
+              </View>
+              <View onTouchEnd={() => setDamageStatModifier('WIS')}>
+                <Chip label="WIS" variant={damageStatModifier === 'WIS' ? 'mist' : 'default'} />
+              </View>
+            </View>
+
+            <Text style={styles.selectLabel}>Damage Multiplier</Text>
+            <View style={styles.selectRow}>
+              <View onTouchEnd={() => setDamageMultiplier('1')}>
+                <Chip label="×1" variant={damageMultiplier === '1' ? 'mist' : 'default'} />
+              </View>
+              <View onTouchEnd={() => setDamageMultiplier('1.5')}>
+                <Chip label="×1.5" variant={damageMultiplier === '1.5' ? 'mist' : 'default'} />
+              </View>
+              <View onTouchEnd={() => setDamageMultiplier('2')}>
+                <Chip label="×2" variant={damageMultiplier === '2' ? 'mist' : 'default'} />
+              </View>
+            </View>
+
+            <Text style={styles.helpText}>
+              These stats are used to calculate your wildshape combat values
             </Text>
           </BarkCard>
 
