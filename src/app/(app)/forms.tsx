@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
   formName: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#1A0F08',
+    color: '#4A3426',
     marginBottom: 4,
   },
   formSubtitle: {
@@ -79,18 +79,20 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   favoriteButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    width: 48,
+    height: 48,
     borderRadius: 8,
     borderWidth: 2,
     borderColor: '#B97A3D',
     backgroundColor: 'rgba(185, 122, 61, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   favoriteButtonActive: {
     backgroundColor: 'rgba(185, 122, 61, 0.3)',
   },
   favoriteText: {
-    fontSize: 18,
+    fontSize: 20,
   },
   emptyState: {
     alignItems: 'center',
@@ -101,7 +103,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   emptyTitle: {
-    color: '#1A0F08',
+    color: '#4A3426',
     fontSize: 24,
     fontWeight: '700',
     textAlign: 'center',
@@ -170,8 +172,10 @@ export default function FormsScreen() {
   };
 
   const handleAssumeForm = (formId: string) => {
-    // Set active form and navigate to playsheet
-    router.push(`/(app)/playsheet?formId=${formId}`);
+    // TODO: Set active form in DB/context
+    // For now, navigate back to home where the form will be shown
+    // In production, this would save the form as active in Firestore
+    router.push('/(app)/home');
   };
 
   const handleCreateForm = () => {
