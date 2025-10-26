@@ -17,7 +17,7 @@ export default function AppShellLayout() {
           backgroundColor: '#2A4A3A', // forest-600
           borderTopColor: '#7FD1A8', // magical green glow
           borderTopWidth: 3,
-          height: Platform.OS === 'ios' ? 90 : 70,
+          height: Platform.OS === 'ios' ? 90 : Platform.OS === 'web' ? 60 : 70,
           paddingBottom: Platform.OS === 'ios' ? 28 : 12,
           paddingTop: 12,
           shadowColor: '#7FD1A8',
@@ -29,7 +29,7 @@ export default function AppShellLayout() {
         tabBarActiveTintColor: '#7FD1A8', // Magical green
         tabBarInactiveTintColor: '#F9F5EB', // Bright parchment - highly visible
         tabBarLabelStyle: {
-          fontSize: 10,
+          fontSize: Platform.OS === 'web' ? 12 : 10,
           fontWeight: '700',
           letterSpacing: 0.2,
           textShadowColor: 'rgba(0, 0, 0, 0.8)',
@@ -39,10 +39,10 @@ export default function AppShellLayout() {
           flexShrink: 0, // Prevent text from shrinking
         },
         tabBarItemStyle: {
-          paddingVertical: 4,
-          paddingHorizontal: 1,
+          paddingVertical: Platform.OS === 'web' ? 6 : 4,
+          paddingHorizontal: Platform.OS === 'web' ? 8 : 1,
           backgroundColor: 'rgba(74, 52, 38, 0.9)', // Dark brown bark - solid background
-          marginHorizontal: 1,
+          marginHorizontal: Platform.OS === 'web' ? 4 : 1,
           borderRadius: 8,
           borderWidth: 2,
           borderColor: 'rgba(139, 115, 85, 0.7)',
@@ -51,7 +51,8 @@ export default function AppShellLayout() {
           shadowOpacity: 0.2,
           shadowRadius: 4,
           flex: 1, // Distribute space evenly
-          maxWidth: 80, // Prevent tabs from getting too wide
+          maxWidth: Platform.OS === 'web' ? 120 : 80, // Larger on web
+          minWidth: Platform.OS === 'web' ? 80 : 60, // Minimum width
         },
         tabBarAllowFontScaling: false, // Prevent text from being cut off
         tabBarLabelPosition: 'below-icon', // Keep text below (even though no icon)

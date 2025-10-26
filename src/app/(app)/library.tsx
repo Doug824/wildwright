@@ -186,17 +186,26 @@ export default function LibraryScreen() {
   };
 
   const handleClone = async (templateId: string) => {
+    console.log('Clone attempt:', { userId, characterId, templateId });
+
     if (!userId || !characterId) {
-      alert('Please select a character first');
+      const message = `Please select a character first. (userId: ${userId ? 'OK' : 'MISSING'}, characterId: ${characterId ? 'OK' : 'MISSING'})`;
+      console.error(message);
+      alert(message);
       return;
     }
 
     try {
       const template = templates.find(t => t.id === templateId);
-      if (!template) return;
+      if (!template) {
+        console.error('Template not found:', templateId);
+        return;
+      }
+
+      console.log('Cloning template:', template.name);
 
       // Create a new form in wildShapeForms collection
-      await addDoc(collection(db, COLLECTIONS.WILD_SHAPE_FORMS), {
+      const docRef = await addDoc(collection(db, COLLECTIONS.WILD_SHAPE_FORMS), {
         ownerId: userId,
         characterId: characterId,
         name: template.name,
@@ -215,11 +224,12 @@ export default function LibraryScreen() {
         updatedAt: Timestamp.now(),
       });
 
+      console.log('Form created successfully with ID:', docRef.id);
       setClonedForms(prev => new Set(prev).add(templateId));
-      alert(`${template.name} learned! Check your Forms tab.`);
-    } catch (error) {
+      alert(`${template.name} learned! Go to Forms tab to see it.`);
+    } catch (error: any) {
       console.error('Error cloning form:', error);
-      alert('Error learning form. Please try again.');
+      alert(`Error learning form: ${error.message}`);
     }
   };
 
