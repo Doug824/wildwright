@@ -29,29 +29,32 @@ export default function AppShellLayout() {
         tabBarActiveTintColor: '#7FD1A8', // Magical green
         tabBarInactiveTintColor: '#F9F5EB', // Bright parchment - highly visible
         tabBarLabelStyle: {
-          fontSize: 11,
+          fontSize: 10,
           fontWeight: '700',
-          letterSpacing: 0.3,
+          letterSpacing: 0.2,
           textShadowColor: 'rgba(0, 0, 0, 0.8)',
           textShadowOffset: { width: 0, height: 1 },
           textShadowRadius: 3,
           marginTop: 2,
+          flexShrink: 0, // Prevent text from shrinking
         },
         tabBarItemStyle: {
           paddingVertical: 4,
-          paddingHorizontal: 2,
+          paddingHorizontal: 1,
           backgroundColor: 'rgba(74, 52, 38, 0.9)', // Dark brown bark - solid background
-          marginHorizontal: 2,
-          borderRadius: 10,
+          marginHorizontal: 1,
+          borderRadius: 8,
           borderWidth: 2,
           borderColor: 'rgba(139, 115, 85, 0.7)',
           shadowColor: '#7FD1A8',
           shadowOffset: { width: 0, height: 2 },
           shadowOpacity: 0.2,
           shadowRadius: 4,
-          minWidth: 60, // Ensure minimum width for text
+          flex: 1, // Distribute space evenly
+          maxWidth: 80, // Prevent tabs from getting too wide
         },
         tabBarAllowFontScaling: false, // Prevent text from being cut off
+        tabBarLabelPosition: 'below-icon', // Keep text below (even though no icon)
       }}
     >
       <Tabs.Screen
@@ -59,6 +62,14 @@ export default function AppShellLayout() {
         options={{
           title: 'Dashboard',
           tabBarLabel: 'Home',
+          tabBarIcon: () => null,
+        }}
+      />
+      <Tabs.Screen
+        name="forms"
+        options={{
+          title: 'Forms',
+          tabBarLabel: 'Forms',
           tabBarIcon: () => null,
         }}
       />
@@ -84,12 +95,6 @@ export default function AppShellLayout() {
           title: 'Settings',
           tabBarLabel: 'Settings',
           tabBarIcon: () => null,
-        }}
-      />
-      <Tabs.Screen
-        name="forms"
-        options={{
-          href: null, // Hidden from tabs - accessed via navigation
         }}
       />
       <Tabs.Screen

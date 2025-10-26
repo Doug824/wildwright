@@ -379,19 +379,22 @@ export default function DashboardScreen() {
       if (!characterId) return;
 
       try {
+        // Fetch all forms for this character, then filter locally
+        // This avoids needing a composite Firestore index
         const formsQuery = query(
           collection(db, COLLECTIONS.WILD_SHAPE_FORMS),
-          where('characterId', '==', characterId),
-          where('isFavorite', '==', true)
+          where('characterId', '==', characterId)
         );
         const snapshot = await getDocs(formsQuery);
 
-        const formsData = snapshot.docs.map(doc => ({
+        const allForms = snapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
         })) as WildShapeFormWithId[];
 
-        setFavoriteForms(formsData);
+        // Filter for favorites locally
+        const favorites = allForms.filter(form => form.isFavorite === true);
+        setFavoriteForms(favorites);
       } catch (error) {
         console.error('Error fetching favorite forms:', error);
       }
@@ -672,7 +675,7 @@ export default function DashboardScreen() {
               </View>
             ) : (
               <MistCard intensity="light">
-                <Text style={{ textAlign: 'center', color: '#6B5344', padding: 20 }}>
+                <Text style={{ textAlign: 'center', color: '#D4C5A9', padding: 20 }}>
                   No favorite forms yet. Star a form to add it here!
                 </Text>
               </MistCard>
