@@ -19,6 +19,7 @@ import { H2, H3 } from '@/components/ui/Heading';
 import { Button } from '@/components/ui/Button';
 import { Chip } from '@/components/ui/Chip';
 import { Stat } from '@/components/ui/Stat';
+import { Toast } from '@/components/ui/Toast';
 
 const styles = StyleSheet.create({
   container: {
@@ -133,6 +134,9 @@ export default function LibraryScreen() {
   const [loading, setLoading] = useState(true);
   const [characterId, setCharacterId] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastType, setToastType] = useState<'success' | 'error' | 'info'>('success');
 
   // Load characterId and userId from storage
   useEffect(() => {
@@ -226,11 +230,25 @@ export default function LibraryScreen() {
 
       console.log('Form created successfully with ID:', docRef.id);
       setClonedForms(prev => new Set(prev).add(templateId));
-      alert(`${template.name} learned! Go to Forms tab to see it.`);
+
+      // Show success toast
+      setToastMessage(`${template.name} learned! Check Forms tab.`);
+      setToastType('success');
+      setToastVisible(true);
     } catch (error: any) {
       console.error('Error cloning form:', error);
-      alert(`Error learning form: ${error.message}`);
+
+      // Show error toast
+      setToastMessage(`Error: ${error.message}`);
+      setToastType('error');
+      setToastVisible(true);
     }
+  };
+
+  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
+    setToastMessage(message);
+    setToastType(type);
+    setToastVisible(true);
   };
 
   const handleViewDetails = (templateId: string) => {
@@ -421,6 +439,14 @@ export default function LibraryScreen() {
             </BarkCard>
           ))}
         </ScrollView>
+
+        {/* Toast Notification */}
+        <Toast
+          message={toastMessage}
+          visible={toastVisible}
+          onHide={() => setToastVisible(false)}
+          type={toastType}
+        />
       </LivingForestBg>
     </View>
   );

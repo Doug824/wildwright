@@ -233,10 +233,6 @@ export default function FormsScreen() {
     }
   };
 
-  const handleCreateForm = () => {
-    router.push('/(app)/forms/create');
-  };
-
   const handleCloneFromLibrary = () => {
     router.push('/(app)/library');
   };
@@ -286,14 +282,6 @@ export default function FormsScreen() {
                 </Text>
                 <Button onPress={handleCloneFromLibrary} fullWidth>
                   Browse Library
-                </Button>
-                <Button
-                  variant="outline"
-                  onPress={handleCreateForm}
-                  fullWidth
-                  style={styles.createButton}
-                >
-                  + Create Custom Form
                 </Button>
               </View>
             </BarkCard>
@@ -345,16 +333,6 @@ export default function FormsScreen() {
                   </Button>
                 </BarkCard>
               ))}
-
-              {/* Create Button */}
-              <Button
-                variant="outline"
-                onPress={handleCreateForm}
-                fullWidth
-                style={styles.createButton}
-              >
-                + Create New Form
-              </Button>
             </>
           )}
         </ScrollView>

@@ -35,7 +35,8 @@ export default function AppShellLayout() {
           textShadowColor: 'rgba(0, 0, 0, 0.8)',
           textShadowOffset: { width: 0, height: 1 },
           textShadowRadius: 3,
-          marginTop: 2,
+          marginTop: 0, // Remove margin to prevent text from being pushed down
+          marginBottom: 0,
           flexShrink: 0, // Prevent text from shrinking
         },
         tabBarItemStyle: {
