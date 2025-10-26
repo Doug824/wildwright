@@ -10,6 +10,7 @@ import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator } from
 import { useRouter } from 'expo-router';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db, COLLECTIONS } from '@/lib/firebase';
+import { setCurrentCharacterId, setCurrentUserId } from '@/lib/storage';
 import { useAuth } from '@/hooks';
 import { LivingForestBg } from '@/components/ui/LivingForestBg';
 import { BarkCard } from '@/components/ui/BarkCard';
@@ -154,8 +155,14 @@ export default function CharacterPickerScreen() {
     }
   };
 
-  const handleSelectCharacter = (characterId: string) => {
-    // Store selected character and navigate to app
+  const handleSelectCharacter = async (characterId: string) => {
+    // Store selected character in AsyncStorage for access across tabs
+    await setCurrentCharacterId(characterId);
+    if (user) {
+      await setCurrentUserId(user.uid);
+    }
+
+    // Navigate to app with characterId in URL
     router.push(`/(app)/home?characterId=${characterId}`);
   };
 

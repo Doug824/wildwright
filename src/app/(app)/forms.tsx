@@ -10,6 +10,7 @@ import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator } from
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { collection, query, getDocs, where, updateDoc, doc } from 'firebase/firestore';
 import { db, COLLECTIONS } from '@/lib/firebase';
+import { getCurrentCharacterId } from '@/lib/storage';
 import { WildShapeFormWithId } from '@/types/firestore';
 import { LivingForestBg } from '@/components/ui/LivingForestBg';
 import { BarkCard } from '@/components/ui/BarkCard';
@@ -143,8 +144,16 @@ export default function FormsScreen() {
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
   const [forms, setForms] = useState<WildShapeFormWithId[]>([]);
   const [loading, setLoading] = useState(true);
+  const [characterId, setCharacterId] = useState<string | null>(null);
 
-  const characterId = params.characterId as string;
+  // Load characterId from storage
+  useEffect(() => {
+    const loadCharacterId = async () => {
+      const charId = await getCurrentCharacterId();
+      setCharacterId(charId);
+    };
+    loadCharacterId();
+  }, []);
 
   // Fetch user's learned forms from Firestore
   useEffect(() => {

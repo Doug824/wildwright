@@ -10,6 +10,7 @@ import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator } from
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { collection, query, getDocs, addDoc, where, Timestamp } from 'firebase/firestore';
 import { db, COLLECTIONS } from '@/lib/firebase';
+import { getCurrentCharacterId, getCurrentUserId } from '@/lib/storage';
 import { WildShapeTemplate, WildShapeTemplateWithId, CreatureSize } from '@/types/firestore';
 import { LivingForestBg } from '@/components/ui/LivingForestBg';
 import { BarkCard } from '@/components/ui/BarkCard';
@@ -130,9 +131,19 @@ export default function LibraryScreen() {
   const [templates, setTemplates] = useState<WildShapeTemplateWithId[]>([]);
   const [clonedForms, setClonedForms] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+  const [characterId, setCharacterId] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
 
-  const characterId = params.characterId as string;
-  const userId = params.userId as string; // TODO: Get from auth context
+  // Load characterId and userId from storage
+  useEffect(() => {
+    const loadIds = async () => {
+      const charId = await getCurrentCharacterId();
+      const uid = await getCurrentUserId();
+      setCharacterId(charId);
+      setUserId(uid);
+    };
+    loadIds();
+  }, []);
 
   // Fetch templates from Firestore
   useEffect(() => {
@@ -157,7 +168,10 @@ export default function LibraryScreen() {
     fetchTemplates();
   }, []);
 
-  const filters = ['Small', 'Medium', 'Large', 'Huge', 'Beast I', 'Beast II', 'Beast III'];
+  // Filter categories
+  const sizeFilters = ['Diminutive', 'Tiny', 'Small', 'Medium', 'Large', 'Huge', 'Gargantuan', 'Colossal'];
+  const typeFilters = ['Animal', 'Elemental', 'Plant', 'Magical Beast'];
+  const speedFilters = ['Swim', 'Climb', 'Land', 'Fly', 'Burrow'];
 
   const toggleFilter = (filter: string) => {
     setSelectedFilters(prev =>
@@ -165,6 +179,10 @@ export default function LibraryScreen() {
         ? prev.filter(f => f !== filter)
         : [...prev, filter]
     );
+  };
+
+  const clearFilters = () => {
+    setSelectedFilters([]);
   };
 
   const handleClone = async (templateId: string) => {
@@ -223,9 +241,41 @@ export default function LibraryScreen() {
 
   const filteredTemplates = templates.filter(template => {
     if (selectedFilters.length === 0) return true;
-    return selectedFilters.some(filter =>
-      template.size === filter || template.requiredSpellLevel.includes(filter)
+
+    // Separate filters by category
+    const selectedSizes = selectedFilters.filter(f => sizeFilters.includes(f));
+    const selectedTypes = selectedFilters.filter(f => typeFilters.includes(f));
+    const selectedSpeeds = selectedFilters.filter(f => speedFilters.includes(f));
+
+    // Check size filter (OR within category)
+    const matchesSize = selectedSizes.length === 0 || selectedSizes.includes(template.size);
+
+    // Check type filter (OR within category)
+    // Type comes from the seed data - need to check tags or derive from requiredSpellLevel
+    const templateType = template.tags.find(tag =>
+      tag.includes('animal') || tag.includes('elemental') || tag.includes('plant') || tag.includes('magical-beast')
     );
+    const matchesType = selectedTypes.length === 0 || selectedTypes.some(type => {
+      if (type === 'Animal') return templateType?.includes('animal');
+      if (type === 'Elemental') return templateType?.includes('elemental');
+      if (type === 'Plant') return templateType?.includes('plant');
+      if (type === 'Magical Beast') return templateType?.includes('magical-beast');
+      return false;
+    });
+
+    // Check speed filter (OR within category)
+    const matchesSpeed = selectedSpeeds.length === 0 || selectedSpeeds.some(speed => {
+      const movement = template.statModifications.movement;
+      if (speed === 'Swim') return !!movement.swim;
+      if (speed === 'Climb') return !!movement.climb;
+      if (speed === 'Land') return !!movement.land;
+      if (speed === 'Fly') return !!movement.fly;
+      if (speed === 'Burrow') return !!movement.burrow;
+      return false;
+    });
+
+    // All categories must match (AND logic between categories)
+    return matchesSize && matchesType && matchesSpeed;
   });
 
   if (loading) {
@@ -251,20 +301,69 @@ export default function LibraryScreen() {
           <View style={styles.header}>
             <Text style={styles.title}>Template Library</Text>
             <Text style={styles.subtitle}>
-              {templates.length} pre-built forms to explore
+              {filteredTemplates.length} of {templates.length} forms
+              {selectedFilters.length > 0 && (
+                <Text style={{ color: '#7FD1A8' }}> • {selectedFilters.length} filters active</Text>
+              )}
             </Text>
           </View>
 
           {/* Filters */}
-          <View style={styles.filterRow}>
-            {filters.map((filter) => (
-              <Pressable key={filter} onPress={() => toggleFilter(filter)}>
-                <Chip
-                  label={filter}
-                  variant={selectedFilters.includes(filter) ? 'mist' : 'default'}
-                />
-              </Pressable>
-            ))}
+          {selectedFilters.length > 0 && (
+            <Button variant="outline" onPress={clearFilters} fullWidth style={{ marginBottom: 12 }}>
+              Clear All Filters
+            </Button>
+          )}
+
+          {/* Size Filters */}
+          <View style={{ marginBottom: 12 }}>
+            <Text style={{ color: '#D4C5A9', fontSize: 12, fontWeight: '700', marginBottom: 6 }}>
+              SIZE
+            </Text>
+            <View style={styles.filterRow}>
+              {sizeFilters.map((filter) => (
+                <Pressable key={filter} onPress={() => toggleFilter(filter)}>
+                  <Chip
+                    label={filter}
+                    variant={selectedFilters.includes(filter) ? 'mist' : 'default'}
+                  />
+                </Pressable>
+              ))}
+            </View>
+          </View>
+
+          {/* Type Filters */}
+          <View style={{ marginBottom: 12 }}>
+            <Text style={{ color: '#D4C5A9', fontSize: 12, fontWeight: '700', marginBottom: 6 }}>
+              TYPE
+            </Text>
+            <View style={styles.filterRow}>
+              {typeFilters.map((filter) => (
+                <Pressable key={filter} onPress={() => toggleFilter(filter)}>
+                  <Chip
+                    label={filter}
+                    variant={selectedFilters.includes(filter) ? 'mist' : 'default'}
+                  />
+                </Pressable>
+              ))}
+            </View>
+          </View>
+
+          {/* Speed Filters */}
+          <View style={{ marginBottom: 16 }}>
+            <Text style={{ color: '#D4C5A9', fontSize: 12, fontWeight: '700', marginBottom: 6 }}>
+              MOVEMENT
+            </Text>
+            <View style={styles.filterRow}>
+              {speedFilters.map((filter) => (
+                <Pressable key={filter} onPress={() => toggleFilter(filter)}>
+                  <Chip
+                    label={filter}
+                    variant={selectedFilters.includes(filter) ? 'mist' : 'default'}
+                  />
+                </Pressable>
+              ))}
+            </View>
           </View>
 
           {/* Templates List */}
