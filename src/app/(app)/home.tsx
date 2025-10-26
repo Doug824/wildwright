@@ -138,9 +138,12 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   favoriteCard: {
-    width: '48%',
+    flex: 1,
+    minWidth: 140,
+    maxWidth: '48%',
+    marginHorizontal: 4,
     marginBottom: 12,
-    padding: 12,
+    padding: 14,
   },
   favoriteName: {
     fontSize: 16,
@@ -324,7 +327,12 @@ export default function DashboardScreen() {
   };
 
   const handleViewPlaysheet = () => {
-    router.push('/(app)/playsheet');
+    if (activeForm) {
+      router.push({
+        pathname: '/(app)/playsheet',
+        params: { formData: JSON.stringify(activeForm) }
+      });
+    }
   };
 
   const handleRest = () => {
@@ -463,8 +471,8 @@ export default function DashboardScreen() {
             {favoriteForms.length > 0 ? (
               <View style={styles.favoritesRow}>
                 {favoriteForms.map((form) => (
-                  <Pressable key={form.id} onPress={() => handleOpenFormModal(form)}>
-                    <MistCard intensity="medium" style={styles.favoriteCard}>
+                  <Pressable key={form.id} onPress={() => handleOpenFormModal(form)} style={styles.favoriteCard}>
+                    <BarkCard>
                       <Text style={styles.favoriteName}>{form.name}</Text>
                       <Text style={styles.favoriteSubtitle}>
                         {form.size} • {form.spell}
@@ -472,7 +480,7 @@ export default function DashboardScreen() {
                       <Text style={styles.favoriteMovement}>
                         {form.movement}
                       </Text>
-                    </MistCard>
+                    </BarkCard>
                   </Pressable>
                 ))}
               </View>

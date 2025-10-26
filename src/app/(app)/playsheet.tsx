@@ -125,8 +125,36 @@ const styles = StyleSheet.create({
 
 export default function PlaysheetScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams();
   const tabs = ['Attacks & Damage', 'Defense', 'Skills', 'Effects'];
   const [active, setActive] = React.useState(tabs[0]);
+
+  // Parse form data from params or use default
+  const formData = React.useMemo(() => {
+    if (params.formData) {
+      try {
+        return JSON.parse(params.formData as string);
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  }, [params.formData]);
+
+  // Default to Leopard if no form data provided (for development)
+  const form = formData || {
+    name: 'Leopard',
+    size: 'Large',
+    spell: 'Beast Shape III',
+    movement: '40 ft, Climb 20 ft',
+    attacks: [
+      { name: 'Bite', bonus: '+14', damage: '1d8+9', trait: 'Grab' },
+      { name: 'Claw', bonus: '+14', damage: '1d4+9' },
+      { name: 'Claw', bonus: '+14', damage: '1d4+9' },
+    ],
+    abilities: ['Pounce', 'Low-light vision', 'Scent'],
+    stats: { hp: 64, ac: 19, speed: '40 ft' },
+  };
 
   const handleRevertForm = () => {
     // Revert to normal form
@@ -153,18 +181,18 @@ export default function PlaysheetScreen() {
         </Pressable>
 
         <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-          {/* Header Card - Leopard Form */}
+          {/* Header Card */}
           <Card style={styles.cardMargin}>
             <View style={styles.headerRow}>
               <View style={styles.headerContent}>
-                <H2>Leopard</H2>
+                <H2>{form.name}</H2>
                 <Text style={styles.subtitle}>
-                  Large • Beast Shape III
+                  {form.size} • {form.spell}
                 </Text>
                 <View style={styles.chipRow}>
-                  <Chip label="Flanking" variant="default" />
-                  <Chip label="Planar" variant="default" />
-                  <Chip label="Pounce" variant="mist" />
+                  {form.abilities?.slice(0, 3).map((ability, idx) => (
+                    <Chip key={idx} label={ability} variant="mist" />
+                  ))}
                 </View>
               </View>
               <RuneProgress used={2} total={4} label="Uses Left" />
@@ -174,14 +202,13 @@ export default function PlaysheetScreen() {
           {/* Primary Stats Grid */}
           <Card style={styles.cardMargin}>
             <View style={styles.statsRow}>
-              <Stat label="HP" value="64/64" sub="Temp 0" />
-              <Stat label="AC" value="19" sub="Touch 13 • FF 16" />
-              <Stat label="Saves" value="F+9 R+10 W+6" />
+              <Stat label="HP" value={`${form.stats?.hp || 0}/${form.stats?.hp || 0}`} sub="Temp 0" />
+              <Stat label="AC" value={String(form.stats?.ac || 0)} sub="Touch 13 • FF 16" />
+              <Stat label="Speed" value={form.movement || 'Unknown'} />
             </View>
             <View style={styles.statsRowSpaced}>
-              <Stat label="Speed" value="40 ft" sub="Low-light • Scent" />
-              <Stat label="Size/Reach" value="Large / 10 ft" />
-              <Stat label="CMB/CMD" value="+14 / 25" />
+              <Stat label="Size" value={form.size} />
+              <Stat label="CMB/CMD" value="+14 / 25" sub="Calculated" />
             </View>
           </Card>
 
@@ -194,12 +221,18 @@ export default function PlaysheetScreen() {
               <Text style={styles.sectionTitle}>
                 Natural Attacks
               </Text>
-              <AttackRow name="Bite" bonus="+14" damage="1d8+9" trait="Grab" />
-              <AttackRow name="Claw" bonus="+14" damage="1d4+9" />
-              <AttackRow name="Claw" bonus="+14" damage="1d4+9" />
+              {form.attacks?.map((attack, idx) => (
+                <AttackRow
+                  key={idx}
+                  name={attack.name}
+                  bonus={attack.bonus}
+                  damage={attack.damage}
+                  trait={attack.trait}
+                />
+              ))}
 
               <Text style={styles.infoText}>
-                Full Attack: Bite +14 (1d8+9 plus grab), 2 claws +14 (1d4+9)
+                Full Attack: {form.attacks?.map(a => `${a.name} ${a.bonus} (${a.damage}${a.trait ? ` plus ${a.trait.toLowerCase()}` : ''})`).join(', ')}
               </Text>
             </Card>
           )}
@@ -208,23 +241,22 @@ export default function PlaysheetScreen() {
           {active === 'Defense' && (
             <Card style={styles.tabContent}>
               <Text style={styles.sectionTitle}>
-                Armor Class Breakdown
+                Armor Class
               </Text>
               <View style={styles.statsRow}>
-                <Stat label="Base" value="10" />
-                <Stat label="Natural" value="+3" />
-                <Stat label="Dex" value="+4" />
-                <Stat label="Size" value="-1" />
-                <Stat label="Misc" value="+3" />
+                <Stat label="Total AC" value={String(form.stats?.ac || 0)} />
+                <Stat label="Touch" value="Calculated" sub="Dex + Size" />
+                <Stat label="Flat-Footed" value="Calculated" sub="No Dex" />
               </View>
 
               <View style={styles.sectionSpacing}>
                 <Text style={styles.sectionTitle}>
-                  Defenses
+                  Special Abilities
                 </Text>
                 <View style={styles.chipRow}>
-                  <Chip label="Low-light vision" variant="mist" />
-                  <Chip label="Scent" variant="mist" />
+                  {form.abilities?.map((ability, idx) => (
+                    <Chip key={idx} label={ability} variant="mist" />
+                  ))}
                 </View>
               </View>
             </Card>

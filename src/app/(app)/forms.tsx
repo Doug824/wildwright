@@ -144,7 +144,7 @@ export default function FormsScreen() {
       name: 'Leopard',
       size: 'Large',
       spell: 'Beast Shape III',
-      tags: ['Pounce', 'Flanking', 'Planar'],
+      tags: ['Pounce', 'Grab'],
       isFavorite: true,
       movement: '40 ft, Climb 20 ft',
       attacks: [
@@ -160,7 +160,7 @@ export default function FormsScreen() {
       name: 'Brown Bear',
       size: 'Large',
       spell: 'Beast Shape II',
-      tags: ['Grab', 'Powerful'],
+      tags: ['Grab', 'Scent'],
       isFavorite: false,
       movement: '40 ft, Swim 20 ft',
       attacks: [

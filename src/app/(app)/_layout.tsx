@@ -27,12 +27,11 @@ export default function AppShellLayout() {
           elevation: 16,
         },
         tabBarActiveTintColor: '#7FD1A8', // Magical green
-        tabBarInactiveTintColor: '#8B7355', // Bark brown
+        tabBarInactiveTintColor: '#D4C5A9', // Light parchment - more visible
         tabBarLabelStyle: {
-          fontSize: 10,
+          fontSize: 11,
           fontWeight: '700',
-          letterSpacing: 1,
-          textTransform: 'uppercase',
+          letterSpacing: 0.5,
         },
         tabBarItemStyle: {
           paddingVertical: 4,
