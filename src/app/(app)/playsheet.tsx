@@ -12,7 +12,6 @@ import { LivingForestBg } from '@/components/ui/LivingForestBg';
 import { Card } from '@/components/ui/Card';
 import { H2 } from '@/components/ui/Heading';
 import { Chip } from '@/components/ui/Chip';
-import { RuneProgress } from '@/components/ui/RuneProgress';
 import { Stat } from '@/components/ui/Stat';
 import { Tabs } from '@/components/ui/Tabs';
 import { AttackRow } from '@/components/ui/AttackRow';
@@ -130,6 +129,19 @@ export default function PlaysheetScreen() {
   const tabs = ['Attacks & Damage', 'Defense', 'Skills', 'Effects'];
   const [active, setActive] = React.useState(tabs[0]);
 
+  // Parse computed data from params
+  const computedData = React.useMemo(() => {
+    if (params.computedData) {
+      try {
+        return JSON.parse(params.computedData as string);
+      } catch (error) {
+        console.error('Error parsing computed data:', error);
+        return null;
+      }
+    }
+    return null;
+  }, [params.computedData]);
+
   // Parse form data from params or use default
   const formData = React.useMemo(() => {
     if (params.formData) {
@@ -142,8 +154,26 @@ export default function PlaysheetScreen() {
     return null;
   }, [params.formData]);
 
-  // Default to Leopard if no form data provided (for development)
-  const form = formData || {
+  // Use computed data if available, otherwise fall back to mock
+  const form = computedData ? {
+    name: formData?.name || 'Wild Shape',
+    size: computedData.size,
+    spell: formData?.spell || 'Beast Shape',
+    movement: `${computedData.movement.land} ft${computedData.movement.climb ? `, Climb ${computedData.movement.climb} ft` : ''}${computedData.movement.swim ? `, Swim ${computedData.movement.swim} ft` : ''}${computedData.movement.fly ? `, Fly ${computedData.movement.fly} ft` : ''}`,
+    attacks: computedData.attacks.map((attack: any) => ({
+      name: attack.name,
+      bonus: attack.attackBonus >= 0 ? `+${attack.attackBonus}` : `${attack.attackBonus}`,
+      damage: attack.damageDice,
+      trait: attack.traits?.[0],
+    })),
+    abilities: computedData.traits,
+    stats: {
+      hp: computedData.hp.max,
+      ac: computedData.ac.total,
+      speed: `${computedData.movement.land} ft`,
+    },
+  } : {
+    // Default mock data for development
     name: 'Leopard',
     size: 'Large',
     spell: 'Beast Shape III',
@@ -195,7 +225,6 @@ export default function PlaysheetScreen() {
                   {form.size} • {form.spell}
                 </Text>
               </View>
-              <RuneProgress used={2} total={4} label="Uses" />
             </View>
 
             {/* Abilities Row */}

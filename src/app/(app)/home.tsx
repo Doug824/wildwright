@@ -6,8 +6,13 @@
  */
 
 import { useState, useEffect } from 'react';
-import { View, Text, ScrollView, Pressable, StyleSheet, Modal } from 'react-native';
+import { View, Text, ScrollView, Pressable, StyleSheet, Modal, ActivityIndicator } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { doc, getDoc } from 'firebase/firestore';
+import { db, COLLECTIONS } from '@/lib/firebase';
+import { Character, CharacterWithId } from '@/types/firestore';
+import { computePF1e } from '@/pf1e';
+import { characterToBaseCharacter } from '@/pf1e/adapters';
 import { LivingForestBg } from '@/components/ui/LivingForestBg';
 import { BarkCard } from '@/components/ui/BarkCard';
 import { MistCard } from '@/components/ui/MistCard';
@@ -15,7 +20,6 @@ import { GlowHalo } from '@/components/ui/GlowHalo';
 import { H2, H3 } from '@/components/ui/Heading';
 import { Button } from '@/components/ui/Button';
 import { Chip } from '@/components/ui/Chip';
-import { RuneProgress } from '@/components/ui/RuneProgress';
 import { Stat } from '@/components/ui/Stat';
 import { AttackRow } from '@/components/ui/AttackRow';
 
@@ -282,13 +286,40 @@ const styles = StyleSheet.create({
 export default function DashboardScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const [activeForm, setActiveForm] = useState<any>(null); // Will be populated from DB
-  const [dailyUsesLeft, setDailyUsesLeft] = useState(2);
-  const [totalDailyUses, setTotalDailyUses] = useState(4);
+  const [character, setCharacter] = useState<CharacterWithId | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [activeForm, setActiveForm] = useState<any>(null); // Will be computed playsheet
   const [selectedFormModal, setSelectedFormModal] = useState<any>(null);
 
-  // Mock character name - will come from params/context
-  const characterName = 'Thornclaw';
+  const characterName = character?.name || 'Loading...';
+
+  // Fetch character data
+  useEffect(() => {
+    const fetchCharacter = async () => {
+      const characterId = params.characterId as string;
+      if (!characterId) {
+        console.error('No character ID provided');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const characterDoc = await getDoc(doc(db, COLLECTIONS.CHARACTERS, characterId));
+        if (characterDoc.exists()) {
+          const characterData = { id: characterDoc.id, ...characterDoc.data() } as CharacterWithId;
+          setCharacter(characterData);
+        } else {
+          console.error('Character not found');
+        }
+      } catch (error) {
+        console.error('Error fetching character:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCharacter();
+  }, [params.characterId]);
 
   // Mock favorite forms - will come from DB filtered by favorite status
   const favoriteForms = [
@@ -327,17 +358,19 @@ export default function DashboardScreen() {
   };
 
   const handleViewPlaysheet = () => {
-    if (activeForm) {
+    if (activeForm && activeForm.computed) {
       router.push({
         pathname: '/(app)/playsheet',
-        params: { formData: JSON.stringify(activeForm) }
+        params: {
+          formData: JSON.stringify(activeForm),
+          computedData: JSON.stringify(activeForm.computed)
+        }
       });
     }
   };
 
   const handleRest = () => {
-    // Reset daily uses
-    setDailyUsesLeft(totalDailyUses);
+    // TODO: Implement rest functionality when daily uses tracking is added
   };
 
   const handleBackToCharacterPicker = () => {
@@ -358,11 +391,47 @@ export default function DashboardScreen() {
   };
 
   const handleAssumeFormFromModal = () => {
-    if (selectedFormModal) {
-      setActiveForm(selectedFormModal);
-      setDailyUsesLeft(prev => Math.max(0, prev - 1));
+    if (!selectedFormModal || !character) return;
+
+    try {
+      // Convert character to PF1e format
+      const baseChar = characterToBaseCharacter(character);
+
+      // For now, use a hardcoded Leopard form - later this will come from DB
+      // TODO: Replace with actual form from selectedFormModal when forms are in DB
+      const leopardForm = {
+        id: 'leopard',
+        name: 'Leopard',
+        kind: 'Animal' as const,
+        baseSize: 'Medium' as const,
+        naturalAttacks: [
+          { type: 'bite' as const, dice: '1d6', primary: true, traits: ['grab'] },
+          { type: 'claw' as const, dice: '1d3', count: 2, primary: false },
+        ],
+        movement: { land: 40, climb: 20 },
+        senses: { lowLight: true, scent: true },
+        traits: ['pounce', 'grab'],
+      };
+
+      // Compute the playsheet using PF1e engine
+      const computedPlaysheet = computePF1e({
+        base: baseChar,
+        form: leopardForm,
+        tier: 'Beast Shape II', // TODO: Auto-select based on character EDL
+        chosenSize: 'Large',
+      });
+
+      // Store computed playsheet as active form
+      setActiveForm({
+        ...selectedFormModal,
+        computed: computedPlaysheet,
+      });
+
       setSelectedFormModal(null);
-      // TODO: Save to DB
+      // TODO: Save to DB and track daily uses
+    } catch (error) {
+      console.error('Error computing wildshape form:', error);
+      alert('Error assuming form. Check console for details.');
     }
   };
 
@@ -372,7 +441,6 @@ export default function DashboardScreen() {
       try {
         const form = JSON.parse(params.assumedFormData as string);
         setActiveForm(form);
-        setDailyUsesLeft(prev => Math.max(0, prev - 1));
       } catch (error) {
         console.error('Error parsing assumed form data:', error);
       }
@@ -386,6 +454,40 @@ export default function DashboardScreen() {
       // Note: Don't restore uses - they're already consumed
     }
   }, [params.clearActiveForm]);
+
+  // Show loading state while fetching character
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <LivingForestBg>
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            <ActivityIndicator size="large" color="#7FD1A8" />
+            <Text style={{ color: '#F9F5EB', marginTop: 16, fontSize: 16 }}>
+              Loading character...
+            </Text>
+          </View>
+        </LivingForestBg>
+      </View>
+    );
+  }
+
+  // Show error if no character found
+  if (!character) {
+    return (
+      <View style={styles.container}>
+        <LivingForestBg>
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
+            <Text style={{ color: '#F9F5EB', fontSize: 20, fontWeight: '700', marginBottom: 16 }}>
+              Character Not Found
+            </Text>
+            <Button onPress={() => router.replace('/character-picker')}>
+              Back to Character Picker
+            </Button>
+          </View>
+        </LivingForestBg>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -435,7 +537,6 @@ export default function DashboardScreen() {
                       ))}
                     </View>
                   </View>
-                  <RuneProgress used={dailyUsesLeft} total={totalDailyUses} label="Uses Left" />
                 </View>
 
                 <View style={styles.statsPreview}>
