@@ -128,6 +128,10 @@ interface WildshapeForm {
   spell: string;
   tags: string[];
   isFavorite: boolean;
+  movement?: string;
+  attacks?: any[];
+  abilities?: string[];
+  stats?: any;
 }
 
 export default function FormsScreen() {
@@ -142,6 +146,14 @@ export default function FormsScreen() {
       spell: 'Beast Shape III',
       tags: ['Pounce', 'Flanking', 'Planar'],
       isFavorite: true,
+      movement: '40 ft, Climb 20 ft',
+      attacks: [
+        { name: 'Bite', bonus: '+14', damage: '1d8+9', trait: 'Grab' },
+        { name: 'Claw', bonus: '+14', damage: '1d4+9' },
+        { name: 'Claw', bonus: '+14', damage: '1d4+9' },
+      ],
+      abilities: ['Pounce', 'Low-light vision', 'Scent'],
+      stats: { hp: 64, ac: 19, speed: '40 ft' },
     },
     {
       id: '2',
@@ -150,6 +162,14 @@ export default function FormsScreen() {
       spell: 'Beast Shape II',
       tags: ['Grab', 'Powerful'],
       isFavorite: false,
+      movement: '40 ft, Swim 20 ft',
+      attacks: [
+        { name: 'Bite', bonus: '+12', damage: '1d8+7' },
+        { name: 'Claw', bonus: '+12', damage: '1d6+7', trait: 'Grab' },
+        { name: 'Claw', bonus: '+12', damage: '1d6+7', trait: 'Grab' },
+      ],
+      abilities: ['Low-light vision', 'Scent'],
+      stats: { hp: 70, ac: 17, speed: '40 ft' },
     },
   ]);
 
@@ -173,9 +193,18 @@ export default function FormsScreen() {
 
   const handleAssumeForm = (formId: string) => {
     // TODO: Set active form in DB/context
-    // For now, navigate back to home where the form will be shown
+    // For now, pass the form data via params
     // In production, this would save the form as active in Firestore
-    router.push('/(app)/home');
+    const form = forms.find(f => f.id === formId);
+    if (form) {
+      router.push({
+        pathname: '/(app)/home',
+        params: {
+          assumedFormId: formId,
+          assumedFormData: JSON.stringify(form)
+        }
+      });
+    }
   };
 
   const handleCreateForm = () => {
@@ -201,7 +230,7 @@ export default function FormsScreen() {
           <View style={styles.header}>
             <Text style={styles.title}>Your Forms</Text>
             <Text style={styles.subtitle}>
-              {forms.length} wildshape {forms.length === 1 ? 'form' : 'forms'} ready
+              {forms.length} wildshape {forms.length === 1 ? 'form' : 'forms'} known
             </Text>
           </View>
 

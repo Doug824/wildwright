@@ -49,6 +49,7 @@ export default function AppShellLayout() {
         options={{
           title: 'Dashboard',
           tabBarLabel: 'Home',
+          tabBarIcon: () => null,
         }}
       />
       <Tabs.Screen
@@ -56,6 +57,7 @@ export default function AppShellLayout() {
         options={{
           title: 'Forms',
           tabBarLabel: 'Forms',
+          tabBarIcon: () => null,
         }}
       />
       <Tabs.Screen
@@ -63,6 +65,7 @@ export default function AppShellLayout() {
         options={{
           title: 'Library',
           tabBarLabel: 'Library',
+          tabBarIcon: () => null,
         }}
       />
       <Tabs.Screen
@@ -70,6 +73,7 @@ export default function AppShellLayout() {
         options={{
           title: 'Character',
           tabBarLabel: 'Character',
+          tabBarIcon: () => null,
         }}
       />
       <Tabs.Screen
@@ -77,6 +81,7 @@ export default function AppShellLayout() {
         options={{
           title: 'Settings',
           tabBarLabel: 'Settings',
+          tabBarIcon: () => null,
         }}
       />
       <Tabs.Screen

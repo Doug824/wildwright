@@ -5,7 +5,7 @@
  * Entry point after character selection.
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { View, Text, ScrollView, Pressable, StyleSheet, Modal } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { LivingForestBg } from '@/components/ui/LivingForestBg';
@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
   favoriteCard: {
     width: '48%',
     marginBottom: 12,
-    padding: 16,
+    padding: 12,
   },
   favoriteName: {
     fontSize: 16,
@@ -358,6 +358,19 @@ export default function DashboardScreen() {
     }
   };
 
+  // Check if a form was assumed from the forms page
+  useEffect(() => {
+    if (params.assumedFormData) {
+      try {
+        const form = JSON.parse(params.assumedFormData as string);
+        setActiveForm(form);
+        setDailyUsesLeft(prev => Math.max(0, prev - 1));
+      } catch (error) {
+        console.error('Error parsing assumed form data:', error);
+      }
+    }
+  }, [params.assumedFormData]);
+
   return (
     <View style={styles.container}>
       <LivingForestBg>
@@ -444,29 +457,6 @@ export default function DashboardScreen() {
             </MistCard>
           )}
 
-          {/* Quick Actions */}
-          <View style={styles.quickActions}>
-            <Text style={styles.sectionTitle}>Quick Actions</Text>
-
-            <View style={styles.quickActionsRow}>
-              <Button
-                variant="default"
-                onPress={handleAssumeShape}
-                style={styles.quickActionButton}
-              >
-                🌿 Wildshape
-              </Button>
-
-              <Button
-                variant="outline"
-                onPress={handleRest}
-                style={styles.quickActionButton}
-              >
-                ⏰ Rest
-              </Button>
-            </View>
-          </View>
-
           {/* Favorites */}
           <View>
             <Text style={styles.sectionTitle}>Favorite Forms</Text>
@@ -474,7 +464,7 @@ export default function DashboardScreen() {
               <View style={styles.favoritesRow}>
                 {favoriteForms.map((form) => (
                   <Pressable key={form.id} onPress={() => handleOpenFormModal(form)}>
-                    <BarkCard style={styles.favoriteCard}>
+                    <MistCard intensity="medium" style={styles.favoriteCard}>
                       <Text style={styles.favoriteName}>{form.name}</Text>
                       <Text style={styles.favoriteSubtitle}>
                         {form.size} • {form.spell}
@@ -482,7 +472,7 @@ export default function DashboardScreen() {
                       <Text style={styles.favoriteMovement}>
                         {form.movement}
                       </Text>
-                    </BarkCard>
+                    </MistCard>
                   </Pressable>
                 ))}
               </View>
