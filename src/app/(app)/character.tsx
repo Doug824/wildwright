@@ -65,6 +65,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     textTransform: 'uppercase',
     letterSpacing: 1,
+    minHeight: 16,
   },
   input: {
     backgroundColor: 'rgba(249, 245, 235, 0.8)',
@@ -80,6 +81,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 12,
+    alignItems: 'flex-start',
   },
   statInput: {
     width: '30%',
@@ -189,16 +191,14 @@ export default function CharacterScreen() {
 
   // Feats/Traits
   const [activeFeats, setActiveFeats] = useState<Set<string>>(
-    new Set(['Natural Spell', 'Wildshape Focus'])
+    new Set(['Natural Spell'])
   );
 
+  // TODO: Add custom feats/traits system - need to research which feats affect wildshape mechanics
+  // and create a way for users to add custom feats with their effects
   const availableFeats = [
     'Natural Spell',
-    'Wildshape Focus',
-    'Powerful Shape',
     'Planar Wild Shape',
-    'Elemental Wild Shape',
-    'Beast Totem',
   ];
 
   const toggleFeat = (feat: string) => {

@@ -341,7 +341,7 @@ export default function DashboardScreen() {
   };
 
   const handleBackToCharacterPicker = () => {
-    router.back();
+    router.replace('/character-picker');
   };
 
   const handleLogout = () => {
@@ -378,6 +378,14 @@ export default function DashboardScreen() {
       }
     }
   }, [params.assumedFormData]);
+
+  // Check if form should be cleared (reverted)
+  useEffect(() => {
+    if (params.clearActiveForm === 'true') {
+      setActiveForm(null);
+      // Note: Don't restore uses - they're already consumed
+    }
+  }, [params.clearActiveForm]);
 
   return (
     <View style={styles.container}>

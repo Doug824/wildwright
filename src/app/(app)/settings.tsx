@@ -284,7 +284,7 @@ export default function SettingsScreen() {
           </BarkCard>
 
           {/* About */}
-          <MistCard intensity="light" style={styles.sectionCard}>
+          <BarkCard style={styles.sectionCard}>
             <Text style={styles.sectionTitle}>About</Text>
 
             <View style={styles.settingRow}>
@@ -309,11 +309,16 @@ export default function SettingsScreen() {
                 Delete Account
               </Button>
             </View>
-          </MistCard>
+          </BarkCard>
 
-          <Text style={styles.versionText}>
-            WildWright • Made with 🌿 for druids
-          </Text>
+          <View style={{ alignItems: 'center', marginTop: 20, marginBottom: 40 }}>
+            <Text style={styles.versionText}>
+              WildWright • Made with ❤️ for druids
+            </Text>
+            <Text style={styles.versionText}>
+              Built by Doug Hagan
+            </Text>
+          </View>
         </ScrollView>
       </LivingForestBg>
     </View>

@@ -27,19 +27,20 @@ export default function AppShellLayout() {
           elevation: 16,
         },
         tabBarActiveTintColor: '#7FD1A8', // Magical green
-        tabBarInactiveTintColor: '#D4C5A9', // Light parchment - more visible
+        tabBarInactiveTintColor: '#F9F5EB', // Bright parchment - highly visible
         tabBarLabelStyle: {
           fontSize: 11,
           fontWeight: '700',
           letterSpacing: 0.5,
+          textShadowColor: '#000',
+          textShadowOffset: { width: 0, height: 1 },
+          textShadowRadius: 2,
         },
         tabBarItemStyle: {
           paddingVertical: 4,
-          backgroundColor: 'rgba(92, 64, 51, 0.4)', // Semi-transparent bark
+          backgroundColor: 'transparent', // Remove background for better text visibility
           marginHorizontal: 2,
           borderRadius: 12,
-          borderWidth: 2,
-          borderColor: 'rgba(139, 115, 85, 0.5)',
         },
       }}
     >
@@ -75,12 +76,11 @@ export default function AppShellLayout() {
           tabBarIcon: () => null,
         }}
       />
+      {/* Settings removed - can be added back if needed via menu or button */}
       <Tabs.Screen
         name="settings"
         options={{
-          title: 'Settings',
-          tabBarLabel: 'Settings',
-          tabBarIcon: () => null,
+          href: null, // Hidden from tabs - access via settings button if needed
         }}
       />
       <Tabs.Screen

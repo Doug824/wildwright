@@ -7,7 +7,7 @@
 
 import React from 'react';
 import { ScrollView, View, Text, Pressable, StyleSheet } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { LivingForestBg } from '@/components/ui/LivingForestBg';
 import { Card } from '@/components/ui/Card';
 import { H2 } from '@/components/ui/Heading';
@@ -17,6 +17,7 @@ import { Stat } from '@/components/ui/Stat';
 import { Tabs } from '@/components/ui/Tabs';
 import { AttackRow } from '@/components/ui/AttackRow';
 import { Button } from '@/components/ui/Button';
+import { demonstrateCalculations } from '@/pf1e/example';
 
 const styles = StyleSheet.create({
   container: {
@@ -157,8 +158,11 @@ export default function PlaysheetScreen() {
   };
 
   const handleRevertForm = () => {
-    // Revert to normal form
-    router.back();
+    // Navigate back to home and clear active form
+    router.push({
+      pathname: '/(app)/home',
+      params: { clearActiveForm: 'true' }
+    });
   };
 
   const handleSwitchForm = () => {
@@ -302,6 +306,16 @@ export default function PlaysheetScreen() {
             </Button>
             <Button onPress={handleSwitchForm} style={{ flex: 1 }}>
               Switch Form
+            </Button>
+          </View>
+
+          {/* Demo Button (Development Only) */}
+          <View style={{ marginTop: 8 }}>
+            <Button onPress={() => {
+              console.log('\n🎯 RUNNING PF1E CALCULATION DEMO...\n');
+              demonstrateCalculations();
+            }} variant="outline">
+              🧪 Test PF1e Calculations (Check Console)
             </Button>
           </View>
 
