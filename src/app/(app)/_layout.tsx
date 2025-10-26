@@ -29,18 +29,24 @@ export default function AppShellLayout() {
         tabBarActiveTintColor: '#7FD1A8', // Magical green
         tabBarInactiveTintColor: '#F9F5EB', // Bright parchment - highly visible
         tabBarLabelStyle: {
-          fontSize: 11,
+          fontSize: 12,
           fontWeight: '700',
           letterSpacing: 0.5,
-          textShadowColor: '#000',
+          textShadowColor: 'rgba(0, 0, 0, 0.8)',
           textShadowOffset: { width: 0, height: 1 },
-          textShadowRadius: 2,
+          textShadowRadius: 3,
         },
         tabBarItemStyle: {
-          paddingVertical: 4,
-          backgroundColor: 'transparent', // Remove background for better text visibility
-          marginHorizontal: 2,
+          paddingVertical: 6,
+          backgroundColor: 'rgba(74, 52, 38, 0.9)', // Dark brown bark - solid background
+          marginHorizontal: 3,
           borderRadius: 12,
+          borderWidth: 2,
+          borderColor: 'rgba(139, 115, 85, 0.7)',
+          shadowColor: '#7FD1A8',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.2,
+          shadowRadius: 4,
         },
       }}
     >
