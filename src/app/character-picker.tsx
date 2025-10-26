@@ -133,7 +133,7 @@ export default function CharacterPickerScreen() {
     try {
       const q = query(
         collection(db, COLLECTIONS.CHARACTERS),
-        where('userId', '==', user.uid)
+        where('ownerId', '==', user.uid)
       );
       const snapshot = await getDocs(q);
       const chars = snapshot.docs.map(doc => ({

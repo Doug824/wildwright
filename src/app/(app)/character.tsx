@@ -6,8 +6,11 @@
  */
 
 import { useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TextInput } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TextInput, Alert } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { db, COLLECTIONS } from '@/lib/firebase';
+import { useAuth } from '@/hooks';
 import { LivingForestBg } from '@/components/ui/LivingForestBg';
 import { BarkCard } from '@/components/ui/BarkCard';
 import { H2, H3 } from '@/components/ui/Heading';
@@ -151,6 +154,7 @@ const styles = StyleSheet.create({
 export default function CharacterScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
+  const { user } = useAuth();
   const isNew = params.new === 'true';
 
   // Character state
@@ -213,33 +217,64 @@ export default function CharacterScreen() {
     setEffectiveDruidLevel(prev => Math.max(1, Math.min(20, prev + delta)));
   };
 
-  const handleSave = () => {
-    // TODO: Save to Firestore (needs Firestore rules)
-    console.log('Character data:', {
+  const handleSave = async () => {
+    if (!user) {
+      Alert.alert('Error', 'You must be logged in to save a character');
+      return;
+    }
+
+    const characterData = {
+      ownerId: user.uid, // CRITICAL: Required by Firestore rules
       name,
-      level,
+      level: parseInt(level) || 1,
       effectiveDruidLevel,
-      baseStats: { str, dex, con, int, wis, cha },
+      baseStats: {
+        str: parseInt(str) || 10,
+        dex: parseInt(dex) || 10,
+        con: parseInt(con) || 10,
+        int: parseInt(int) || 10,
+        wis: parseInt(wis) || 10,
+        cha: parseInt(cha) || 10,
+      },
       combatStats: {
-        baseAttackBonus,
-        baseHP,
-        baseNaturalArmor,
-        saves: { fort: fortSave, ref: refSave, will: willSave },
-        acBonuses: { armor: armorBonus, deflection: deflectionBonus, shield: shieldBonus, dodge: dodgeBonus },
+        baseAttackBonus: parseInt(baseAttackBonus) || 0,
+        baseHP: parseInt(baseHP) || 0,
+        baseNaturalArmor: parseInt(baseNaturalArmor) || 0,
+        saves: {
+          fort: parseInt(fortSave) || 0,
+          ref: parseInt(refSave) || 0,
+          will: parseInt(willSave) || 0,
+        },
+        acBonuses: {
+          armor: parseInt(armorBonus) || 0,
+          deflection: parseInt(deflectionBonus) || 0,
+          shield: parseInt(shieldBonus) || 0,
+          dodge: parseInt(dodgeBonus) || 0,
+        },
         attackStatModifier,
         damageStatModifier,
         damageMultiplier,
-        miscAttackBonus,
-        miscDamageBonus,
+        miscAttackBonus: parseInt(miscAttackBonus) || 0,
+        miscDamageBonus: parseInt(miscDamageBonus) || 0,
       },
       feats: Array.from(activeFeats),
-    });
-    if (isNew) {
-      // Navigate directly to app shell for now
-      alert('Character created! (Note: Firestore rules needed for persistence)');
-      router.replace('/(app)/home');
-    } else {
-      alert('Character saved!');
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    };
+
+    try {
+      if (isNew) {
+        // Create new character
+        await addDoc(collection(db, COLLECTIONS.CHARACTERS), characterData);
+        Alert.alert('Success', 'Character created successfully!');
+        router.replace('/character-picker');
+      } else {
+        // TODO: Update existing character
+        Alert.alert('Success', 'Character saved!');
+      }
+    } catch (error: any) {
+      console.error('Error saving character:', error);
+      Alert.alert('Error', `Failed to save character: ${error.message}`);
     }
   };
 

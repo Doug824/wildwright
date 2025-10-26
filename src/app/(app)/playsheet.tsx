@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
     paddingBottom: 80,
   },
   cardMargin: {
-    marginBottom: 6,
+    marginBottom: 8,
   },
   headerRow: {
     flexDirection: 'row',
@@ -181,34 +181,33 @@ export default function PlaysheetScreen() {
         </Pressable>
 
         <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-          {/* Header Card */}
+          {/* Header Card with Stats */}
           <Card style={styles.cardMargin}>
+            {/* Header Section */}
             <View style={styles.headerRow}>
               <View style={styles.headerContent}>
                 <H2>{form.name}</H2>
                 <Text style={styles.subtitle}>
                   {form.size} • {form.spell}
                 </Text>
-                <View style={styles.chipRow}>
-                  {form.abilities?.slice(0, 3).map((ability, idx) => (
-                    <Chip key={idx} label={ability} variant="mist" />
-                  ))}
-                </View>
               </View>
-              <RuneProgress used={2} total={4} label="Uses Left" />
+              <RuneProgress used={2} total={4} label="Uses" />
             </View>
-          </Card>
 
-          {/* Primary Stats Grid */}
-          <Card style={styles.cardMargin}>
-            <View style={styles.statsRow}>
-              <Stat label="HP" value={`${form.stats?.hp || 0}/${form.stats?.hp || 0}`} sub="Temp 0" />
-              <Stat label="AC" value={String(form.stats?.ac || 0)} sub="Touch 13 • FF 16" />
-              <Stat label="Speed" value={form.movement || 'Unknown'} />
+            {/* Abilities Row */}
+            <View style={styles.chipRow}>
+              {form.abilities?.map((ability, idx) => (
+                <Chip key={idx} label={ability} variant="mist" />
+              ))}
             </View>
-            <View style={styles.statsRowSpaced}>
-              <Stat label="Size" value={form.size} />
-              <Stat label="CMB/CMD" value="+14 / 25" sub="Calculated" />
+
+            {/* Stats Section */}
+            <View style={styles.sectionSpacing}>
+              <View style={styles.statsRow}>
+                <Stat label="HP" value={`${form.stats?.hp || 0}`} />
+                <Stat label="AC" value={String(form.stats?.ac || 0)} />
+                <Stat label="Speed" value={form.movement || 'Unknown'} />
+              </View>
             </View>
           </Card>
 
