@@ -10,7 +10,8 @@ import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator } from
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { collection, query, getDocs, addDoc, where, Timestamp } from 'firebase/firestore';
 import { db, COLLECTIONS } from '@/lib/firebase';
-import { getCurrentCharacterId, getCurrentUserId } from '@/lib/storage';
+import { getCurrentCharacterId } from '@/lib/storage';
+import { useAuth } from '@/hooks';
 import { WildShapeTemplate, WildShapeTemplateWithId, CreatureSize } from '@/types/firestore';
 import { LivingForestBg } from '@/components/ui/LivingForestBg';
 import { BarkCard } from '@/components/ui/BarkCard';
@@ -128,25 +129,23 @@ interface TemplateForm {
 export default function LibraryScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
+  const { user } = useAuth(); // Get authenticated user
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
   const [templates, setTemplates] = useState<WildShapeTemplateWithId[]>([]);
   const [clonedForms, setClonedForms] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [characterId, setCharacterId] = useState<string | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState('');
   const [toastVisible, setToastVisible] = useState(false);
   const [toastType, setToastType] = useState<'success' | 'error' | 'info'>('success');
 
-  // Load characterId and userId from storage
+  // Load characterId from storage
   useEffect(() => {
-    const loadIds = async () => {
+    const loadCharacterId = async () => {
       const charId = await getCurrentCharacterId();
-      const uid = await getCurrentUserId();
       setCharacterId(charId);
-      setUserId(uid);
     };
-    loadIds();
+    loadCharacterId();
   }, []);
 
   // Fetch templates from Firestore
@@ -190,12 +189,15 @@ export default function LibraryScreen() {
   };
 
   const handleClone = async (templateId: string) => {
+    const userId = user?.uid; // Use Firebase Auth user
     console.log('Clone attempt:', { userId, characterId, templateId });
 
     if (!userId || !characterId) {
       const message = `Please select a character first. (userId: ${userId ? 'OK' : 'MISSING'}, characterId: ${characterId ? 'OK' : 'MISSING'})`;
       console.error(message);
-      alert(message);
+      setToastMessage(message);
+      setToastType('error');
+      setToastVisible(true);
       return;
     }
 

@@ -11,6 +11,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { collection, query, getDocs, where, updateDoc, doc } from 'firebase/firestore';
 import { db, COLLECTIONS } from '@/lib/firebase';
 import { getCurrentCharacterId } from '@/lib/storage';
+import { useAuth } from '@/hooks';
 import { WildShapeFormWithId } from '@/types/firestore';
 import { LivingForestBg } from '@/components/ui/LivingForestBg';
 import { BarkCard } from '@/components/ui/BarkCard';
