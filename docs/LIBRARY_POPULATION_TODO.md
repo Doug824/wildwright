@@ -107,6 +107,27 @@ The library templates just store the **base form data** - all stat calculations 
 
 ---
 
-**Status**: TODO - Not yet implemented
-**Estimated Time**: 2-4 hours to create seed data + script
-**Dependencies**: PF1e engine ✅ Complete
+**Status**: ✅ COMPLETE - Seed script ready to run!
+
+## How to Use
+
+1. **Get Firebase Service Account Key**
+   - Visit Firebase Console → Project Settings → Service Accounts
+   - Generate new private key
+   - Save as `scripts/service-account-key.json`
+
+2. **Run the Seed Script**
+   ```bash
+   npm run seed-library
+   ```
+
+3. **Verify in Firestore**
+   - Check the `wildShapeTemplates` collection in Firebase Console
+   - Should see 24 starter forms
+
+See `scripts/README.md` for detailed instructions.
+
+**Dependencies**:
+- PF1e engine ✅ Complete
+- Seed script ✅ Complete
+- JSON data ✅ Complete (24 starter forms)

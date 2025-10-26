@@ -10,9 +10,11 @@ import { View, Text, ScrollView, Pressable, StyleSheet, Modal, ActivityIndicator
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { doc, getDoc } from 'firebase/firestore';
 import { db, COLLECTIONS } from '@/lib/firebase';
-import { Character, CharacterWithId } from '@/types/firestore';
+import { Character, CharacterWithId, CreatureSize } from '@/types/firestore';
 import { computePF1e } from '@/pf1e';
 import { characterToBaseCharacter } from '@/pf1e/adapters';
+import { getTierForEDL } from '@/pf1e/tiers';
+import { Tier } from '@/pf1e/types';
 import { LivingForestBg } from '@/components/ui/LivingForestBg';
 import { BarkCard } from '@/components/ui/BarkCard';
 import { MistCard } from '@/components/ui/MistCard';
@@ -281,6 +283,41 @@ const styles = StyleSheet.create({
     gap: 6,
     marginBottom: 8,
   },
+  selectorSection: {
+    marginBottom: 16,
+  },
+  selectorLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#4A3426',
+    marginBottom: 8,
+  },
+  selectorRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  selectorButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#8B7355',
+    backgroundColor: 'rgba(139, 115, 85, 0.1)',
+  },
+  selectorButtonActive: {
+    backgroundColor: '#7FD1A8',
+    borderColor: '#2A4A3A',
+  },
+  selectorButtonText: {
+    fontSize: 13,
+    color: '#4A3426',
+    fontWeight: '500',
+  },
+  selectorButtonTextActive: {
+    color: '#2A4A3A',
+    fontWeight: '700',
+  },
 });
 
 export default function DashboardScreen() {
@@ -290,6 +327,8 @@ export default function DashboardScreen() {
   const [loading, setLoading] = useState(true);
   const [activeForm, setActiveForm] = useState<any>(null); // Will be computed playsheet
   const [selectedFormModal, setSelectedFormModal] = useState<any>(null);
+  const [selectedTier, setSelectedTier] = useState<Tier | null>(null);
+  const [selectedSize, setSelectedSize] = useState<CreatureSize | null>(null);
 
   const characterName = character?.name || 'Loading...';
 
@@ -388,10 +427,36 @@ export default function DashboardScreen() {
 
   const handleCloseFormModal = () => {
     setSelectedFormModal(null);
+    setSelectedTier(null);
+    setSelectedSize(null);
   };
 
+  // Auto-select tier and size when modal opens
+  useEffect(() => {
+    if (selectedFormModal && character) {
+      const edl = character.baseStats.effectiveDruidLevel;
+      const tierAvailability = getTierForEDL(edl);
+
+      if (tierAvailability) {
+        // Auto-select the best animal tier (Beast Shape)
+        setSelectedTier(tierAvailability.animal);
+
+        // Auto-select Large size (good default for most forms)
+        // Or Medium if Large not available
+        const availableSizes = tierAvailability.sizes;
+        if (availableSizes.includes('Large')) {
+          setSelectedSize('Large');
+        } else if (availableSizes.includes('Medium')) {
+          setSelectedSize('Medium');
+        } else {
+          setSelectedSize(availableSizes[0]);
+        }
+      }
+    }
+  }, [selectedFormModal, character]);
+
   const handleAssumeFormFromModal = () => {
-    if (!selectedFormModal || !character) return;
+    if (!selectedFormModal || !character || !selectedTier || !selectedSize) return;
 
     try {
       // Convert character to PF1e format
@@ -413,21 +478,25 @@ export default function DashboardScreen() {
         traits: ['pounce', 'grab'],
       };
 
-      // Compute the playsheet using PF1e engine
+      // Compute the playsheet using PF1e engine with selected tier/size
       const computedPlaysheet = computePF1e({
         base: baseChar,
         form: leopardForm,
-        tier: 'Beast Shape II', // TODO: Auto-select based on character EDL
-        chosenSize: 'Large',
+        tier: selectedTier,
+        chosenSize: selectedSize,
       });
 
       // Store computed playsheet as active form
       setActiveForm({
         ...selectedFormModal,
         computed: computedPlaysheet,
+        tier: selectedTier,
+        size: selectedSize,
       });
 
       setSelectedFormModal(null);
+      setSelectedTier(null);
+      setSelectedSize(null);
       // TODO: Save to DB and track daily uses
     } catch (error) {
       console.error('Error computing wildshape form:', error);
@@ -632,6 +701,74 @@ export default function DashboardScreen() {
                           </View>
                         </View>
 
+                        {/* Tier Selection */}
+                        {character && (() => {
+                          const edl = character.baseStats.effectiveDruidLevel;
+                          const tierAvailability = getTierForEDL(edl);
+                          if (!tierAvailability) return null;
+
+                          const availableTiers: Tier[] = [tierAvailability.animal];
+                          if (tierAvailability.elemental) availableTiers.push(tierAvailability.elemental);
+                          if (tierAvailability.plant) availableTiers.push(tierAvailability.plant);
+
+                          return (
+                            <View style={styles.selectorSection}>
+                              <Text style={styles.selectorLabel}>Spell Tier (EDL {edl})</Text>
+                              <View style={styles.selectorRow}>
+                                {availableTiers.map((tier) => (
+                                  <Pressable
+                                    key={tier}
+                                    style={[
+                                      styles.selectorButton,
+                                      selectedTier === tier && styles.selectorButtonActive
+                                    ]}
+                                    onPress={() => setSelectedTier(tier)}
+                                  >
+                                    <Text style={[
+                                      styles.selectorButtonText,
+                                      selectedTier === tier && styles.selectorButtonTextActive
+                                    ]}>
+                                      {tier}
+                                    </Text>
+                                  </Pressable>
+                                ))}
+                              </View>
+                            </View>
+                          );
+                        })()}
+
+                        {/* Size Selection */}
+                        {character && selectedTier && (() => {
+                          const edl = character.baseStats.effectiveDruidLevel;
+                          const tierAvailability = getTierForEDL(edl);
+                          if (!tierAvailability) return null;
+
+                          return (
+                            <View style={styles.selectorSection}>
+                              <Text style={styles.selectorLabel}>Size</Text>
+                              <View style={styles.selectorRow}>
+                                {tierAvailability.sizes.map((size) => (
+                                  <Pressable
+                                    key={size}
+                                    style={[
+                                      styles.selectorButton,
+                                      selectedSize === size && styles.selectorButtonActive
+                                    ]}
+                                    onPress={() => setSelectedSize(size)}
+                                  >
+                                    <Text style={[
+                                      styles.selectorButtonText,
+                                      selectedSize === size && styles.selectorButtonTextActive
+                                    ]}>
+                                      {size}
+                                    </Text>
+                                  </Pressable>
+                                ))}
+                              </View>
+                            </View>
+                          );
+                        })()}
+
                         {/* Stats */}
                         <View style={styles.modalSection}>
                           <Text style={styles.modalSectionTitle}>Stats</Text>
@@ -658,19 +795,24 @@ export default function DashboardScreen() {
 
                         {/* Actions */}
                         <View style={styles.modalActions}>
-                          <Button
-                            variant="outline"
-                            onPress={handleCloseFormModal}
-                            style={{ flex: 1 }}
-                          >
-                            Cancel
-                          </Button>
-                          <Button
-                            onPress={handleAssumeFormFromModal}
-                            style={{ flex: 1 }}
-                          >
-                            Assume Form
-                          </Button>
+                          <View style={{ flex: 1 }}>
+                            <Button
+                              variant="outline"
+                              onPress={handleCloseFormModal}
+                              fullWidth
+                            >
+                              Cancel
+                            </Button>
+                          </View>
+                          <View style={{ flex: 1 }}>
+                            <Button
+                              onPress={handleAssumeFormFromModal}
+                              disabled={!selectedTier || !selectedSize}
+                              fullWidth
+                            >
+                              Assume Form
+                            </Button>
+                          </View>
                         </View>
                       </>
                     )}

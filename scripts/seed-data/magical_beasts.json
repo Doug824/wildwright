@@ -1,0 +1,47 @@
+[
+  {
+    "name": "Basilisk",
+    "slug": "basilisk",
+    "type": "Magical Beast",
+    "size": "Medium",
+    "speed": { "land": 20 },
+    "senses": ["darkvision 60", "low-light vision"],
+    "attacks": [{ "name": "bite", "damage": "1d8" }],
+    "abilities": ["petrifying gaze"],
+    "formTier": "Beast Shape III",
+    "minEDL": 8,
+    "tags": ["beast-shape-iii", "magical-beast"],
+    "source": "d20pfsrd"
+  },
+  {
+    "name": "Cockatrice",
+    "slug": "cockatrice",
+    "type": "Magical Beast",
+    "size": "Small",
+    "speed": { "land": 20, "fly": 60, "flyManeuver": "Poor" },
+    "senses": ["darkvision 60", "low-light vision"],
+    "attacks": [{ "name": "bite", "damage": "1d4" }],
+    "abilities": ["petrification"],
+    "formTier": "Beast Shape III",
+    "minEDL": 8,
+    "tags": ["beast-shape-iii", "magical-beast"],
+    "source": "d20pfsrd"
+  },
+  {
+    "name": "Griffon, Dwarf",
+    "slug": "griffon-dwarf",
+    "type": "Magical Beast",
+    "size": "Medium",
+    "speed": { "land": 30, "fly": 60 },
+    "senses": ["low-light vision", "darkvision 60"],
+    "attacks": [
+      { "name": "beak", "damage": "1d6" },
+      { "name": "talon", "damage": "1d4", "count": 2 }
+    ],
+    "abilities": ["pounce", "rake", "go for the eyes"],
+    "formTier": "Beast Shape III",
+    "minEDL": 8,
+    "tags": ["beast-shape-iii", "magical-beast", "griffon"],
+    "source": "d20pfsrd"
+  }
+]
