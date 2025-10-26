@@ -185,6 +185,9 @@ export interface WildShapeForm {
   requiredDruidLevel: number;
   requiredSpellLevel: string; // 'Beast Shape I', 'Beast Shape II', etc.
 
+  // User Preferences
+  isFavorite?: boolean; // Show on home screen as favorite
+
   // User Notes
   notes: string | null;
 

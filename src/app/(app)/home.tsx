@@ -8,9 +8,9 @@
 import { useState, useEffect } from 'react';
 import { View, Text, ScrollView, Pressable, StyleSheet, Modal, ActivityIndicator } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { db, COLLECTIONS } from '@/lib/firebase';
-import { Character, CharacterWithId, CreatureSize } from '@/types/firestore';
+import { Character, CharacterWithId, CreatureSize, WildShapeFormWithId } from '@/types/firestore';
 import { computePF1e } from '@/pf1e';
 import { characterToBaseCharacter } from '@/pf1e/adapters';
 import { getTierForEDL } from '@/pf1e/tiers';
@@ -329,8 +329,20 @@ export default function DashboardScreen() {
   const [selectedFormModal, setSelectedFormModal] = useState<any>(null);
   const [selectedTier, setSelectedTier] = useState<Tier | null>(null);
   const [selectedSize, setSelectedSize] = useState<CreatureSize | null>(null);
+  const [favoriteForms, setFavoriteForms] = useState<WildShapeFormWithId[]>([]);
 
   const characterName = character?.name || 'Loading...';
+
+  // Helper function to format movement
+  const formatMovement = (movement: any) => {
+    const parts = [];
+    if (movement.land) parts.push(`${movement.land} ft`);
+    if (movement.fly) parts.push(`fly ${movement.fly} ft`);
+    if (movement.swim) parts.push(`swim ${movement.swim} ft`);
+    if (movement.climb) parts.push(`climb ${movement.climb} ft`);
+    if (movement.burrow) parts.push(`burrow ${movement.burrow} ft`);
+    return parts.join(', ');
+  };
 
   // Fetch character data
   useEffect(() => {
@@ -360,37 +372,33 @@ export default function DashboardScreen() {
     fetchCharacter();
   }, [params.characterId]);
 
-  // Mock favorite forms - will come from DB filtered by favorite status
-  const favoriteForms = [
-    {
-      id: '1',
-      name: 'Leopard',
-      size: 'Large',
-      spell: 'Beast Shape III',
-      movement: '40 ft, Climb 20 ft',
-      attacks: [
-        { name: 'Bite', bonus: '+14', damage: '1d8+9', trait: 'Grab' },
-        { name: 'Claw', bonus: '+14', damage: '1d4+9' },
-        { name: 'Claw', bonus: '+14', damage: '1d4+9' },
-      ],
-      abilities: ['Pounce', 'Low-light vision', 'Scent'],
-      stats: { hp: 64, ac: 19, speed: '40 ft' },
-    },
-    {
-      id: '2',
-      name: 'Bear',
-      size: 'Large',
-      spell: 'Beast Shape II',
-      movement: '40 ft, Swim 20 ft',
-      attacks: [
-        { name: 'Bite', bonus: '+12', damage: '1d8+7' },
-        { name: 'Claw', bonus: '+12', damage: '1d6+7', trait: 'Grab' },
-        { name: 'Claw', bonus: '+12', damage: '1d6+7', trait: 'Grab' },
-      ],
-      abilities: ['Low-light vision', 'Scent'],
-      stats: { hp: 70, ac: 17, speed: '40 ft' },
-    },
-  ];
+  // Fetch favorite forms
+  useEffect(() => {
+    const fetchFavoriteForms = async () => {
+      const characterId = params.characterId as string;
+      if (!characterId) return;
+
+      try {
+        const formsQuery = query(
+          collection(db, COLLECTIONS.WILD_SHAPE_FORMS),
+          where('characterId', '==', characterId),
+          where('isFavorite', '==', true)
+        );
+        const snapshot = await getDocs(formsQuery);
+
+        const formsData = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        })) as WildShapeFormWithId[];
+
+        setFavoriteForms(formsData);
+      } catch (error) {
+        console.error('Error fetching favorite forms:', error);
+      }
+    };
+
+    fetchFavoriteForms();
+  }, [params.characterId]);
 
   const handleAssumeShape = () => {
     router.push('/(app)/forms');
@@ -653,10 +661,10 @@ export default function DashboardScreen() {
                     <BarkCard>
                       <Text style={styles.favoriteName}>{form.name}</Text>
                       <Text style={styles.favoriteSubtitle}>
-                        {form.size} • {form.spell}
+                        {form.size} • {form.requiredSpellLevel}
                       </Text>
                       <Text style={styles.favoriteMovement}>
-                        {form.movement}
+                        {formatMovement(form.statModifications.movement)}
                       </Text>
                     </BarkCard>
                   </Pressable>
@@ -691,10 +699,10 @@ export default function DashboardScreen() {
                           <View style={styles.modalHeaderContent}>
                             <Text style={styles.modalTitle}>{selectedFormModal.name}</Text>
                             <Text style={styles.modalSubtitle}>
-                              {selectedFormModal.size} • {selectedFormModal.spell}
+                              {selectedFormModal.size} • {selectedFormModal.requiredSpellLevel}
                             </Text>
                             <View style={styles.chipRow}>
-                              {selectedFormModal.abilities.map((ability: string, idx: number) => (
+                              {selectedFormModal.statModifications.specialAbilities.slice(0, 4).map((ability: string, idx: number) => (
                                 <Chip key={idx} label={ability} variant="mist" />
                               ))}
                             </View>
@@ -769,27 +777,21 @@ export default function DashboardScreen() {
                           );
                         })()}
 
-                        {/* Stats */}
+                        {/* Base Info */}
                         <View style={styles.modalSection}>
-                          <Text style={styles.modalSectionTitle}>Stats</Text>
-                          <View style={styles.statsRow}>
-                            <Stat label="HP" value={selectedFormModal.stats.hp.toString()} />
-                            <Stat label="AC" value={selectedFormModal.stats.ac.toString()} />
-                            <Stat label="Speed" value={selectedFormModal.movement} />
-                          </View>
+                          <Text style={styles.modalSectionTitle}>Movement</Text>
+                          <Text style={{ color: '#4A3426', fontSize: 16 }}>
+                            {formatMovement(selectedFormModal.statModifications.movement)}
+                          </Text>
                         </View>
 
-                        {/* Attacks */}
+                        {/* Natural Attacks */}
                         <View style={styles.modalSection}>
                           <Text style={styles.modalSectionTitle}>Natural Attacks</Text>
-                          {selectedFormModal.attacks.map((attack: any, idx: number) => (
-                            <AttackRow
-                              key={idx}
-                              name={attack.name}
-                              bonus={attack.bonus}
-                              damage={attack.damage}
-                              trait={attack.trait}
-                            />
+                          {selectedFormModal.statModifications.naturalAttacks.map((attack: any, idx: number) => (
+                            <Text key={idx} style={{ color: '#4A3426', fontSize: 14, marginBottom: 4 }}>
+                              • {attack.name} ({attack.damage}) {attack.count > 1 ? `x${attack.count}` : ''}
+                            </Text>
                           ))}
                         </View>
 

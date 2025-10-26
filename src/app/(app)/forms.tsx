@@ -5,9 +5,12 @@
  * Swipe cards with filters by size, spell tier, and tags.
  */
 
-import { useState } from 'react';
-import { View, Text, ScrollView, Pressable, StyleSheet } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useState, useEffect } from 'react';
+import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { collection, query, getDocs, where, updateDoc, doc } from 'firebase/firestore';
+import { db, COLLECTIONS } from '@/lib/firebase';
+import { WildShapeFormWithId } from '@/types/firestore';
 import { LivingForestBg } from '@/components/ui/LivingForestBg';
 import { BarkCard } from '@/components/ui/BarkCard';
 import { MistCard } from '@/components/ui/MistCard';
@@ -136,42 +139,43 @@ interface WildshapeForm {
 
 export default function FormsScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams();
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
-  const [forms, setForms] = useState<WildshapeForm[]>([
-    // Mock data - will come from Firestore
-    {
-      id: '1',
-      name: 'Leopard',
-      size: 'Large',
-      spell: 'Beast Shape III',
-      tags: ['Pounce', 'Grab'],
-      isFavorite: true,
-      movement: '40 ft, Climb 20 ft',
-      attacks: [
-        { name: 'Bite', bonus: '+14', damage: '1d8+9', trait: 'Grab' },
-        { name: 'Claw', bonus: '+14', damage: '1d4+9' },
-        { name: 'Claw', bonus: '+14', damage: '1d4+9' },
-      ],
-      abilities: ['Pounce', 'Low-light vision', 'Scent'],
-      stats: { hp: 64, ac: 19, speed: '40 ft' },
-    },
-    {
-      id: '2',
-      name: 'Brown Bear',
-      size: 'Large',
-      spell: 'Beast Shape II',
-      tags: ['Grab', 'Scent'],
-      isFavorite: false,
-      movement: '40 ft, Swim 20 ft',
-      attacks: [
-        { name: 'Bite', bonus: '+12', damage: '1d8+7' },
-        { name: 'Claw', bonus: '+12', damage: '1d6+7', trait: 'Grab' },
-        { name: 'Claw', bonus: '+12', damage: '1d6+7', trait: 'Grab' },
-      ],
-      abilities: ['Low-light vision', 'Scent'],
-      stats: { hp: 70, ac: 17, speed: '40 ft' },
-    },
-  ]);
+  const [forms, setForms] = useState<WildShapeFormWithId[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const characterId = params.characterId as string;
+
+  // Fetch user's learned forms from Firestore
+  useEffect(() => {
+    const fetchForms = async () => {
+      if (!characterId) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const formsQuery = query(
+          collection(db, COLLECTIONS.WILD_SHAPE_FORMS),
+          where('characterId', '==', characterId)
+        );
+        const snapshot = await getDocs(formsQuery);
+
+        const formsData = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        })) as WildShapeFormWithId[];
+
+        setForms(formsData);
+      } catch (error) {
+        console.error('Error fetching forms:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchForms();
+  }, [characterId]);
 
   const filters = ['Small', 'Medium', 'Large', 'Huge', 'Beast I', 'Beast II', 'Beast III'];
 
@@ -183,12 +187,25 @@ export default function FormsScreen() {
     );
   };
 
-  const toggleFavorite = (formId: string) => {
-    setForms(prev =>
-      prev.map(form =>
-        form.id === formId ? { ...form, isFavorite: !form.isFavorite } : form
-      )
-    );
+  const toggleFavorite = async (formId: string) => {
+    try {
+      const form = forms.find(f => f.id === formId);
+      if (!form) return;
+
+      // Update in Firestore
+      await updateDoc(doc(db, COLLECTIONS.WILD_SHAPE_FORMS, formId), {
+        isFavorite: !form.isFavorite,
+      });
+
+      // Update local state
+      setForms(prev =>
+        prev.map(f =>
+          f.id === formId ? { ...f, isFavorite: !f.isFavorite } : f
+        )
+      );
+    } catch (error) {
+      console.error('Error updating favorite:', error);
+    }
   };
 
   const handleAssumeForm = (formId: string) => {
@@ -218,9 +235,24 @@ export default function FormsScreen() {
   const filteredForms = forms.filter(form => {
     if (selectedFilters.length === 0) return true;
     return selectedFilters.some(filter =>
-      form.size === filter || form.spell.includes(filter)
+      form.size === filter || form.requiredSpellLevel.includes(filter)
     );
   });
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <LivingForestBg>
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            <ActivityIndicator size="large" color="#7FD1A8" />
+            <Text style={{ color: '#F9F5EB', marginTop: 16, fontSize: 16 }}>
+              Loading forms...
+            </Text>
+          </View>
+        </LivingForestBg>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -277,7 +309,7 @@ export default function FormsScreen() {
                     <View style={styles.formInfo}>
                       <Text style={styles.formName}>{form.name}</Text>
                       <Text style={styles.formSubtitle}>
-                        {form.size} • {form.spell}
+                        {form.size} • {form.requiredSpellLevel}
                       </Text>
                     </View>
                     <Pressable
@@ -294,8 +326,8 @@ export default function FormsScreen() {
                   </View>
 
                   <View style={styles.chipRow}>
-                    {form.tags.map((tag) => (
-                      <Chip key={tag} label={tag} variant="mist" />
+                    {form.statModifications.specialAbilities.slice(0, 4).map((ability, idx) => (
+                      <Chip key={idx} label={ability} variant="mist" />
                     ))}
                   </View>
 

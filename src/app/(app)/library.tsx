@@ -5,9 +5,12 @@
  * Read-only templates that can be cloned into your personal forms.
  */
 
-import { useState } from 'react';
-import { View, Text, ScrollView, Pressable, StyleSheet } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useState, useEffect } from 'react';
+import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { collection, query, getDocs, addDoc, where, Timestamp } from 'firebase/firestore';
+import { db, COLLECTIONS } from '@/lib/firebase';
+import { WildShapeTemplate, WildShapeTemplateWithId, CreatureSize } from '@/types/firestore';
 import { LivingForestBg } from '@/components/ui/LivingForestBg';
 import { BarkCard } from '@/components/ui/BarkCard';
 import { MistCard } from '@/components/ui/MistCard';
@@ -122,52 +125,37 @@ interface TemplateForm {
 
 export default function LibraryScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams();
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
+  const [templates, setTemplates] = useState<WildShapeTemplateWithId[]>([]);
   const [clonedForms, setClonedForms] = useState<Set<string>>(new Set());
+  const [loading, setLoading] = useState(true);
 
-  // Mock template data - will come from Firestore
-  const templates: TemplateForm[] = [
-    {
-      id: 't1',
-      name: 'Leopard',
-      size: 'Large',
-      spell: 'Beast Shape III',
-      tags: ['Pounce', 'Flanking', 'Grab'],
-      ac: '19',
-      hp: '64',
-      speed: '40 ft',
-    },
-    {
-      id: 't2',
-      name: 'Brown Bear',
-      size: 'Large',
-      spell: 'Beast Shape II',
-      tags: ['Grab', 'Powerful Build'],
-      ac: '17',
-      hp: '72',
-      speed: '30 ft',
-    },
-    {
-      id: 't3',
-      name: 'Eagle',
-      size: 'Small',
-      spell: 'Beast Shape I',
-      tags: ['Flight', 'Keen Senses'],
-      ac: '16',
-      hp: '32',
-      speed: '10 ft, fly 80 ft',
-    },
-    {
-      id: 't4',
-      name: 'Dire Wolf',
-      size: 'Large',
-      spell: 'Beast Shape III',
-      tags: ['Trip', 'Scent', 'Pack Tactics'],
-      ac: '18',
-      hp: '68',
-      speed: '50 ft',
-    },
-  ];
+  const characterId = params.characterId as string;
+  const userId = params.userId as string; // TODO: Get from auth context
+
+  // Fetch templates from Firestore
+  useEffect(() => {
+    const fetchTemplates = async () => {
+      try {
+        const templatesQuery = query(collection(db, COLLECTIONS.WILD_SHAPE_TEMPLATES));
+        const snapshot = await getDocs(templatesQuery);
+
+        const templatesData = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        })) as WildShapeTemplateWithId[];
+
+        setTemplates(templatesData);
+      } catch (error) {
+        console.error('Error fetching templates:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTemplates();
+  }, []);
 
   const filters = ['Small', 'Medium', 'Large', 'Huge', 'Beast I', 'Beast II', 'Beast III'];
 
@@ -179,11 +167,42 @@ export default function LibraryScreen() {
     );
   };
 
-  const handleClone = (templateId: string) => {
-    // Clone template to user's forms
-    setClonedForms(prev => new Set(prev).add(templateId));
-    // TODO: Actually create the form in Firestore
-    alert('Form cloned! Check your Forms tab.');
+  const handleClone = async (templateId: string) => {
+    if (!userId || !characterId) {
+      alert('Please select a character first');
+      return;
+    }
+
+    try {
+      const template = templates.find(t => t.id === templateId);
+      if (!template) return;
+
+      // Create a new form in wildShapeForms collection
+      await addDoc(collection(db, COLLECTIONS.WILD_SHAPE_FORMS), {
+        ownerId: userId,
+        characterId: characterId,
+        name: template.name,
+        edition: template.edition,
+        imageUrl: null,
+        baseTemplateId: templateId,
+        isCustom: false,
+        size: template.size,
+        tags: template.tags,
+        statModifications: template.statModifications,
+        requiredDruidLevel: template.requiredDruidLevel,
+        requiredSpellLevel: template.requiredSpellLevel,
+        isFavorite: false,
+        notes: template.description,
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now(),
+      });
+
+      setClonedForms(prev => new Set(prev).add(templateId));
+      alert(`${template.name} learned! Check your Forms tab.`);
+    } catch (error) {
+      console.error('Error cloning form:', error);
+      alert('Error learning form. Please try again.');
+    }
   };
 
   const handleViewDetails = (templateId: string) => {
@@ -191,12 +210,38 @@ export default function LibraryScreen() {
     router.push(`/(app)/playsheet?templateId=${templateId}`);
   };
 
+  // Helper function to format movement
+  const formatMovement = (movement: any) => {
+    const parts = [];
+    if (movement.land) parts.push(`${movement.land} ft`);
+    if (movement.fly) parts.push(`fly ${movement.fly} ft`);
+    if (movement.swim) parts.push(`swim ${movement.swim} ft`);
+    if (movement.climb) parts.push(`climb ${movement.climb} ft`);
+    if (movement.burrow) parts.push(`burrow ${movement.burrow} ft`);
+    return parts.join(', ');
+  };
+
   const filteredTemplates = templates.filter(template => {
     if (selectedFilters.length === 0) return true;
     return selectedFilters.some(filter =>
-      template.size === filter || template.spell.includes(filter)
+      template.size === filter || template.requiredSpellLevel.includes(filter)
     );
   });
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <LivingForestBg>
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            <ActivityIndicator size="large" color="#7FD1A8" />
+            <Text style={{ color: '#F9F5EB', marginTop: 16, fontSize: 16 }}>
+              Loading library...
+            </Text>
+          </View>
+        </LivingForestBg>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -228,25 +273,24 @@ export default function LibraryScreen() {
               <View style={styles.templateHeader}>
                 <Text style={styles.templateName}>{template.name}</Text>
                 <Text style={styles.templateSubtitle}>
-                  {template.size} • {template.spell}
+                  {template.size} • {template.requiredSpellLevel}
                 </Text>
               </View>
 
               <View style={styles.chipRow}>
-                {template.tags.map((tag) => (
-                  <Chip key={tag} label={tag} variant="mist" />
+                {template.statModifications.specialAbilities.slice(0, 4).map((ability, idx) => (
+                  <Chip key={idx} label={ability} variant="mist" />
                 ))}
               </View>
 
               <View style={styles.statsPreview}>
-                <Stat label="AC" value={template.ac} />
-                <Stat label="HP" value={template.hp} />
-                <Stat label="Speed" value={template.speed} />
+                <Stat label="EDL" value={template.requiredDruidLevel.toString()} />
+                <Stat label="Speed" value={formatMovement(template.statModifications.movement)} />
               </View>
 
               {clonedForms.has(template.id) ? (
                 <View style={styles.clonedBadge}>
-                  <Text style={styles.clonedText}>✓ Cloned to Your Forms</Text>
+                  <Text style={styles.clonedText}>✓ Learned!</Text>
                 </View>
               ) : (
                 <View style={styles.buttonRow}>
@@ -254,14 +298,14 @@ export default function LibraryScreen() {
                     onPress={() => handleClone(template.id)}
                     style={{ flex: 1 }}
                   >
-                    Clone Form
+                    Learn Form
                   </Button>
                   <Button
                     variant="outline"
                     onPress={() => handleViewDetails(template.id)}
                     style={{ flex: 1 }}
                   >
-                    View Details
+                    Details
                   </Button>
                 </View>
               )}
