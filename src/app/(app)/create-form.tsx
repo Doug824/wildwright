@@ -16,7 +16,8 @@ import { Chip } from '@/components/ui/Chip';
 import { SPECIAL_ABILITIES } from '@/pf1e/specialAbilities';
 import { doc, setDoc } from 'firebase/firestore';
 import { db, COLLECTIONS } from '@/lib/firebase';
-import { useCharacterStore } from '@/store/characterStore';
+import { getCurrentCharacterId } from '@/lib/storage';
+import { useAuth } from '@/hooks';
 
 const styles = StyleSheet.create({
   container: {
@@ -209,9 +210,19 @@ interface FormData {
 
 export default function CreateFormScreen() {
   const router = useRouter();
-  const { selectedCharacterId } = useCharacterStore();
+  const { user } = useAuth();
+  const [characterId, setCharacterId] = React.useState<string | null>(null);
   const [currentStep, setCurrentStep] = React.useState(0);
   const [isSaving, setIsSaving] = React.useState(false);
+
+  // Load characterId from storage
+  React.useEffect(() => {
+    const loadCharacterId = async () => {
+      const charId = await getCurrentCharacterId();
+      setCharacterId(charId);
+    };
+    loadCharacterId();
+  }, []);
 
   // Form State
   const [formData, setFormData] = React.useState<FormData>({
@@ -366,7 +377,7 @@ export default function CreateFormScreen() {
   };
 
   const handleSave = async () => {
-    if (!selectedCharacterId) {
+    if (!characterId) {
       alert('No character selected');
       return;
     }
@@ -390,7 +401,7 @@ export default function CreateFormScreen() {
       };
 
       await setDoc(
-        doc(db, COLLECTIONS.CHARACTERS, selectedCharacterId, 'forms', formId),
+        doc(db, COLLECTIONS.CHARACTERS, characterId, 'forms', formId),
         formDoc
       );
 
