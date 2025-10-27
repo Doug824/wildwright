@@ -6,9 +6,12 @@
  */
 
 import { Tabs } from 'expo-router';
-import { Platform } from 'react-native';
+import { Platform, useWindowDimensions } from 'react-native';
 
 export default function AppShellLayout() {
+  const { width } = useWindowDimensions();
+  const isNarrow = width < 400; // Phone-sized screen
+
   return (
     <Tabs
       screenOptions={{
@@ -29,7 +32,7 @@ export default function AppShellLayout() {
         tabBarActiveTintColor: '#7FD1A8', // Magical green
         tabBarInactiveTintColor: '#F9F5EB', // Bright parchment - highly visible
         tabBarLabelStyle: {
-          fontSize: Platform.OS === 'web' ? 13 : 11,
+          fontSize: isNarrow ? 16 : (Platform.OS === 'web' ? 13 : 11), // Larger emoji on narrow screens
           fontWeight: '700',
           letterSpacing: 0.1,
           textShadowColor: 'rgba(0, 0, 0, 0.8)',
@@ -39,10 +42,11 @@ export default function AppShellLayout() {
           marginBottom: 0,
           paddingVertical: 2,
           textAlign: 'center',
+          minHeight: 20, // Ensure minimum height
         },
         tabBarItemStyle: {
-          paddingVertical: Platform.OS === 'web' ? 10 : 6,
-          paddingHorizontal: Platform.OS === 'web' ? 6 : 3,
+          paddingVertical: isNarrow ? 8 : (Platform.OS === 'web' ? 10 : 6),
+          paddingHorizontal: isNarrow ? 4 : (Platform.OS === 'web' ? 6 : 3),
           backgroundColor: 'rgba(74, 52, 38, 0.9)', // Dark brown bark - solid background
           marginHorizontal: Platform.OS === 'web' ? 3 : 2,
           borderRadius: 8,
@@ -55,7 +59,7 @@ export default function AppShellLayout() {
           flex: 1,
           justifyContent: 'center', // Center content vertically
           alignItems: 'center', // Center content horizontally
-          overflow: 'hidden', // Prevent text from overflowing
+          minHeight: 40, // Ensure minimum height for touch targets
         },
         tabBarAllowFontScaling: false,
         tabBarIconStyle: {
@@ -67,7 +71,7 @@ export default function AppShellLayout() {
         name="home"
         options={{
           title: 'Dashboard',
-          tabBarLabel: '🏠 Home',
+          tabBarLabel: isNarrow ? '🏠' : '🏠 Home',
           tabBarIcon: () => null,
         }}
       />
@@ -75,7 +79,7 @@ export default function AppShellLayout() {
         name="forms"
         options={{
           title: 'Forms',
-          tabBarLabel: '📋 Forms',
+          tabBarLabel: isNarrow ? '📋' : '📋 Forms',
           tabBarIcon: () => null,
         }}
       />
@@ -83,7 +87,7 @@ export default function AppShellLayout() {
         name="library"
         options={{
           title: 'Library',
-          tabBarLabel: '📚 Library',
+          tabBarLabel: isNarrow ? '📚' : '📚 Library',
           tabBarIcon: () => null,
         }}
       />
@@ -91,7 +95,7 @@ export default function AppShellLayout() {
         name="character"
         options={{
           title: 'Character',
-          tabBarLabel: '⚔️ Char',
+          tabBarLabel: isNarrow ? '⚔️' : '⚔️ Char',
           tabBarIcon: () => null,
         }}
       />
@@ -99,7 +103,7 @@ export default function AppShellLayout() {
         name="settings"
         options={{
           title: 'Settings',
-          tabBarLabel: '⚙️ Settings',
+          tabBarLabel: isNarrow ? '⚙️' : '⚙️ Set',
           tabBarIcon: () => null,
         }}
       />
