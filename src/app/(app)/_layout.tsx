@@ -32,21 +32,20 @@ export default function AppShellLayout() {
         tabBarActiveTintColor: '#7FD1A8', // Magical green
         tabBarInactiveTintColor: '#F9F5EB', // Bright parchment - highly visible
         tabBarLabelStyle: {
-          fontSize: isNarrow ? 16 : (Platform.OS === 'web' ? 13 : 11), // Larger emoji on narrow screens
+          fontSize: isNarrow ? 18 : (Platform.OS === 'web' ? 13 : 11), // Larger emoji on narrow screens
           fontWeight: '700',
-          letterSpacing: 0.1,
+          letterSpacing: 0,
           textShadowColor: 'rgba(0, 0, 0, 0.8)',
           textShadowOffset: { width: 0, height: 1 },
           textShadowRadius: 3,
-          marginTop: 0,
-          marginBottom: 0,
-          paddingVertical: 2,
+          margin: 0,
+          padding: 0,
           textAlign: 'center',
-          minHeight: 20, // Ensure minimum height
+          lineHeight: isNarrow ? 24 : undefined, // Better emoji vertical alignment
         },
         tabBarItemStyle: {
-          paddingVertical: isNarrow ? 8 : (Platform.OS === 'web' ? 10 : 6),
-          paddingHorizontal: isNarrow ? 4 : (Platform.OS === 'web' ? 6 : 3),
+          paddingVertical: isNarrow ? 10 : (Platform.OS === 'web' ? 10 : 8),
+          paddingHorizontal: isNarrow ? 8 : (Platform.OS === 'web' ? 8 : 6),
           backgroundColor: 'rgba(74, 52, 38, 0.9)', // Dark brown bark - solid background
           marginHorizontal: Platform.OS === 'web' ? 3 : 2,
           borderRadius: 8,
@@ -57,9 +56,13 @@ export default function AppShellLayout() {
           shadowOpacity: 0.2,
           shadowRadius: 4,
           flex: 1,
-          justifyContent: 'center', // Center content vertically
-          alignItems: 'center', // Center content horizontally
-          minHeight: 40, // Ensure minimum height for touch targets
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: 48, // Larger touch target
+          height: 48, // Fixed height for consistency
+        },
+        tabBarButtonStyle: {
+          flex: 1, // Make button fill entire tab area
         },
         tabBarAllowFontScaling: false,
         tabBarIconStyle: {
