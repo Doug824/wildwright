@@ -29,21 +29,21 @@ export default function AppShellLayout() {
         tabBarActiveTintColor: '#7FD1A8', // Magical green
         tabBarInactiveTintColor: '#F9F5EB', // Bright parchment - highly visible
         tabBarLabelStyle: {
-          fontSize: Platform.OS === 'web' ? 12 : 10,
+          fontSize: Platform.OS === 'web' ? 14 : 11,
           fontWeight: '700',
           letterSpacing: 0.2,
           textShadowColor: 'rgba(0, 0, 0, 0.8)',
           textShadowOffset: { width: 0, height: 1 },
           textShadowRadius: 3,
-          marginTop: 0, // Remove margin to prevent text from being pushed down
+          marginTop: 0,
           marginBottom: 0,
-          flexShrink: 0, // Prevent text from shrinking
+          paddingVertical: 2,
         },
         tabBarItemStyle: {
-          paddingVertical: Platform.OS === 'web' ? 6 : 4,
-          paddingHorizontal: Platform.OS === 'web' ? 8 : 1,
+          paddingVertical: Platform.OS === 'web' ? 10 : 6,
+          paddingHorizontal: Platform.OS === 'web' ? 12 : 4,
           backgroundColor: 'rgba(74, 52, 38, 0.9)', // Dark brown bark - solid background
-          marginHorizontal: Platform.OS === 'web' ? 4 : 1,
+          marginHorizontal: Platform.OS === 'web' ? 4 : 2,
           borderRadius: 8,
           borderWidth: 2,
           borderColor: 'rgba(139, 115, 85, 0.7)',
@@ -51,12 +51,14 @@ export default function AppShellLayout() {
           shadowOffset: { width: 0, height: 2 },
           shadowOpacity: 0.2,
           shadowRadius: 4,
-          flex: 1, // Distribute space evenly
-          maxWidth: Platform.OS === 'web' ? 120 : 80, // Larger on web
-          minWidth: Platform.OS === 'web' ? 80 : 60, // Minimum width
+          flex: 1,
+          justifyContent: 'center', // Center content vertically
+          alignItems: 'center', // Center content horizontally
         },
-        tabBarAllowFontScaling: false, // Prevent text from being cut off
-        tabBarLabelPosition: 'below-icon', // Keep text below (even though no icon)
+        tabBarAllowFontScaling: false,
+        tabBarIconStyle: {
+          display: 'none', // Hide icon space since we're not using icons
+        }
       }}
     >
       <Tabs.Screen
