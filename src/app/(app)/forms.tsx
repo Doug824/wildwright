@@ -8,7 +8,7 @@
 import { useState, useEffect } from 'react';
 import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { collection, query, getDocs, where, updateDoc, doc } from 'firebase/firestore';
+import { collection, query, getDocs, where, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { db, COLLECTIONS } from '@/lib/firebase';
 import { getCurrentCharacterId } from '@/lib/storage';
 import { useAuth } from '@/hooks';
@@ -263,6 +263,33 @@ export default function FormsScreen() {
     router.push('/(app)/library');
   };
 
+  const handleDeleteForm = async (formId: string, formName: string) => {
+    // Simple confirmation using native alert
+    if (!confirm(`Are you sure you want to delete "${formName}"? This cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      // Delete from Firestore
+      await deleteDoc(doc(db, COLLECTIONS.WILD_SHAPE_FORMS, formId));
+
+      // Update local state
+      setForms(prev => prev.filter(f => f.id !== formId));
+
+      // Show success toast
+      setToastMessage(`${formName} deleted successfully`);
+      setToastType('success');
+      setToastVisible(true);
+    } catch (error: any) {
+      console.error('Error deleting form:', error);
+
+      // Show error toast
+      setToastMessage(`Failed to delete form: ${error.message}`);
+      setToastType('error');
+      setToastVisible(true);
+    }
+  };
+
   const filteredForms = forms.filter(form => {
     if (selectedFilters.length === 0) return true;
 
@@ -434,9 +461,18 @@ export default function FormsScreen() {
                     ))}
                   </View>
 
-                  <Button onPress={() => handleAssumeForm(form.id)} fullWidth>
-                    Assume This Form
-                  </Button>
+                  <View style={styles.formActions}>
+                    <Button onPress={() => handleAssumeForm(form.id)} style={{ flex: 1 }}>
+                      Assume Form
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onPress={() => handleDeleteForm(form.id, form.name)}
+                      style={{ flex: 1 }}
+                    >
+                      Delete
+                    </Button>
+                  </View>
                 </BarkCard>
               ))}
             </>
