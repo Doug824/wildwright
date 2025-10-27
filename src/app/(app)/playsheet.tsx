@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { ScrollView, View, Text, Pressable, StyleSheet, TextInput } from 'react-native';
+import { ScrollView, View, Text, Pressable, StyleSheet, TextInput, Modal } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { LivingForestBg } from '@/components/ui/LivingForestBg';
 import { Card } from '@/components/ui/Card';
@@ -18,6 +18,7 @@ import { Tier } from '@/pf1e/types';
 import { Tabs } from '@/components/ui/Tabs';
 import { AttackRow } from '@/components/ui/AttackRow';
 import { Button } from '@/components/ui/Button';
+import { getAbilityDescription, SpecialAbility } from '@/pf1e/specialAbilities';
 
 const styles = StyleSheet.create({
   container: {
@@ -122,6 +123,54 @@ const styles = StyleSheet.create({
     marginTop: 8,
     marginBottom: 4,
   },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: '#F9F5EB',
+    borderRadius: 12,
+    padding: 20,
+    maxWidth: 500,
+    width: '100%',
+    maxHeight: '80%',
+    borderWidth: 2,
+    borderColor: '#B97A3D',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#4A3426',
+  },
+  modalCategory: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#7FD1A8',
+    textTransform: 'uppercase',
+    marginBottom: 8,
+  },
+  modalDescription: {
+    fontSize: 14,
+    color: '#4A3426',
+    lineHeight: 20,
+  },
+  closeButton: {
+    padding: 8,
+  },
+  closeButtonText: {
+    fontSize: 24,
+    color: '#B97A3D',
+    fontWeight: '700',
+  },
 });
 
 export default function PlaysheetScreen() {
@@ -144,6 +193,10 @@ export default function PlaysheetScreen() {
   const [newEffectName, setNewEffectName] = React.useState('');
   const [newEffectTypes, setNewEffectTypes] = React.useState<Set<'ac' | 'attack' | 'damage'>>(new Set());
   const [newEffectValue, setNewEffectValue] = React.useState('');
+
+  // Ability Description Modal State
+  const [selectedAbility, setSelectedAbility] = React.useState<SpecialAbility | null>(null);
+  const [showAbilityModal, setShowAbilityModal] = React.useState(false);
 
   // Parse computed data from params
   const computedData = React.useMemo(() => {
@@ -274,6 +327,15 @@ export default function PlaysheetScreen() {
   const handleSwitchForm = () => {
     // Navigate to forms to select a different one
     router.push('/(app)/forms');
+  };
+
+  // Ability Description Handler
+  const handleAbilityPress = (abilityName: string) => {
+    const ability = getAbilityDescription(abilityName);
+    if (ability) {
+      setSelectedAbility(ability);
+      setShowAbilityModal(true);
+    }
   };
 
   // Active Effects Handlers
@@ -447,7 +509,9 @@ export default function PlaysheetScreen() {
             {/* Abilities Row */}
             <View style={styles.chipRow}>
               {form.abilities?.map((ability, idx) => (
-                <Chip key={idx} label={ability} variant="mist" />
+                <Pressable key={idx} onPress={() => handleAbilityPress(ability)}>
+                  <Chip label={ability} variant="mist" />
+                </Pressable>
               ))}
             </View>
 
@@ -532,7 +596,9 @@ export default function PlaysheetScreen() {
                 </Text>
                 <View style={styles.chipRow}>
                   {form.abilities?.map((ability, idx) => (
-                    <Chip key={idx} label={ability} variant="mist" />
+                    <Pressable key={idx} onPress={() => handleAbilityPress(ability)}>
+                      <Chip label={ability} variant="mist" />
+                    </Pressable>
                   ))}
                 </View>
               </View>
@@ -719,6 +785,50 @@ export default function PlaysheetScreen() {
           {/* Bottom Padding */}
           <View style={styles.bottomPadding} />
         </ScrollView>
+
+        {/* Ability Description Modal */}
+        <Modal
+          visible={showAbilityModal}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowAbilityModal(false)}
+        >
+          <Pressable
+            style={styles.modalOverlay}
+            onPress={() => setShowAbilityModal(false)}
+          >
+            <Pressable
+              style={styles.modalContent}
+              onPress={(e) => e.stopPropagation()}
+            >
+              {selectedAbility && (
+                <>
+                  <View style={styles.modalHeader}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.modalCategory}>
+                        {selectedAbility.category}
+                      </Text>
+                      <Text style={styles.modalTitle}>
+                        {selectedAbility.name}
+                      </Text>
+                    </View>
+                    <Pressable
+                      style={styles.closeButton}
+                      onPress={() => setShowAbilityModal(false)}
+                    >
+                      <Text style={styles.closeButtonText}>×</Text>
+                    </Pressable>
+                  </View>
+                  <ScrollView>
+                    <Text style={styles.modalDescription}>
+                      {selectedAbility.description}
+                    </Text>
+                  </ScrollView>
+                </>
+              )}
+            </Pressable>
+          </Pressable>
+        </Modal>
       </LivingForestBg>
     </View>
   );
