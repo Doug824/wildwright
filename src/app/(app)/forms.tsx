@@ -8,11 +8,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
-import { collection, query, getDocs, where, updateDoc, deleteDoc, doc } from 'firebase/firestore';
+import { collection, query, getDocs, where, updateDoc, deleteDoc, doc, getDoc } from 'firebase/firestore';
 import { db, COLLECTIONS } from '@/lib/firebase';
 import { getCurrentCharacterId } from '@/lib/storage';
 import { useAuth } from '@/hooks';
-import { WildShapeFormWithId } from '@/types/firestore';
+import { WildShapeFormWithId, CharacterWithId } from '@/types/firestore';
+import { computePF1e } from '@/pf1e';
+import { characterToBaseCharacter } from '@/pf1e/adapters';
+import { getTierForEDL } from '@/pf1e/tiers';
 import { LivingForestBg } from '@/components/ui/LivingForestBg';
 import { BarkCard } from '@/components/ui/BarkCard';
 import { MistCard } from '@/components/ui/MistCard';
@@ -252,19 +255,89 @@ export default function FormsScreen() {
     }
   };
 
-  const handleAssumeForm = (formId: string) => {
-    // TODO: Set active form in DB/context
-    // For now, pass the form data via params
-    // In production, this would save the form as active in Firestore
+  const handleAssumeForm = async (formId: string) => {
     const form = forms.find(f => f.id === formId);
-    if (form) {
+    if (!form || !characterId) return;
+
+    try {
+      // Fetch character data to compute stats
+      const characterDoc = await getDoc(doc(db, COLLECTIONS.CHARACTERS, characterId));
+      if (!characterDoc.exists()) {
+        setToastMessage('Character not found');
+        setToastType('error');
+        setToastVisible(true);
+        return;
+      }
+
+      const character = { id: characterDoc.id, ...characterDoc.data() } as CharacterWithId;
+
+      // Convert to PF1e format
+      const baseChar = characterToBaseCharacter(character);
+
+      // Convert form to PF1e format
+      const pf1eForm = {
+        id: form.id,
+        name: form.name,
+        kind: form.tags?.includes('elemental') ? 'Elemental' :
+              form.tags?.includes('plant') ? 'Plant' :
+              form.tags?.includes('magical-beast') ? 'Magical Beast' : 'Animal',
+        baseSize: form.size,
+        naturalAttacks: form.statModifications.naturalAttacks.map(attack => ({
+          type: attack.name.toLowerCase() as any,
+          dice: attack.damage,
+          primary: true,
+          traits: attack.traits || [],
+        })),
+        movement: form.statModifications.movement,
+        senses: form.statModifications.senses || {},
+        traits: form.statModifications.specialAbilities || [],
+      };
+
+      // Get tier for character level
+      const edl = character.class === 'Druid' ? character.level : 0;
+      const tierAvailability = getTierForEDL(edl);
+      if (!tierAvailability) {
+        setToastMessage('Character level too low for Wild Shape');
+        setToastType('error');
+        setToastVisible(true);
+        return;
+      }
+
+      // Determine tier based on form kind
+      let tier;
+      if (pf1eForm.kind === 'Elemental' && tierAvailability.elemental) {
+        tier = tierAvailability.elemental;
+      } else if (pf1eForm.kind === 'Plant' && tierAvailability.plant) {
+        tier = tierAvailability.plant;
+      } else {
+        tier = tierAvailability.animal;
+      }
+
+      // Compute stats
+      const computedPlaysheet = computePF1e({
+        base: baseChar,
+        form: pf1eForm as any,
+        tier,
+        chosenSize: form.size,
+      });
+
+      // Navigate with computed data
       router.push({
         pathname: '/(app)/home',
         params: {
           assumedFormId: formId,
-          assumedFormData: JSON.stringify(form)
+          assumedFormData: JSON.stringify({
+            ...form,
+            computed: computedPlaysheet,
+            tier,
+          })
         }
       });
+    } catch (error: any) {
+      console.error('Error computing form stats:', error);
+      setToastMessage(`Failed to assume form: ${error.message}`);
+      setToastType('error');
+      setToastVisible(true);
     }
   };
 
