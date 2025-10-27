@@ -365,14 +365,24 @@ export default function PlaysheetScreen() {
           )}
 
           {/* Footer Actions */}
-          <View style={styles.footerActions}>
-            <Button variant="outline" onPress={handleRevertForm} style={{ flex: 1 }}>
-              Revert Form
-            </Button>
-            <Button onPress={handleSwitchForm} style={{ flex: 1 }}>
-              Switch Form
-            </Button>
-          </View>
+          {templateData ? (
+            /* Template preview - show Learn Form button */
+            <View style={styles.footerActions}>
+              <Button onPress={() => router.back()} fullWidth>
+                Back to Library
+              </Button>
+            </View>
+          ) : (
+            /* Assumed form - show Revert and Switch */
+            <View style={styles.footerActions}>
+              <Button variant="outline" onPress={handleRevertForm} style={{ flex: 1 }}>
+                Revert Form
+              </Button>
+              <Button onPress={handleSwitchForm} style={{ flex: 1 }}>
+                Switch Form
+              </Button>
+            </View>
+          )}
 
           {/* Bottom Padding */}
           <View style={styles.bottomPadding} />
