@@ -6,7 +6,7 @@
  */
 
 import { useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TextInput, Alert } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TextInput } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db, COLLECTIONS } from '@/lib/firebase';
@@ -17,6 +17,7 @@ import { H2, H3 } from '@/components/ui/Heading';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Chip } from '@/components/ui/Chip';
+import { Toast } from '@/components/ui/Toast';
 
 const styles = StyleSheet.create({
   container: {
@@ -194,6 +195,11 @@ export default function CharacterScreen() {
     new Set(['Natural Spell'])
   );
 
+  // Toast state
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastType, setToastType] = useState<'success' | 'error' | 'info'>('success');
+
   // TODO: Add custom feats/traits system - need to research which feats affect wildshape mechanics
   // and create a way for users to add custom feats with their effects
   const availableFeats = [
@@ -219,13 +225,16 @@ export default function CharacterScreen() {
 
   const handleSave = async () => {
     if (!user) {
-      Alert.alert('Error', 'You must be logged in to save a character');
+      setToastMessage('You must be logged in to save a character');
+      setToastType('error');
+      setToastVisible(true);
       return;
     }
 
     const characterData = {
       ownerId: user.uid, // CRITICAL: Required by Firestore rules
       name,
+      class: 'Druid', // CRITICAL: Required for tier computation
       level: parseInt(level) || 1,
       effectiveDruidLevel,
       baseStats: {
@@ -266,15 +275,25 @@ export default function CharacterScreen() {
       if (isNew) {
         // Create new character
         await addDoc(collection(db, COLLECTIONS.CHARACTERS), characterData);
-        Alert.alert('Success', 'Character created successfully!');
-        router.replace('/character-picker');
+        setToastMessage('Character created successfully!');
+        setToastType('success');
+        setToastVisible(true);
+
+        // Navigate after short delay so toast is visible
+        setTimeout(() => {
+          router.replace('/character-picker');
+        }, 1500);
       } else {
         // TODO: Update existing character
-        Alert.alert('Success', 'Character saved!');
+        setToastMessage('Changes saved successfully!');
+        setToastType('success');
+        setToastVisible(true);
       }
     } catch (error: any) {
       console.error('Error saving character:', error);
-      Alert.alert('Error', `Failed to save character: ${error.message}`);
+      setToastMessage(`Failed to save character: ${error.message}`);
+      setToastType('error');
+      setToastVisible(true);
     }
   };
 
@@ -615,6 +634,14 @@ export default function CharacterScreen() {
             {isNew ? 'Create Character' : 'Save Changes'}
           </Button>
         </ScrollView>
+
+        {/* Toast Notification */}
+        <Toast
+          message={toastMessage}
+          visible={toastVisible}
+          onHide={() => setToastVisible(false)}
+          type={toastType}
+        />
       </LivingForestBg>
     </View>
   );
