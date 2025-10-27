@@ -318,6 +318,37 @@ export default function PlaysheetScreen() {
 
   const modifiers = calculateModifiers();
 
+  // Helper to get tier from spell level
+  const getTierFromSpell = (spell: string): Tier | null => {
+    if (spell?.includes('Beast Shape I')) return 'Beast Shape I';
+    if (spell?.includes('Beast Shape II')) return 'Beast Shape II';
+    if (spell?.includes('Beast Shape III')) return 'Beast Shape III';
+    if (spell?.includes('Beast Shape IV')) return 'Beast Shape IV';
+    if (spell?.includes('Elemental Body I')) return 'Elemental Body I';
+    if (spell?.includes('Elemental Body II')) return 'Elemental Body II';
+    if (spell?.includes('Elemental Body III')) return 'Elemental Body III';
+    if (spell?.includes('Elemental Body IV')) return 'Elemental Body IV';
+    if (spell?.includes('Plant Shape I')) return 'Plant Shape I';
+    if (spell?.includes('Plant Shape II')) return 'Plant Shape II';
+    if (spell?.includes('Plant Shape III')) return 'Plant Shape III';
+    return null;
+  };
+
+  // Get tier and size modifiers for preview
+  const tier = getTierFromSpell(form.spell);
+  const sizeModifiers = tier ? getSizeModifiers(tier, form.size) : {};
+
+  // Helper to get EDL requirement
+  const getEDLRequirement = (tier: Tier | null): string => {
+    if (!tier) return 'Unknown';
+    if (tier === 'Beast Shape I') return '4+';
+    if (tier === 'Beast Shape II' || tier === 'Elemental Body I') return '6+';
+    if (tier === 'Beast Shape III' || tier === 'Elemental Body II' || tier === 'Plant Shape I') return '8+';
+    if (tier === 'Elemental Body III' || tier === 'Plant Shape II') return '10+';
+    if (tier === 'Elemental Body IV' || tier === 'Plant Shape III') return '12+';
+    return 'Unknown';
+  };
+
   return (
     <View style={styles.container}>
       <LivingForestBg>
@@ -333,6 +364,61 @@ export default function PlaysheetScreen() {
         </Pressable>
 
         <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+          {/* Requirements & Modifiers Card (for preview) */}
+          {(templateData || (formData && params.fromForms === 'true')) && (
+            <Card style={styles.cardMargin}>
+              <Text style={{ fontSize: 18, fontWeight: '700', color: '#4A3426', marginBottom: 12 }}>
+                Requirements & Modifiers
+              </Text>
+
+              <View style={{ marginBottom: 12 }}>
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#6B5344', marginBottom: 4 }}>
+                  MINIMUM EDL REQUIRED
+                </Text>
+                <Text style={{ fontSize: 16, color: '#4A3426', fontWeight: '600' }}>
+                  Level {getEDLRequirement(tier)}
+                </Text>
+              </View>
+
+              <View style={{ marginBottom: 12 }}>
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#6B5344', marginBottom: 4 }}>
+                  SIZE & TIER
+                </Text>
+                <Text style={{ fontSize: 16, color: '#4A3426' }}>
+                  {form.size} • {form.spell}
+                </Text>
+              </View>
+
+              {(sizeModifiers.str || sizeModifiers.dex || sizeModifiers.con || sizeModifiers.naturalArmor) && (
+                <View style={{ marginBottom: 8 }}>
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: '#6B5344', marginBottom: 6 }}>
+                    STAT MODIFIERS (when assumed)
+                  </Text>
+                  {sizeModifiers.str && (
+                    <Text style={{ fontSize: 14, color: sizeModifiers.str > 0 ? '#2A4A3A' : '#8B4513', marginBottom: 3 }}>
+                      • {sizeModifiers.str > 0 ? '+' : ''}{sizeModifiers.str} Strength (size {sizeModifiers.str > 0 ? 'bonus' : 'penalty'})
+                    </Text>
+                  )}
+                  {sizeModifiers.dex && (
+                    <Text style={{ fontSize: 14, color: sizeModifiers.dex > 0 ? '#2A4A3A' : '#8B4513', marginBottom: 3 }}>
+                      • {sizeModifiers.dex > 0 ? '+' : ''}{sizeModifiers.dex} Dexterity (size {sizeModifiers.dex > 0 ? 'bonus' : 'penalty'})
+                    </Text>
+                  )}
+                  {sizeModifiers.con && (
+                    <Text style={{ fontSize: 14, color: sizeModifiers.con > 0 ? '#2A4A3A' : '#8B4513', marginBottom: 3 }}>
+                      • {sizeModifiers.con > 0 ? '+' : ''}{sizeModifiers.con} Constitution (size {sizeModifiers.con > 0 ? 'bonus' : 'penalty'})
+                    </Text>
+                  )}
+                  {sizeModifiers.naturalArmor && (
+                    <Text style={{ fontSize: 14, color: '#2A4A3A', marginBottom: 3 }}>
+                      • +{sizeModifiers.naturalArmor} Natural Armor
+                    </Text>
+                  )}
+                </View>
+              )}
+            </Card>
+          )}
+
           {/* Header Card with Stats */}
           <Card style={styles.cardMargin}>
             {/* Header Section */}
