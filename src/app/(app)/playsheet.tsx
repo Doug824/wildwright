@@ -30,7 +30,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 12,
     paddingTop: 52,
-    paddingBottom: 80,
+    paddingBottom: 100,
   },
   cardMargin: {
     marginBottom: 8,
@@ -464,33 +464,36 @@ export default function PlaysheetScreen() {
                 </Text>
               </View>
 
-              {(sizeModifiers.str || sizeModifiers.dex || sizeModifiers.con || sizeModifiers.naturalArmor) && (
-                <View style={{ marginBottom: 8 }}>
-                  <Text style={{ fontSize: 12, fontWeight: '700', color: '#6B5344', marginBottom: 6 }}>
-                    STAT MODIFIERS (when assumed)
+              <View style={{ marginBottom: 8 }}>
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#6B5344', marginBottom: 6 }}>
+                  STAT MODIFIERS (when assumed)
+                </Text>
+                {sizeModifiers.str && (
+                  <Text style={{ fontSize: 14, color: sizeModifiers.str > 0 ? '#2A4A3A' : '#8B4513', marginBottom: 3 }}>
+                    • {sizeModifiers.str > 0 ? '+' : ''}{sizeModifiers.str} Strength (size {sizeModifiers.str > 0 ? 'bonus' : 'penalty'})
                   </Text>
-                  {sizeModifiers.str && (
-                    <Text style={{ fontSize: 14, color: sizeModifiers.str > 0 ? '#2A4A3A' : '#8B4513', marginBottom: 3 }}>
-                      • {sizeModifiers.str > 0 ? '+' : ''}{sizeModifiers.str} Strength (size {sizeModifiers.str > 0 ? 'bonus' : 'penalty'})
-                    </Text>
-                  )}
-                  {sizeModifiers.dex && (
-                    <Text style={{ fontSize: 14, color: sizeModifiers.dex > 0 ? '#2A4A3A' : '#8B4513', marginBottom: 3 }}>
-                      • {sizeModifiers.dex > 0 ? '+' : ''}{sizeModifiers.dex} Dexterity (size {sizeModifiers.dex > 0 ? 'bonus' : 'penalty'})
-                    </Text>
-                  )}
-                  {sizeModifiers.con && (
-                    <Text style={{ fontSize: 14, color: sizeModifiers.con > 0 ? '#2A4A3A' : '#8B4513', marginBottom: 3 }}>
-                      • {sizeModifiers.con > 0 ? '+' : ''}{sizeModifiers.con} Constitution (size {sizeModifiers.con > 0 ? 'bonus' : 'penalty'})
-                    </Text>
-                  )}
-                  {sizeModifiers.naturalArmor && (
-                    <Text style={{ fontSize: 14, color: '#2A4A3A', marginBottom: 3 }}>
-                      • +{sizeModifiers.naturalArmor} Natural Armor
-                    </Text>
-                  )}
-                </View>
-              )}
+                )}
+                {sizeModifiers.dex && (
+                  <Text style={{ fontSize: 14, color: sizeModifiers.dex > 0 ? '#2A4A3A' : '#8B4513', marginBottom: 3 }}>
+                    • {sizeModifiers.dex > 0 ? '+' : ''}{sizeModifiers.dex} Dexterity (size {sizeModifiers.dex > 0 ? 'bonus' : 'penalty'})
+                  </Text>
+                )}
+                {sizeModifiers.con && (
+                  <Text style={{ fontSize: 14, color: sizeModifiers.con > 0 ? '#2A4A3A' : '#8B4513', marginBottom: 3 }}>
+                    • {sizeModifiers.con > 0 ? '+' : ''}{sizeModifiers.con} Constitution (size {sizeModifiers.con > 0 ? 'bonus' : 'penalty'})
+                  </Text>
+                )}
+                {sizeModifiers.naturalArmor && (
+                  <Text style={{ fontSize: 14, color: '#2A4A3A', marginBottom: 3 }}>
+                    • +{sizeModifiers.naturalArmor} Natural Armor
+                  </Text>
+                )}
+                {!sizeModifiers.str && !sizeModifiers.dex && !sizeModifiers.con && !sizeModifiers.naturalArmor && (
+                  <Text style={{ fontSize: 14, color: '#8B4513', fontStyle: 'italic' }}>
+                    No stat modifiers for this size/tier combination
+                  </Text>
+                )}
+              </View>
             </Card>
           )}
 

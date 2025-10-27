@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 12,
     paddingTop: 52,
-    paddingBottom: 80,
+    paddingBottom: 100,
   },
   cardMargin: {
     marginBottom: 12,

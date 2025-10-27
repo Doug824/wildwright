@@ -116,6 +116,12 @@ export default function AppShellLayout() {
           href: null, // Hidden from tabs - accessed via navigation
         }}
       />
+      <Tabs.Screen
+        name="create-form"
+        options={{
+          href: null, // Hidden from tabs - accessed via navigation
+        }}
+      />
     </Tabs>
   );
 }
