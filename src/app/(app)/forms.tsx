@@ -5,9 +5,9 @@
  * Swipe cards with filters by size, spell tier, and tags.
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { collection, query, getDocs, where, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { db, COLLECTIONS } from '@/lib/firebase';
 import { getCurrentCharacterId } from '@/lib/storage';
@@ -163,36 +163,44 @@ export default function FormsScreen() {
   }, []);
 
   // Fetch user's learned forms from Firestore
-  useEffect(() => {
-    const fetchForms = async () => {
-      if (!characterId || !user?.uid) {
-        setLoading(false);
-        return;
-      }
+  const fetchForms = useCallback(async () => {
+    if (!characterId || !user?.uid) {
+      setLoading(false);
+      return;
+    }
 
-      try {
-        const formsQuery = query(
-          collection(db, COLLECTIONS.WILD_SHAPE_FORMS),
-          where('characterId', '==', characterId),
-          where('ownerId', '==', user.uid) // Required to match Firestore security rules
-        );
-        const snapshot = await getDocs(formsQuery);
+    try {
+      const formsQuery = query(
+        collection(db, COLLECTIONS.WILD_SHAPE_FORMS),
+        where('characterId', '==', characterId),
+        where('ownerId', '==', user.uid) // Required to match Firestore security rules
+      );
+      const snapshot = await getDocs(formsQuery);
 
-        const formsData = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        })) as WildShapeFormWithId[];
+      const formsData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as WildShapeFormWithId[];
 
-        setForms(formsData);
-      } catch (error) {
-        console.error('Error fetching forms:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchForms();
+      setForms(formsData);
+    } catch (error) {
+      console.error('Error fetching forms:', error);
+    } finally {
+      setLoading(false);
+    }
   }, [characterId, user?.uid]);
+
+  // Fetch on mount and when dependencies change
+  useEffect(() => {
+    fetchForms();
+  }, [fetchForms]);
+
+  // Refetch when screen comes into focus (e.g., after learning a form from library)
+  useFocusEffect(
+    useCallback(() => {
+      fetchForms();
+    }, [fetchForms])
+  );
 
   // Filter categories
   const sizeFilters = ['Diminutive', 'Tiny', 'Small', 'Medium', 'Large', 'Huge', 'Gargantuan', 'Colossal'];
