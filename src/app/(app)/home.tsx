@@ -5,9 +5,9 @@
  * Entry point after character selection.
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { View, Text, ScrollView, Pressable, StyleSheet, Modal, ActivityIndicator } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { db, COLLECTIONS } from '@/lib/firebase';
 import { useAuth } from '@/hooks';
@@ -383,43 +383,51 @@ export default function DashboardScreen() {
   }, [params.characterId]);
 
   // Fetch favorite forms
-  useEffect(() => {
-    const fetchFavoriteForms = async () => {
-      // Try params first, fall back to storage
-      let characterId = params.characterId as string;
+  const fetchFavoriteForms = useCallback(async () => {
+    // Try params first, fall back to storage
+    let characterId = params.characterId as string;
 
-      if (!characterId) {
-        const { getCurrentCharacterId } = await import('@/lib/storage');
-        characterId = await getCurrentCharacterId() || '';
-      }
+    if (!characterId) {
+      const { getCurrentCharacterId } = await import('@/lib/storage');
+      characterId = await getCurrentCharacterId() || '';
+    }
 
-      if (!characterId || !user?.uid) return;
+    if (!characterId || !user?.uid) return;
 
-      try {
-        // Fetch all forms for this character, then filter locally
-        // This avoids needing a composite Firestore index
-        const formsQuery = query(
-          collection(db, COLLECTIONS.WILD_SHAPE_FORMS),
-          where('characterId', '==', characterId),
-          where('ownerId', '==', user.uid) // Required to match Firestore security rules
-        );
-        const snapshot = await getDocs(formsQuery);
+    try {
+      // Fetch all forms for this character, then filter locally
+      // This avoids needing a composite Firestore index
+      const formsQuery = query(
+        collection(db, COLLECTIONS.WILD_SHAPE_FORMS),
+        where('characterId', '==', characterId),
+        where('ownerId', '==', user.uid) // Required to match Firestore security rules
+      );
+      const snapshot = await getDocs(formsQuery);
 
-        const allForms = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        })) as WildShapeFormWithId[];
+      const allForms = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as WildShapeFormWithId[];
 
-        // Filter for favorites locally
-        const favorites = allForms.filter(form => form.isFavorite === true);
-        setFavoriteForms(favorites);
-      } catch (error) {
-        console.error('Error fetching favorite forms:', error);
-      }
-    };
-
-    fetchFavoriteForms();
+      // Filter for favorites locally
+      const favorites = allForms.filter(form => form.isFavorite === true);
+      setFavoriteForms(favorites);
+    } catch (error) {
+      console.error('Error fetching favorite forms:', error);
+    }
   }, [params.characterId, user?.uid]);
+
+  // Fetch on mount and when dependencies change
+  useEffect(() => {
+    fetchFavoriteForms();
+  }, [fetchFavoriteForms]);
+
+  // Refetch when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      fetchFavoriteForms();
+    }, [fetchFavoriteForms])
+  );
 
   const handleAssumeShape = () => {
     router.push('/(app)/forms');
