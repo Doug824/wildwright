@@ -134,8 +134,7 @@ export default function PlaysheetScreen() {
   interface ActiveEffect {
     id: string;
     name: string;
-    type: 'ac' | 'attack' | 'damage' | 'stat' | 'skill';
-    target?: string; // e.g., "STR", "all attacks", "AC"
+    types: Array<'ac' | 'attack' | 'damage'>; // Now supports multiple types
     value: number;
     duration?: string;
   }
@@ -143,9 +142,8 @@ export default function PlaysheetScreen() {
   const [activeEffects, setActiveEffects] = React.useState<ActiveEffect[]>([]);
   const [showAddEffect, setShowAddEffect] = React.useState(false);
   const [newEffectName, setNewEffectName] = React.useState('');
-  const [newEffectType, setNewEffectType] = React.useState<ActiveEffect['type']>('ac');
+  const [newEffectTypes, setNewEffectTypes] = React.useState<Set<'ac' | 'attack' | 'damage'>>(new Set());
   const [newEffectValue, setNewEffectValue] = React.useState('');
-  const [newEffectTarget, setNewEffectTarget] = React.useState('');
 
   // Parse computed data from params
   const computedData = React.useMemo(() => {
@@ -279,21 +277,32 @@ export default function PlaysheetScreen() {
   };
 
   // Active Effects Handlers
+  const toggleEffectType = (type: 'ac' | 'attack' | 'damage') => {
+    setNewEffectTypes(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(type)) {
+        newSet.delete(type);
+      } else {
+        newSet.add(type);
+      }
+      return newSet;
+    });
+  };
+
   const addEffect = () => {
-    if (!newEffectName || !newEffectValue) return;
+    if (!newEffectName || !newEffectValue || newEffectTypes.size === 0) return;
 
     const effect: ActiveEffect = {
       id: Date.now().toString(),
       name: newEffectName,
-      type: newEffectType,
-      target: newEffectTarget || undefined,
+      types: Array.from(newEffectTypes),
       value: parseInt(newEffectValue),
     };
 
     setActiveEffects(prev => [...prev, effect]);
     setNewEffectName('');
     setNewEffectValue('');
-    setNewEffectTarget('');
+    setNewEffectTypes(new Set());
     setShowAddEffect(false);
   };
 
@@ -310,9 +319,11 @@ export default function PlaysheetScreen() {
     };
 
     activeEffects.forEach(effect => {
-      if (effect.type === 'ac') modifiers.ac += effect.value;
-      if (effect.type === 'attack') modifiers.attack += effect.value;
-      if (effect.type === 'damage') modifiers.damage += effect.value;
+      effect.types.forEach(type => {
+        if (type === 'ac') modifiers.ac += effect.value;
+        if (type === 'attack') modifiers.attack += effect.value;
+        if (type === 'damage') modifiers.damage += effect.value;
+      });
     });
 
     return modifiers;
@@ -585,8 +596,7 @@ export default function PlaysheetScreen() {
                       {effect.name}
                     </Text>
                     <Text style={{ fontSize: 12, color: '#6B5344' }}>
-                      {effect.type.toUpperCase()}: {effect.value > 0 ? '+' : ''}{effect.value}
-                      {effect.target && ` to ${effect.target}`}
+                      {effect.types.map(t => t.toUpperCase()).join(', ')}: {effect.value > 0 ? '+' : ''}{effect.value}
                     </Text>
                   </View>
                   <Pressable onPress={() => removeEffect(effect.id)} style={{ padding: 8 }}>
@@ -613,14 +623,17 @@ export default function PlaysheetScreen() {
                     onChangeText={setNewEffectName}
                     style={{ backgroundColor: '#FFF', padding: 8, borderRadius: 4, marginBottom: 8, borderWidth: 1, borderColor: '#8B7355' }}
                   />
+                  <Text style={{ fontSize: 11, color: '#6B5344', marginBottom: 6 }}>
+                    Select one or more targets:
+                  </Text>
                   <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8 }}>
-                    <Pressable onPress={() => setNewEffectType('ac')} style={{ flex: 1, padding: 8, backgroundColor: newEffectType === 'ac' ? '#7FD1A8' : '#E8DCC8', borderRadius: 4 }}>
+                    <Pressable onPress={() => toggleEffectType('ac')} style={{ flex: 1, padding: 8, backgroundColor: newEffectTypes.has('ac') ? '#7FD1A8' : '#E8DCC8', borderRadius: 4 }}>
                       <Text style={{ textAlign: 'center', fontSize: 12, fontWeight: '600' }}>AC</Text>
                     </Pressable>
-                    <Pressable onPress={() => setNewEffectType('attack')} style={{ flex: 1, padding: 8, backgroundColor: newEffectType === 'attack' ? '#7FD1A8' : '#E8DCC8', borderRadius: 4 }}>
+                    <Pressable onPress={() => toggleEffectType('attack')} style={{ flex: 1, padding: 8, backgroundColor: newEffectTypes.has('attack') ? '#7FD1A8' : '#E8DCC8', borderRadius: 4 }}>
                       <Text style={{ textAlign: 'center', fontSize: 12, fontWeight: '600' }}>Attack</Text>
                     </Pressable>
-                    <Pressable onPress={() => setNewEffectType('damage')} style={{ flex: 1, padding: 8, backgroundColor: newEffectType === 'damage' ? '#7FD1A8' : '#E8DCC8', borderRadius: 4 }}>
+                    <Pressable onPress={() => toggleEffectType('damage')} style={{ flex: 1, padding: 8, backgroundColor: newEffectTypes.has('damage') ? '#7FD1A8' : '#E8DCC8', borderRadius: 4 }}>
                       <Text style={{ textAlign: 'center', fontSize: 12, fontWeight: '600' }}>Damage</Text>
                     </Pressable>
                   </View>

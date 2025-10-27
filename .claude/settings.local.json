@@ -19,7 +19,9 @@
       "Bash(cat:*)",
       "Bash(tail:*)",
       "Bash(find:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(cd /mnt/d/Phoenix Games/wildwright && npx tsc:*)",
+      "Bash(ls:*)"
     ],
     "deny": [],
     "ask": []
