@@ -349,7 +349,15 @@ export default function DashboardScreen() {
   // Fetch character data
   useEffect(() => {
     const fetchCharacter = async () => {
-      const characterId = params.characterId as string;
+      // Try params first, fall back to storage
+      let characterId = params.characterId as string;
+
+      if (!characterId) {
+        // Import getCurrentCharacterId dynamically
+        const { getCurrentCharacterId } = await import('@/lib/storage');
+        characterId = await getCurrentCharacterId() || '';
+      }
+
       if (!characterId) {
         console.error('No character ID provided');
         setLoading(false);
@@ -377,7 +385,14 @@ export default function DashboardScreen() {
   // Fetch favorite forms
   useEffect(() => {
     const fetchFavoriteForms = async () => {
-      const characterId = params.characterId as string;
+      // Try params first, fall back to storage
+      let characterId = params.characterId as string;
+
+      if (!characterId) {
+        const { getCurrentCharacterId } = await import('@/lib/storage');
+        characterId = await getCurrentCharacterId() || '';
+      }
+
       if (!characterId || !user?.uid) return;
 
       try {
@@ -612,30 +627,43 @@ export default function DashboardScreen() {
                   <View style={styles.formInfo}>
                     <Text style={styles.formName}>{activeForm.name}</Text>
                     <Text style={styles.formSubtitle}>
-                      {activeForm.size} • {activeForm.spell}
+                      {activeForm.size} • {activeForm.requiredSpellLevel || activeForm.spell || 'Wild Shape'}
                     </Text>
                     <View style={styles.chipRow}>
-                      {activeForm.abilities.slice(0, 3).map((ability: string, idx: number) => (
+                      {(activeForm.statModifications?.specialAbilities || activeForm.abilities || []).slice(0, 3).map((ability: string, idx: number) => (
                         <Chip key={idx} label={ability} variant="mist" />
                       ))}
                     </View>
                   </View>
                 </View>
 
-                <View style={styles.statsPreview}>
-                  <View style={styles.statQuick}>
-                    <Text style={styles.statLabel}>HP</Text>
-                    <Text style={styles.statValue}>{activeForm.stats.hp}</Text>
+                {activeForm.computed ? (
+                  /* Show computed stats if available */
+                  <View style={styles.statsPreview}>
+                    <View style={styles.statQuick}>
+                      <Text style={styles.statLabel}>HP</Text>
+                      <Text style={styles.statValue}>{activeForm.computed.hp.max}</Text>
+                    </View>
+                    <View style={styles.statQuick}>
+                      <Text style={styles.statLabel}>AC</Text>
+                      <Text style={styles.statValue}>{activeForm.computed.ac.total}</Text>
+                    </View>
+                    <View style={styles.statQuick}>
+                      <Text style={styles.statLabel}>Speed</Text>
+                      <Text style={styles.statValue}>{activeForm.computed.movement.land} ft</Text>
+                    </View>
                   </View>
-                  <View style={styles.statQuick}>
-                    <Text style={styles.statLabel}>AC</Text>
-                    <Text style={styles.statValue}>{activeForm.stats.ac}</Text>
+                ) : (
+                  /* Show basic movement for non-computed forms */
+                  <View style={styles.statsPreview}>
+                    <View style={styles.statQuick}>
+                      <Text style={styles.statLabel}>Movement</Text>
+                      <Text style={styles.statValue}>
+                        {activeForm.statModifications?.movement.land || 30} ft
+                      </Text>
+                    </View>
                   </View>
-                  <View style={styles.statQuick}>
-                    <Text style={styles.statLabel}>Speed</Text>
-                    <Text style={styles.statValue}>{activeForm.stats.speed}</Text>
-                  </View>
-                </View>
+                )}
 
                 <Button onPress={handleViewPlaysheet} fullWidth style={{ marginTop: 16 }}>
                   View Full Playsheet
