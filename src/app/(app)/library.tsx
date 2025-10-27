@@ -281,6 +281,7 @@ export default function LibraryScreen() {
       pathname: '/(app)/playsheet',
       params: {
         templateData: JSON.stringify(template),
+        backTo: 'library', // Track where we came from
       }
     });
   };

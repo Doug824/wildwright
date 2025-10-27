@@ -311,6 +311,7 @@ export default function FormsScreen() {
       params: {
         formData: JSON.stringify(form),
         fromForms: 'true', // Flag to show "Assume Form" button instead of Revert/Switch
+        backTo: 'forms', // Track where we came from
       }
     });
   };

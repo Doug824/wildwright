@@ -567,14 +567,28 @@ export default function PlaysheetScreen() {
           {templateData ? (
             /* Template preview - show Back to Library button */
             <View style={styles.footerActions}>
-              <Button onPress={() => router.back()} fullWidth>
+              <Button onPress={() => {
+                // Try router.back() first, fallback to explicit navigation
+                if (params.backTo === 'library') {
+                  router.push('/(app)/library');
+                } else {
+                  router.back();
+                }
+              }} fullWidth>
                 Back to Library
               </Button>
             </View>
           ) : params.fromForms === 'true' ? (
             /* Form preview from Forms page - show Assume Form button */
             <View style={styles.footerActions}>
-              <Button variant="outline" onPress={() => router.back()} style={{ flex: 1 }}>
+              <Button variant="outline" onPress={() => {
+                // Try router.back() first, fallback to explicit navigation
+                if (params.backTo === 'forms') {
+                  router.push('/(app)/forms');
+                } else {
+                  router.back();
+                }
+              }} style={{ flex: 1 }}>
                 Back
               </Button>
               <Button onPress={() => {
