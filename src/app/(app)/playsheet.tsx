@@ -169,6 +169,8 @@ export default function PlaysheetScreen() {
     stats: {
       hp: computedData.hp.max,
       ac: computedData.ac.total,
+      touchAC: computedData.ac.touch,
+      flatFootedAC: computedData.ac.flatFooted,
       speed: `${computedData.movement.land} ft`,
     },
   } : {
@@ -276,8 +278,8 @@ export default function PlaysheetScreen() {
               </Text>
               <View style={styles.statsRow}>
                 <Stat label="Total AC" value={String(form.stats?.ac || 0)} />
-                <Stat label="Touch" value="Calculated" sub="Dex + Size" />
-                <Stat label="Flat-Footed" value="Calculated" sub="No Dex" />
+                <Stat label="Touch" value={String(form.stats?.touchAC || 0)} sub="Dex + Size" />
+                <Stat label="Flat-Footed" value={String(form.stats?.flatFootedAC || 0)} sub="No Dex" />
               </View>
 
               <View style={styles.sectionSpacing}>
