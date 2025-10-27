@@ -374,8 +374,8 @@ export default function LibraryScreen() {
           )}
 
           {/* Size Filters */}
-          <View style={{ marginBottom: 12 }}>
-            <Text style={{ color: '#D4C5A9', fontSize: 12, fontWeight: '700', marginBottom: 6 }}>
+          <View style={{ marginBottom: 6 }}>
+            <Text style={{ color: '#D4C5A9', fontSize: 11, fontWeight: '700', marginBottom: 3 }}>
               SIZE
             </Text>
             <View style={styles.filterRow}>
@@ -391,8 +391,8 @@ export default function LibraryScreen() {
           </View>
 
           {/* Type Filters */}
-          <View style={{ marginBottom: 12 }}>
-            <Text style={{ color: '#D4C5A9', fontSize: 12, fontWeight: '700', marginBottom: 6 }}>
+          <View style={{ marginBottom: 6 }}>
+            <Text style={{ color: '#D4C5A9', fontSize: 11, fontWeight: '700', marginBottom: 3 }}>
               TYPE
             </Text>
             <View style={styles.filterRow}>
@@ -408,8 +408,8 @@ export default function LibraryScreen() {
           </View>
 
           {/* Speed Filters */}
-          <View style={{ marginBottom: 16 }}>
-            <Text style={{ color: '#D4C5A9', fontSize: 12, fontWeight: '700', marginBottom: 6 }}>
+          <View style={{ marginBottom: 10 }}>
+            <Text style={{ color: '#D4C5A9', fontSize: 11, fontWeight: '700', marginBottom: 3 }}>
               MOVEMENT
             </Text>
             <View style={styles.filterRow}>
