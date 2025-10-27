@@ -19,6 +19,7 @@ import { MistCard } from '@/components/ui/MistCard';
 import { H2, H3 } from '@/components/ui/Heading';
 import { Button } from '@/components/ui/Button';
 import { Chip } from '@/components/ui/Chip';
+import { Toast } from '@/components/ui/Toast';
 
 const styles = StyleSheet.create({
   container: {
@@ -147,6 +148,9 @@ export default function FormsScreen() {
   const [loading, setLoading] = useState(true);
   const [characterId, setCharacterId] = useState<string | null>(null);
   const { user } = useAuth(); // Get authenticated user
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastType, setToastType] = useState<'success' | 'error' | 'info'>('success');
 
   // Load characterId from storage
   useEffect(() => {
@@ -204,19 +208,31 @@ export default function FormsScreen() {
       const form = forms.find(f => f.id === formId);
       if (!form) return;
 
+      const newFavoriteStatus = !form.isFavorite;
+
       // Update in Firestore
       await updateDoc(doc(db, COLLECTIONS.WILD_SHAPE_FORMS, formId), {
-        isFavorite: !form.isFavorite,
+        isFavorite: newFavoriteStatus,
       });
 
       // Update local state
       setForms(prev =>
         prev.map(f =>
-          f.id === formId ? { ...f, isFavorite: !f.isFavorite } : f
+          f.id === formId ? { ...f, isFavorite: newFavoriteStatus } : f
         )
       );
-    } catch (error) {
+
+      // Show success toast
+      setToastMessage(newFavoriteStatus ? `${form.name} added to favorites!` : `${form.name} removed from favorites`);
+      setToastType('success');
+      setToastVisible(true);
+    } catch (error: any) {
       console.error('Error updating favorite:', error);
+
+      // Show error toast
+      setToastMessage(`Failed to update favorite: ${error.message}`);
+      setToastType('error');
+      setToastVisible(true);
     }
   };
 
@@ -339,6 +355,14 @@ export default function FormsScreen() {
             </>
           )}
         </ScrollView>
+
+        {/* Toast Notification */}
+        <Toast
+          message={toastMessage}
+          visible={toastVisible}
+          onHide={() => setToastVisible(false)}
+          type={toastType}
+        />
       </LivingForestBg>
     </View>
   );
