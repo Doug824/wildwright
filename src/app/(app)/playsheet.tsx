@@ -182,11 +182,11 @@ export default function PlaysheetScreen() {
     return null;
   }, [params.templateData]);
 
-  // Use computed data if available, template data for preview, otherwise fall back to mock
+  // Use computed data if available, template/form data for preview, otherwise fall back to mock
   const form = computedData ? {
     name: formData?.name || 'Wild Shape',
     size: computedData.size,
-    spell: formData?.spell || 'Beast Shape',
+    spell: formData?.requiredSpellLevel || formData?.spell || 'Beast Shape',
     movement: `${computedData.movement.land} ft${computedData.movement.climb ? `, Climb ${computedData.movement.climb} ft` : ''}${computedData.movement.swim ? `, Swim ${computedData.movement.swim} ft` : ''}${computedData.movement.fly ? `, Fly ${computedData.movement.fly} ft` : ''}`,
     attacks: computedData.attacks.map((attack: any) => ({
       name: attack.name,
@@ -225,6 +225,29 @@ export default function PlaysheetScreen() {
     })),
     abilities: templateData.statModifications.specialAbilities,
     stats: { hp: '—', ac: '—', speed: `${templateData.statModifications.movement.land || 30} ft` },
+  } : formData ? {
+    // Form preview from Forms page (learned forms)
+    name: formData.name,
+    size: formData.size,
+    spell: formData.requiredSpellLevel,
+    movement: (() => {
+      const parts = [];
+      const m = formData.statModifications.movement;
+      if (m.land) parts.push(`${m.land} ft`);
+      if (m.climb) parts.push(`Climb ${m.climb} ft`);
+      if (m.swim) parts.push(`Swim ${m.swim} ft`);
+      if (m.fly) parts.push(`Fly ${m.fly} ft`);
+      if (m.burrow) parts.push(`Burrow ${m.burrow} ft`);
+      return parts.join(', ');
+    })(),
+    attacks: formData.statModifications.naturalAttacks.map((attack: any) => ({
+      name: attack.name,
+      bonus: '—',
+      damage: attack.damage,
+      trait: attack.traits?.[0],
+    })),
+    abilities: formData.statModifications.specialAbilities,
+    stats: { hp: '—', ac: '—', speed: `${formData.statModifications.movement.land || 30} ft` },
   } : {
     // Default mock data for development
     name: 'Leopard',
