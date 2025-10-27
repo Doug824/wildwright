@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/Button';
 import { Chip } from '@/components/ui/Chip';
 import { SPECIAL_ABILITIES } from '@/pf1e/specialAbilities';
 import { doc, setDoc } from 'firebase/firestore';
-import { db } from '@/firebase/config';
+import { db, COLLECTIONS } from '@/lib/firebase';
 import { useCharacterStore } from '@/store/characterStore';
 
 const styles = StyleSheet.create({
@@ -390,7 +390,7 @@ export default function CreateFormScreen() {
       };
 
       await setDoc(
-        doc(db, 'characters', selectedCharacterId, 'forms', formId),
+        doc(db, COLLECTIONS.CHARACTERS, selectedCharacterId, 'forms', formId),
         formDoc
       );
 
