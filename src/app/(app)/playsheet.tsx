@@ -366,10 +366,28 @@ export default function PlaysheetScreen() {
 
           {/* Footer Actions */}
           {templateData ? (
-            /* Template preview - show Learn Form button */
+            /* Template preview - show Back to Library button */
             <View style={styles.footerActions}>
               <Button onPress={() => router.back()} fullWidth>
                 Back to Library
+              </Button>
+            </View>
+          ) : params.fromForms === 'true' ? (
+            /* Form preview from Forms page - show Assume Form button */
+            <View style={styles.footerActions}>
+              <Button variant="outline" onPress={() => router.back()} style={{ flex: 1 }}>
+                Back
+              </Button>
+              <Button onPress={() => {
+                // Navigate to home with the form assumed
+                router.push({
+                  pathname: '/(app)/home',
+                  params: {
+                    assumedFormData: params.formData as string,
+                  }
+                });
+              }} style={{ flex: 1 }}>
+                Assume This Form
               </Button>
             </View>
           ) : (

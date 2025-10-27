@@ -290,6 +290,20 @@ export default function FormsScreen() {
     }
   };
 
+  const handleViewDetails = (formId: string) => {
+    const form = forms.find(f => f.id === formId);
+    if (!form) return;
+
+    // Navigate to playsheet with form data
+    router.push({
+      pathname: '/(app)/playsheet',
+      params: {
+        formData: JSON.stringify(form),
+        fromForms: 'true', // Flag to show "Assume Form" button instead of Revert/Switch
+      }
+    });
+  };
+
   const filteredForms = forms.filter(form => {
     if (selectedFilters.length === 0) return true;
 
@@ -463,7 +477,14 @@ export default function FormsScreen() {
 
                   <View style={styles.formActions}>
                     <Button onPress={() => handleAssumeForm(form.id)} style={{ flex: 1 }}>
-                      Assume Form
+                      Assume
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onPress={() => handleViewDetails(form.id)}
+                      style={{ flex: 1 }}
+                    >
+                      Details
                     </Button>
                     <Button
                       variant="outline"
