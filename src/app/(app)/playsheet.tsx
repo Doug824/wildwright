@@ -16,7 +16,6 @@ import { Stat } from '@/components/ui/Stat';
 import { Tabs } from '@/components/ui/Tabs';
 import { AttackRow } from '@/components/ui/AttackRow';
 import { Button } from '@/components/ui/Button';
-import { demonstrateCalculations } from '@/pf1e/example';
 
 const styles = StyleSheet.create({
   container: {
@@ -335,16 +334,6 @@ export default function PlaysheetScreen() {
             </Button>
             <Button onPress={handleSwitchForm} style={{ flex: 1 }}>
               Switch Form
-            </Button>
-          </View>
-
-          {/* Demo Button (Development Only) */}
-          <View style={{ marginTop: 8 }}>
-            <Button onPress={() => {
-              console.log('\n🎯 RUNNING PF1E CALCULATION DEMO...\n');
-              demonstrateCalculations();
-            }} variant="outline">
-              🧪 Test PF1e Calculations (Check Console)
             </Button>
           </View>
 
