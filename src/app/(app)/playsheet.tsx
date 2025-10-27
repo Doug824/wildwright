@@ -153,7 +153,19 @@ export default function PlaysheetScreen() {
     return null;
   }, [params.formData]);
 
-  // Use computed data if available, otherwise fall back to mock
+  // Parse template data (for preview from library)
+  const templateData = React.useMemo(() => {
+    if (params.templateData) {
+      try {
+        return JSON.parse(params.templateData as string);
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  }, [params.templateData]);
+
+  // Use computed data if available, template data for preview, otherwise fall back to mock
   const form = computedData ? {
     name: formData?.name || 'Wild Shape',
     size: computedData.size,
@@ -173,6 +185,29 @@ export default function PlaysheetScreen() {
       flatFootedAC: computedData.ac.flatFooted,
       speed: `${computedData.movement.land} ft`,
     },
+  } : templateData ? {
+    // Template preview (from library)
+    name: templateData.name,
+    size: templateData.size,
+    spell: templateData.requiredSpellLevel,
+    movement: (() => {
+      const parts = [];
+      const m = templateData.statModifications.movement;
+      if (m.land) parts.push(`${m.land} ft`);
+      if (m.climb) parts.push(`Climb ${m.climb} ft`);
+      if (m.swim) parts.push(`Swim ${m.swim} ft`);
+      if (m.fly) parts.push(`Fly ${m.fly} ft`);
+      if (m.burrow) parts.push(`Burrow ${m.burrow} ft`);
+      return parts.join(', ');
+    })(),
+    attacks: templateData.statModifications.naturalAttacks.map((attack: any) => ({
+      name: attack.name,
+      bonus: '—',
+      damage: attack.damage,
+      trait: attack.traits?.[0],
+    })),
+    abilities: templateData.statModifications.specialAbilities,
+    stats: { hp: '—', ac: '—', speed: `${templateData.statModifications.movement.land || 30} ft` },
   } : {
     // Default mock data for development
     name: 'Leopard',

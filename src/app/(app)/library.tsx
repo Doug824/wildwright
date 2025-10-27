@@ -272,8 +272,17 @@ export default function LibraryScreen() {
   };
 
   const handleViewDetails = (templateId: string) => {
-    // Navigate to detailed view
-    router.push(`/(app)/playsheet?templateId=${templateId}`);
+    const template = templates.find(t => t.id === templateId);
+    if (!template) return;
+
+    // Pass template data to playsheet for preview
+    // Note: This won't have computed stats, just template data
+    router.push({
+      pathname: '/(app)/playsheet',
+      params: {
+        templateData: JSON.stringify(template),
+      }
+    });
   };
 
   // Helper function to format movement
