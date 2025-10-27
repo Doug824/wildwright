@@ -512,26 +512,29 @@ export default function DashboardScreen() {
       // Convert character to PF1e format
       const baseChar = characterToBaseCharacter(character);
 
-      // For now, use a hardcoded Leopard form - later this will come from DB
-      // TODO: Replace with actual form from selectedFormModal when forms are in DB
-      const leopardForm = {
-        id: 'leopard',
-        name: 'Leopard',
-        kind: 'Animal' as const,
-        baseSize: 'Medium' as const,
-        naturalAttacks: [
-          { type: 'bite' as const, dice: '1d6', primary: true, traits: ['grab'] },
-          { type: 'claw' as const, dice: '1d3', count: 2, primary: false },
-        ],
-        movement: { land: 40, climb: 20 },
-        senses: { lowLight: true, scent: true },
-        traits: ['pounce', 'grab'],
+      // Convert form to PF1e format
+      const pf1eForm = {
+        id: selectedFormModal.id,
+        name: selectedFormModal.name,
+        kind: selectedFormModal.tags?.includes('elemental') ? 'Elemental' as const :
+              selectedFormModal.tags?.includes('plant') ? 'Plant' as const :
+              selectedFormModal.tags?.includes('magical-beast') ? 'Magical Beast' as const : 'Animal' as const,
+        baseSize: selectedFormModal.size,
+        naturalAttacks: selectedFormModal.statModifications.naturalAttacks.map((attack: any) => ({
+          type: attack.name.toLowerCase() as any,
+          dice: attack.damage,
+          primary: true,
+          traits: attack.traits || [],
+        })),
+        movement: selectedFormModal.statModifications.movement,
+        senses: selectedFormModal.statModifications.senses || {},
+        traits: selectedFormModal.statModifications.specialAbilities || [],
       };
 
       // Compute the playsheet using PF1e engine with selected tier/size
       const computedPlaysheet = computePF1e({
         base: baseChar,
-        form: leopardForm,
+        form: pf1eForm as any,
         tier: selectedTier,
         chosenSize: selectedSize,
       });
@@ -548,9 +551,9 @@ export default function DashboardScreen() {
       setSelectedTier(null);
       setSelectedSize(null);
       // TODO: Save to DB and track daily uses
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error computing wildshape form:', error);
-      alert('Error assuming form. Check console for details.');
+      alert(`Error assuming form: ${error.message}. Check console for details.`);
     }
   };
 
