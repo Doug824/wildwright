@@ -210,6 +210,24 @@ export default function LibraryScreen() {
 
       console.log('Cloning template:', template.name);
 
+      // Check if form already exists
+      const existingFormsQuery = query(
+        collection(db, COLLECTIONS.WILD_SHAPE_FORMS),
+        where('characterId', '==', characterId),
+        where('ownerId', '==', userId),
+        where('baseTemplateId', '==', templateId)
+      );
+      const existingSnapshot = await getDocs(existingFormsQuery);
+
+      if (!existingSnapshot.empty) {
+        // Form already exists
+        setToastMessage(`${template.name} is already in your Forms!`);
+        setToastType('info');
+        setToastVisible(true);
+        setClonedForms(prev => new Set(prev).add(templateId));
+        return;
+      }
+
       // Create a new form in wildShapeForms collection
       const docRef = await addDoc(collection(db, COLLECTIONS.WILD_SHAPE_FORMS), {
         ownerId: userId,
