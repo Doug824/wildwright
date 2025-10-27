@@ -434,12 +434,25 @@ export default function DashboardScreen() {
   };
 
   const handleViewPlaysheet = () => {
-    if (activeForm && activeForm.computed) {
+    if (!activeForm) return;
+
+    // If we have computed data, pass it along
+    if (activeForm.computed) {
       router.push({
         pathname: '/(app)/playsheet',
         params: {
           formData: JSON.stringify(activeForm),
-          computedData: JSON.stringify(activeForm.computed)
+          computedData: JSON.stringify(activeForm.computed),
+          backTo: 'home',
+        }
+      });
+    } else {
+      // Otherwise, pass the raw form data
+      router.push({
+        pathname: '/(app)/playsheet',
+        params: {
+          formData: JSON.stringify(activeForm),
+          backTo: 'home',
         }
       });
     }
