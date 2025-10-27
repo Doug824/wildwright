@@ -193,7 +193,10 @@ export default function FormsScreen() {
     fetchForms();
   }, [characterId, user?.uid]);
 
-  const filters = ['Small', 'Medium', 'Large', 'Huge', 'Beast I', 'Beast II', 'Beast III'];
+  // Filter categories
+  const sizeFilters = ['Diminutive', 'Tiny', 'Small', 'Medium', 'Large', 'Huge', 'Gargantuan', 'Colossal'];
+  const typeFilters = ['Animal', 'Elemental', 'Plant', 'Magical Beast'];
+  const speedFilters = ['Swim', 'Climb', 'Land', 'Fly', 'Burrow'];
 
   const toggleFilter = (filter: string) => {
     setSelectedFilters(prev =>
@@ -201,6 +204,10 @@ export default function FormsScreen() {
         ? prev.filter(f => f !== filter)
         : [...prev, filter]
     );
+  };
+
+  const clearFilters = () => {
+    setSelectedFilters([]);
   };
 
   const toggleFavorite = async (formId: string) => {
@@ -258,9 +265,40 @@ export default function FormsScreen() {
 
   const filteredForms = forms.filter(form => {
     if (selectedFilters.length === 0) return true;
-    return selectedFilters.some(filter =>
-      form.size === filter || form.requiredSpellLevel.includes(filter)
+
+    // Separate filters by category
+    const selectedSizes = selectedFilters.filter(f => sizeFilters.includes(f));
+    const selectedTypes = selectedFilters.filter(f => typeFilters.includes(f));
+    const selectedSpeeds = selectedFilters.filter(f => speedFilters.includes(f));
+
+    // Check size filter (OR within category)
+    const matchesSize = selectedSizes.length === 0 || selectedSizes.includes(form.size);
+
+    // Check type filter (OR within category)
+    const formType = form.tags?.find(tag =>
+      tag.includes('animal') || tag.includes('elemental') || tag.includes('plant') || tag.includes('magical-beast')
     );
+    const matchesType = selectedTypes.length === 0 || selectedTypes.some(type => {
+      if (type === 'Animal') return formType?.includes('animal');
+      if (type === 'Elemental') return formType?.includes('elemental');
+      if (type === 'Plant') return formType?.includes('plant');
+      if (type === 'Magical Beast') return formType?.includes('magical-beast');
+      return false;
+    });
+
+    // Check speed filter (OR within category)
+    const matchesSpeed = selectedSpeeds.length === 0 || selectedSpeeds.some(speed => {
+      const movement = form.statModifications.movement;
+      if (speed === 'Swim') return !!movement.swim;
+      if (speed === 'Climb') return !!movement.climb;
+      if (speed === 'Land') return !!movement.land;
+      if (speed === 'Fly') return !!movement.fly;
+      if (speed === 'Burrow') return !!movement.burrow;
+      return false;
+    });
+
+    // All categories must match (AND logic between categories)
+    return matchesSize && matchesType && matchesSpeed;
   });
 
   if (loading) {
@@ -286,7 +324,10 @@ export default function FormsScreen() {
           <View style={styles.header}>
             <Text style={styles.title}>Your Forms</Text>
             <Text style={styles.subtitle}>
-              {forms.length} wildshape {forms.length === 1 ? 'form' : 'forms'} known
+              {filteredForms.length} of {forms.length} forms
+              {selectedFilters.length > 0 && (
+                <Text style={{ color: '#7FD1A8' }}> • {selectedFilters.length} filters active</Text>
+              )}
             </Text>
           </View>
 
@@ -306,16 +347,62 @@ export default function FormsScreen() {
             </BarkCard>
           ) : (
             <>
-              {/* Filters */}
-              <View style={styles.filterRow}>
-                {filters.map((filter) => (
-                  <Pressable key={filter} onPress={() => toggleFilter(filter)}>
-                    <Chip
-                      label={filter}
-                      variant={selectedFilters.includes(filter) ? 'mist' : 'default'}
-                    />
-                  </Pressable>
-                ))}
+              {/* Clear Filters Button */}
+              {selectedFilters.length > 0 && (
+                <Button variant="outline" onPress={clearFilters} fullWidth style={{ marginBottom: 12 }}>
+                  Clear All Filters
+                </Button>
+              )}
+
+              {/* Size Filters */}
+              <View style={{ marginBottom: 12 }}>
+                <Text style={{ color: '#D4C5A9', fontSize: 12, fontWeight: '700', marginBottom: 6 }}>
+                  SIZE
+                </Text>
+                <View style={styles.filterRow}>
+                  {sizeFilters.map((filter) => (
+                    <Pressable key={filter} onPress={() => toggleFilter(filter)}>
+                      <Chip
+                        label={filter}
+                        variant={selectedFilters.includes(filter) ? 'mist' : 'default'}
+                      />
+                    </Pressable>
+                  ))}
+                </View>
+              </View>
+
+              {/* Type Filters */}
+              <View style={{ marginBottom: 12 }}>
+                <Text style={{ color: '#D4C5A9', fontSize: 12, fontWeight: '700', marginBottom: 6 }}>
+                  TYPE
+                </Text>
+                <View style={styles.filterRow}>
+                  {typeFilters.map((filter) => (
+                    <Pressable key={filter} onPress={() => toggleFilter(filter)}>
+                      <Chip
+                        label={filter}
+                        variant={selectedFilters.includes(filter) ? 'mist' : 'default'}
+                      />
+                    </Pressable>
+                  ))}
+                </View>
+              </View>
+
+              {/* Speed Filters */}
+              <View style={{ marginBottom: 16 }}>
+                <Text style={{ color: '#D4C5A9', fontSize: 12, fontWeight: '700', marginBottom: 6 }}>
+                  MOVEMENT
+                </Text>
+                <View style={styles.filterRow}>
+                  {speedFilters.map((filter) => (
+                    <Pressable key={filter} onPress={() => toggleFilter(filter)}>
+                      <Chip
+                        label={filter}
+                        variant={selectedFilters.includes(filter) ? 'mist' : 'default'}
+                      />
+                    </Pressable>
+                  ))}
+                </View>
               </View>
 
               {/* Forms List */}
