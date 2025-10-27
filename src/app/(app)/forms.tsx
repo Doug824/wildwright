@@ -474,13 +474,26 @@ export default function FormsScreen() {
                 <Text style={styles.emptyText}>
                   Create custom forms or clone from the library to get started
                 </Text>
-                <Button onPress={handleCloneFromLibrary} fullWidth>
+                <Button onPress={() => router.push('/(app)/create-form')} fullWidth style={{ marginBottom: 12 }}>
+                  + Create Custom Form
+                </Button>
+                <Button variant="outline" onPress={handleCloneFromLibrary} fullWidth>
                   Browse Library
                 </Button>
               </View>
             </BarkCard>
           ) : (
             <>
+              {/* Quick Actions */}
+              <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
+                <Button onPress={() => router.push('/(app)/create-form')} style={{ flex: 1 }}>
+                  + Create Form
+                </Button>
+                <Button variant="outline" onPress={handleCloneFromLibrary} style={{ flex: 1 }}>
+                  Browse Library
+                </Button>
+              </View>
+
               {/* Clear Filters Button */}
               {selectedFilters.length > 0 && (
                 <Button variant="outline" onPress={clearFilters} fullWidth style={{ marginBottom: 12 }}>
