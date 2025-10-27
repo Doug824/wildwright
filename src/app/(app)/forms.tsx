@@ -151,6 +151,7 @@ export default function FormsScreen() {
   const [toastMessage, setToastMessage] = useState('');
   const [toastVisible, setToastVisible] = useState(false);
   const [toastType, setToastType] = useState<'success' | 'error' | 'info'>('success');
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{ id: string; name: string } | null>(null);
 
   // Load characterId from storage
   useEffect(() => {
@@ -263,21 +264,25 @@ export default function FormsScreen() {
     router.push('/(app)/library');
   };
 
-  const handleDeleteForm = async (formId: string, formName: string) => {
-    // Simple confirmation using native alert
-    if (!confirm(`Are you sure you want to delete "${formName}"? This cannot be undone.`)) {
-      return;
-    }
+  const handleDeleteForm = (formId: string, formName: string) => {
+    // Show confirmation dialog
+    setDeleteConfirmation({ id: formId, name: formName });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteConfirmation) return;
+
+    const { id, name } = deleteConfirmation;
 
     try {
       // Delete from Firestore
-      await deleteDoc(doc(db, COLLECTIONS.WILD_SHAPE_FORMS, formId));
+      await deleteDoc(doc(db, COLLECTIONS.WILD_SHAPE_FORMS, id));
 
       // Update local state
-      setForms(prev => prev.filter(f => f.id !== formId));
+      setForms(prev => prev.filter(f => f.id !== id));
 
       // Show success toast
-      setToastMessage(`${formName} deleted successfully`);
+      setToastMessage(`${name} deleted successfully`);
       setToastType('success');
       setToastVisible(true);
     } catch (error: any) {
@@ -287,7 +292,13 @@ export default function FormsScreen() {
       setToastMessage(`Failed to delete form: ${error.message}`);
       setToastType('error');
       setToastVisible(true);
+    } finally {
+      setDeleteConfirmation(null);
     }
+  };
+
+  const cancelDelete = () => {
+    setDeleteConfirmation(null);
   };
 
   const handleViewDetails = (formId: string) => {
@@ -507,6 +518,46 @@ export default function FormsScreen() {
           onHide={() => setToastVisible(false)}
           type={toastType}
         />
+
+        {/* Delete Confirmation Dialog */}
+        {deleteConfirmation && (
+          <View style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            justifyContent: 'center',
+            alignItems: 'center',
+            padding: 20,
+          }}>
+            <View style={{
+              backgroundColor: '#F9F5EB',
+              borderRadius: 12,
+              padding: 24,
+              width: '100%',
+              maxWidth: 400,
+              borderWidth: 2,
+              borderColor: '#8B7355',
+            }}>
+              <Text style={{ fontSize: 18, fontWeight: '700', color: '#4A3426', marginBottom: 12 }}>
+                Delete Form?
+              </Text>
+              <Text style={{ fontSize: 14, color: '#6B5344', marginBottom: 24 }}>
+                Are you sure you want to delete "{deleteConfirmation.name}"? This cannot be undone.
+              </Text>
+              <View style={{ flexDirection: 'row', gap: 12 }}>
+                <Button variant="outline" onPress={cancelDelete} style={{ flex: 1 }}>
+                  Cancel
+                </Button>
+                <Button onPress={confirmDelete} style={{ flex: 1 }}>
+                  Delete
+                </Button>
+              </View>
+            </View>
+          </View>
+        )}
       </LivingForestBg>
     </View>
   );
