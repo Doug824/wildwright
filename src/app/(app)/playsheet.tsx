@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { ScrollView, View, Text, Pressable, StyleSheet } from 'react-native';
+import { ScrollView, View, Text, Pressable, StyleSheet, TextInput } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { LivingForestBg } from '@/components/ui/LivingForestBg';
 import { Card } from '@/components/ui/Card';
@@ -128,6 +128,23 @@ export default function PlaysheetScreen() {
   const tabs = ['Attacks & Damage', 'Defense', 'Skills', 'Effects'];
   const [active, setActive] = React.useState(tabs[0]);
 
+  // Active Effects State
+  interface ActiveEffect {
+    id: string;
+    name: string;
+    type: 'ac' | 'attack' | 'damage' | 'stat' | 'skill';
+    target?: string; // e.g., "STR", "all attacks", "AC"
+    value: number;
+    duration?: string;
+  }
+
+  const [activeEffects, setActiveEffects] = React.useState<ActiveEffect[]>([]);
+  const [showAddEffect, setShowAddEffect] = React.useState(false);
+  const [newEffectName, setNewEffectName] = React.useState('');
+  const [newEffectType, setNewEffectType] = React.useState<ActiveEffect['type']>('ac');
+  const [newEffectValue, setNewEffectValue] = React.useState('');
+  const [newEffectTarget, setNewEffectTarget] = React.useState('');
+
   // Parse computed data from params
   const computedData = React.useMemo(() => {
     if (params.computedData) {
@@ -236,6 +253,48 @@ export default function PlaysheetScreen() {
     router.push('/(app)/forms');
   };
 
+  // Active Effects Handlers
+  const addEffect = () => {
+    if (!newEffectName || !newEffectValue) return;
+
+    const effect: ActiveEffect = {
+      id: Date.now().toString(),
+      name: newEffectName,
+      type: newEffectType,
+      target: newEffectTarget || undefined,
+      value: parseInt(newEffectValue),
+    };
+
+    setActiveEffects(prev => [...prev, effect]);
+    setNewEffectName('');
+    setNewEffectValue('');
+    setNewEffectTarget('');
+    setShowAddEffect(false);
+  };
+
+  const removeEffect = (id: string) => {
+    setActiveEffects(prev => prev.filter(e => e.id !== id));
+  };
+
+  // Calculate total modifiers from active effects
+  const calculateModifiers = () => {
+    const modifiers = {
+      ac: 0,
+      attack: 0,
+      damage: 0,
+    };
+
+    activeEffects.forEach(effect => {
+      if (effect.type === 'ac') modifiers.ac += effect.value;
+      if (effect.type === 'attack') modifiers.attack += effect.value;
+      if (effect.type === 'damage') modifiers.damage += effect.value;
+    });
+
+    return modifiers;
+  };
+
+  const modifiers = calculateModifiers();
+
   return (
     <View style={styles.container}>
       <LivingForestBg>
@@ -274,7 +333,11 @@ export default function PlaysheetScreen() {
             <View style={styles.sectionSpacing}>
               <View style={styles.statsRow}>
                 <Stat label="HP" value={`${form.stats?.hp || 0}`} />
-                <Stat label="AC" value={String(form.stats?.ac || 0)} />
+                <Stat
+                  label="AC"
+                  value={String((form.stats?.ac || 0) + modifiers.ac)}
+                  sub={modifiers.ac !== 0 ? `(${modifiers.ac > 0 ? '+' : ''}${modifiers.ac})` : undefined}
+                />
                 <Stat label="Speed" value={form.movement || 'Unknown'} />
               </View>
             </View>
@@ -289,15 +352,27 @@ export default function PlaysheetScreen() {
               <Text style={styles.sectionTitle}>
                 Natural Attacks
               </Text>
-              {form.attacks?.map((attack, idx) => (
-                <AttackRow
-                  key={idx}
-                  name={attack.name}
-                  bonus={attack.bonus}
-                  damage={attack.damage}
-                  trait={attack.trait}
-                />
-              ))}
+              {form.attacks?.map((attack, idx) => {
+                // Parse attack bonus and apply modifiers
+                const baseBonus = attack.bonus === '—' ? 0 : parseInt(attack.bonus.replace('+', ''));
+                const modifiedBonus = baseBonus + modifiers.attack;
+                const displayBonus = modifiedBonus >= 0 ? `+${modifiedBonus}` : `${modifiedBonus}`;
+
+                // Apply damage modifier
+                const displayDamage = modifiers.damage !== 0
+                  ? `${attack.damage}${modifiers.damage > 0 ? '+' : ''}${modifiers.damage}`
+                  : attack.damage;
+
+                return (
+                  <AttackRow
+                    key={idx}
+                    name={attack.name}
+                    bonus={displayBonus}
+                    damage={displayDamage}
+                    trait={attack.trait}
+                  />
+                );
+              })}
 
               <Text style={styles.infoText}>
                 Full Attack: {form.attacks?.map(a => `${a.name} ${a.bonus} (${a.damage}${a.trait ? ` plus ${a.trait.toLowerCase()}` : ''})`).join(', ')}
@@ -312,9 +387,21 @@ export default function PlaysheetScreen() {
                 Armor Class
               </Text>
               <View style={styles.statsRow}>
-                <Stat label="Total AC" value={String(form.stats?.ac || 0)} />
-                <Stat label="Touch" value={String(form.stats?.touchAC || 0)} sub="Dex + Size" />
-                <Stat label="Flat-Footed" value={String(form.stats?.flatFootedAC || 0)} sub="No Dex" />
+                <Stat
+                  label="Total AC"
+                  value={String((form.stats?.ac || 0) + modifiers.ac)}
+                  sub={modifiers.ac !== 0 ? `(${modifiers.ac > 0 ? '+' : ''}${modifiers.ac})` : undefined}
+                />
+                <Stat
+                  label="Touch"
+                  value={String((form.stats?.touchAC || 0) + modifiers.ac)}
+                  sub="Dex + Size"
+                />
+                <Stat
+                  label="Flat-Footed"
+                  value={String((form.stats?.flatFootedAC || 0) + modifiers.ac)}
+                  sub="No Dex"
+                />
               </View>
 
               <View style={styles.sectionSpacing}>
@@ -352,15 +439,104 @@ export default function PlaysheetScreen() {
               <Text style={styles.sectionTitle}>
                 Active Effects
               </Text>
-              <View style={styles.chipRow}>
-                <Chip label="Haste" variant="mist" />
-                <Chip label="Barkskin" variant="mist" />
-                <Chip label="Heroism" variant="mist" />
-              </View>
 
-              <Text style={styles.infoText}>
-                No temporary effects active. Apply buffs to see stat changes.
-              </Text>
+              {/* Modifiers Summary */}
+              {activeEffects.length > 0 && (
+                <View style={{ marginBottom: 12, padding: 12, backgroundColor: 'rgba(127, 209, 168, 0.1)', borderRadius: 8 }}>
+                  <Text style={{ fontSize: 12, color: '#2A4A3A', fontWeight: '700', marginBottom: 4 }}>
+                    TOTAL MODIFIERS
+                  </Text>
+                  <View style={{ flexDirection: 'row', gap: 12 }}>
+                    {modifiers.ac !== 0 && (
+                      <Text style={{ fontSize: 14, color: '#2A4A3A' }}>
+                        AC: {modifiers.ac > 0 ? '+' : ''}{modifiers.ac}
+                      </Text>
+                    )}
+                    {modifiers.attack !== 0 && (
+                      <Text style={{ fontSize: 14, color: '#2A4A3A' }}>
+                        Attack: {modifiers.attack > 0 ? '+' : ''}{modifiers.attack}
+                      </Text>
+                    )}
+                    {modifiers.damage !== 0 && (
+                      <Text style={{ fontSize: 14, color: '#2A4A3A' }}>
+                        Damage: {modifiers.damage > 0 ? '+' : ''}{modifiers.damage}
+                      </Text>
+                    )}
+                  </View>
+                </View>
+              )}
+
+              {/* Active Effects List */}
+              {activeEffects.map(effect => (
+                <View key={effect.id} style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, padding: 12, backgroundColor: 'rgba(139, 115, 85, 0.1)', borderRadius: 8 }}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ fontSize: 14, fontWeight: '700', color: '#4A3426' }}>
+                      {effect.name}
+                    </Text>
+                    <Text style={{ fontSize: 12, color: '#6B5344' }}>
+                      {effect.type.toUpperCase()}: {effect.value > 0 ? '+' : ''}{effect.value}
+                      {effect.target && ` to ${effect.target}`}
+                    </Text>
+                  </View>
+                  <Pressable onPress={() => removeEffect(effect.id)} style={{ padding: 8 }}>
+                    <Text style={{ fontSize: 16, color: '#B97A3D' }}>✕</Text>
+                  </Pressable>
+                </View>
+              ))}
+
+              {activeEffects.length === 0 && !showAddEffect && (
+                <Text style={styles.infoText}>
+                  No active effects. Add buffs, debuffs, or temporary modifiers.
+                </Text>
+              )}
+
+              {/* Add Effect Form */}
+              {showAddEffect && (
+                <View style={{ marginTop: 12, padding: 12, backgroundColor: 'rgba(185, 122, 61, 0.1)', borderRadius: 8 }}>
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: '#4A3426', marginBottom: 8 }}>
+                    ADD EFFECT
+                  </Text>
+                  <TextInput
+                    placeholder="Effect name (e.g., Haste)"
+                    value={newEffectName}
+                    onChangeText={setNewEffectName}
+                    style={{ backgroundColor: '#FFF', padding: 8, borderRadius: 4, marginBottom: 8, borderWidth: 1, borderColor: '#8B7355' }}
+                  />
+                  <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8 }}>
+                    <Pressable onPress={() => setNewEffectType('ac')} style={{ flex: 1, padding: 8, backgroundColor: newEffectType === 'ac' ? '#7FD1A8' : '#E8DCC8', borderRadius: 4 }}>
+                      <Text style={{ textAlign: 'center', fontSize: 12, fontWeight: '600' }}>AC</Text>
+                    </Pressable>
+                    <Pressable onPress={() => setNewEffectType('attack')} style={{ flex: 1, padding: 8, backgroundColor: newEffectType === 'attack' ? '#7FD1A8' : '#E8DCC8', borderRadius: 4 }}>
+                      <Text style={{ textAlign: 'center', fontSize: 12, fontWeight: '600' }}>Attack</Text>
+                    </Pressable>
+                    <Pressable onPress={() => setNewEffectType('damage')} style={{ flex: 1, padding: 8, backgroundColor: newEffectType === 'damage' ? '#7FD1A8' : '#E8DCC8', borderRadius: 4 }}>
+                      <Text style={{ textAlign: 'center', fontSize: 12, fontWeight: '600' }}>Damage</Text>
+                    </Pressable>
+                  </View>
+                  <TextInput
+                    placeholder="Modifier (e.g., +2, -1)"
+                    value={newEffectValue}
+                    onChangeText={setNewEffectValue}
+                    keyboardType="numeric"
+                    style={{ backgroundColor: '#FFF', padding: 8, borderRadius: 4, marginBottom: 8, borderWidth: 1, borderColor: '#8B7355' }}
+                  />
+                  <View style={{ flexDirection: 'row', gap: 8 }}>
+                    <Button variant="outline" onPress={() => setShowAddEffect(false)} style={{ flex: 1 }}>
+                      Cancel
+                    </Button>
+                    <Button onPress={addEffect} style={{ flex: 1 }}>
+                      Add Effect
+                    </Button>
+                  </View>
+                </View>
+              )}
+
+              {/* Add Effect Button */}
+              {!showAddEffect && (
+                <Button onPress={() => setShowAddEffect(true)} fullWidth style={{ marginTop: 12 }}>
+                  + Add Effect
+                </Button>
+              )}
             </Card>
           )}
 
