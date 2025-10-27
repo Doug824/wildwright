@@ -29,21 +29,22 @@ export default function AppShellLayout() {
         tabBarActiveTintColor: '#7FD1A8', // Magical green
         tabBarInactiveTintColor: '#F9F5EB', // Bright parchment - highly visible
         tabBarLabelStyle: {
-          fontSize: Platform.OS === 'web' ? 14 : 11,
+          fontSize: Platform.OS === 'web' ? 13 : 11,
           fontWeight: '700',
-          letterSpacing: 0.2,
+          letterSpacing: 0.1,
           textShadowColor: 'rgba(0, 0, 0, 0.8)',
           textShadowOffset: { width: 0, height: 1 },
           textShadowRadius: 3,
           marginTop: 0,
           marginBottom: 0,
           paddingVertical: 2,
+          textAlign: 'center',
         },
         tabBarItemStyle: {
           paddingVertical: Platform.OS === 'web' ? 10 : 6,
-          paddingHorizontal: Platform.OS === 'web' ? 12 : 4,
+          paddingHorizontal: Platform.OS === 'web' ? 6 : 3,
           backgroundColor: 'rgba(74, 52, 38, 0.9)', // Dark brown bark - solid background
-          marginHorizontal: Platform.OS === 'web' ? 4 : 2,
+          marginHorizontal: Platform.OS === 'web' ? 3 : 2,
           borderRadius: 8,
           borderWidth: 2,
           borderColor: 'rgba(139, 115, 85, 0.7)',
@@ -54,6 +55,7 @@ export default function AppShellLayout() {
           flex: 1,
           justifyContent: 'center', // Center content vertically
           alignItems: 'center', // Center content horizontally
+          overflow: 'hidden', // Prevent text from overflowing
         },
         tabBarAllowFontScaling: false,
         tabBarIconStyle: {
@@ -65,7 +67,7 @@ export default function AppShellLayout() {
         name="home"
         options={{
           title: 'Dashboard',
-          tabBarLabel: 'Home',
+          tabBarLabel: '🏠 Home',
           tabBarIcon: () => null,
         }}
       />
@@ -73,7 +75,7 @@ export default function AppShellLayout() {
         name="forms"
         options={{
           title: 'Forms',
-          tabBarLabel: 'Forms',
+          tabBarLabel: '📋 Forms',
           tabBarIcon: () => null,
         }}
       />
@@ -81,7 +83,7 @@ export default function AppShellLayout() {
         name="library"
         options={{
           title: 'Library',
-          tabBarLabel: 'Library',
+          tabBarLabel: '📚 Library',
           tabBarIcon: () => null,
         }}
       />
@@ -89,7 +91,7 @@ export default function AppShellLayout() {
         name="character"
         options={{
           title: 'Character',
-          tabBarLabel: 'Character',
+          tabBarLabel: '⚔️ Char',
           tabBarIcon: () => null,
         }}
       />
@@ -97,7 +99,7 @@ export default function AppShellLayout() {
         name="settings"
         options={{
           title: 'Settings',
-          tabBarLabel: 'Settings',
+          tabBarLabel: '⚙️ Settings',
           tabBarIcon: () => null,
         }}
       />
