@@ -13,6 +13,8 @@ import { Card } from '@/components/ui/Card';
 import { H2 } from '@/components/ui/Heading';
 import { Chip } from '@/components/ui/Chip';
 import { Stat } from '@/components/ui/Stat';
+import { getSizeModifiers } from '@/pf1e/tiers';
+import { Tier } from '@/pf1e/types';
 import { Tabs } from '@/components/ui/Tabs';
 import { AttackRow } from '@/components/ui/AttackRow';
 import { Button } from '@/components/ui/Button';
