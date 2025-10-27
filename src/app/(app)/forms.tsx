@@ -146,6 +146,7 @@ export default function FormsScreen() {
   const [forms, setForms] = useState<WildShapeFormWithId[]>([]);
   const [loading, setLoading] = useState(true);
   const [characterId, setCharacterId] = useState<string | null>(null);
+  const { user } = useAuth(); // Get authenticated user
 
   // Load characterId from storage
   useEffect(() => {
@@ -159,7 +160,7 @@ export default function FormsScreen() {
   // Fetch user's learned forms from Firestore
   useEffect(() => {
     const fetchForms = async () => {
-      if (!characterId) {
+      if (!characterId || !user?.uid) {
         setLoading(false);
         return;
       }
@@ -167,7 +168,8 @@ export default function FormsScreen() {
       try {
         const formsQuery = query(
           collection(db, COLLECTIONS.WILD_SHAPE_FORMS),
-          where('characterId', '==', characterId)
+          where('characterId', '==', characterId),
+          where('ownerId', '==', user.uid) // Required to match Firestore security rules
         );
         const snapshot = await getDocs(formsQuery);
 
@@ -185,7 +187,7 @@ export default function FormsScreen() {
     };
 
     fetchForms();
-  }, [characterId]);
+  }, [characterId, user?.uid]);
 
   const filters = ['Small', 'Medium', 'Large', 'Huge', 'Beast I', 'Beast II', 'Beast III'];
 

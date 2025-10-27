@@ -10,6 +10,7 @@ import { View, Text, ScrollView, Pressable, StyleSheet, Modal, ActivityIndicator
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { db, COLLECTIONS } from '@/lib/firebase';
+import { useAuth } from '@/hooks';
 import { Character, CharacterWithId, CreatureSize, WildShapeFormWithId } from '@/types/firestore';
 import { computePF1e } from '@/pf1e';
 import { characterToBaseCharacter } from '@/pf1e/adapters';
@@ -323,6 +324,7 @@ const styles = StyleSheet.create({
 export default function DashboardScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
+  const { user } = useAuth(); // Get authenticated user
   const [character, setCharacter] = useState<CharacterWithId | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeForm, setActiveForm] = useState<any>(null); // Will be computed playsheet
@@ -376,14 +378,15 @@ export default function DashboardScreen() {
   useEffect(() => {
     const fetchFavoriteForms = async () => {
       const characterId = params.characterId as string;
-      if (!characterId) return;
+      if (!characterId || !user?.uid) return;
 
       try {
         // Fetch all forms for this character, then filter locally
         // This avoids needing a composite Firestore index
         const formsQuery = query(
           collection(db, COLLECTIONS.WILD_SHAPE_FORMS),
-          where('characterId', '==', characterId)
+          where('characterId', '==', characterId),
+          where('ownerId', '==', user.uid) // Required to match Firestore security rules
         );
         const snapshot = await getDocs(formsQuery);
 
@@ -401,7 +404,7 @@ export default function DashboardScreen() {
     };
 
     fetchFavoriteForms();
-  }, [params.characterId]);
+  }, [params.characterId, user?.uid]);
 
   const handleAssumeShape = () => {
     router.push('/(app)/forms');
