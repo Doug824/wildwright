@@ -31,24 +31,24 @@ export function characterToBaseCharacter(character: Character | CharacterWithId)
       misc: 0,
     },
     saves: {
-      fortitude: character.baseStats.saves.fortitude,
-      reflex: character.baseStats.saves.reflex,
-      will: character.baseStats.saves.will,
+      fortitude: character.baseStats.saves?.fortitude || 0,
+      reflex: character.baseStats.saves?.reflex || 0,
+      will: character.baseStats.saves?.will || 0,
     },
     movement: {
-      land: character.baseStats.movement.land,
-      swim: character.baseStats.movement.swim,
-      climb: character.baseStats.movement.climb,
-      fly: character.baseStats.movement.fly,
+      land: character.baseStats.movement?.land || 30,
+      swim: character.baseStats.movement?.swim,
+      climb: character.baseStats.movement?.climb,
+      fly: character.baseStats.movement?.fly,
     },
     senses: {
       // Convert senses array to structured format
-      lowLight: character.baseStats.senses.includes('low-light vision'),
-      scent: character.baseStats.senses.includes('scent'),
-      darkvision: extractDarkvisionRange(character.baseStats.senses),
+      lowLight: character.baseStats.senses?.includes('low-light vision') || false,
+      scent: character.baseStats.senses?.includes('scent') || false,
+      darkvision: extractDarkvisionRange(character.baseStats.senses || []),
     },
-    feats: character.features.feats,
-    traits: character.features.raceTraits,
+    feats: character.features?.feats || [],
+    traits: character.features?.raceTraits || [],
   };
 }
 
