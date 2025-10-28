@@ -489,13 +489,25 @@ export default function DashboardScreen() {
       const tierAvailability = getTierForEDL(edl);
 
       if (tierAvailability) {
-        // Auto-select the best animal tier (Beast Shape)
-        setSelectedTier(tierAvailability.animal);
+        // Auto-select tier based on form's required spell level if available
+        const formTier = selectedFormModal.requiredSpellLevel as Tier;
+        const availableTiers: Tier[] = [tierAvailability.animal];
+        if (tierAvailability.elemental) availableTiers.push(tierAvailability.elemental);
+        if (tierAvailability.plant) availableTiers.push(tierAvailability.plant);
 
-        // Auto-select Large size (good default for most forms)
-        // Or Medium if Large not available
+        if (availableTiers.includes(formTier)) {
+          setSelectedTier(formTier);
+        } else {
+          // Fall back to animal tier
+          setSelectedTier(tierAvailability.animal);
+        }
+
+        // Auto-select the form's actual size if available at current tier
         const availableSizes = tierAvailability.sizes;
-        if (availableSizes.includes('Large')) {
+        const formSize = selectedFormModal.size as CreatureSize;
+        if (availableSizes.includes(formSize)) {
+          setSelectedSize(formSize);
+        } else if (availableSizes.includes('Large')) {
           setSelectedSize('Large');
         } else if (availableSizes.includes('Medium')) {
           setSelectedSize('Medium');
