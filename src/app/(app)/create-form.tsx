@@ -14,7 +14,7 @@ import { H2 } from '@/components/ui/Heading';
 import { Button } from '@/components/ui/Button';
 import { Chip } from '@/components/ui/Chip';
 import { SPECIAL_ABILITIES } from '@/pf1e/specialAbilities';
-import { doc, setDoc } from 'firebase/firestore';
+import { addDoc, collection, Timestamp } from 'firebase/firestore';
 import { db, COLLECTIONS } from '@/lib/firebase';
 import { getCurrentCharacterId } from '@/lib/storage';
 import { useAuth } from '@/hooks';
@@ -376,34 +376,61 @@ export default function CreateFormScreen() {
     }));
   };
 
+  const getTierRequiredDruidLevel = (tier: Tier): number => {
+    if (tier === 'Beast Shape I') return 4;
+    if (tier === 'Beast Shape II' || tier === 'Elemental Body I') return 6;
+    if (tier === 'Beast Shape III' || tier === 'Elemental Body II' || tier === 'Plant Shape I') return 8;
+    if (tier === 'Beast Shape IV' || tier === 'Elemental Body III' || tier === 'Plant Shape II') return 10;
+    if (tier === 'Elemental Body IV' || tier === 'Plant Shape III') return 12;
+    return 4; // Default
+  };
+
   const handleSave = async () => {
-    if (!characterId) {
-      alert('No character selected');
+    if (!characterId || !user?.uid) {
+      alert('No character selected or not logged in');
       return;
     }
 
     setIsSaving(true);
 
     try {
-      const formId = `custom_${Date.now()}`;
+      // Determine edition and tags based on tier
+      const edition = 'pf1e';
+      const tags: string[] = [];
+      if (formData.tier.includes('Elemental')) tags.push('elemental');
+      else if (formData.tier.includes('Plant')) tags.push('plant');
+      else tags.push('animal');
+
       const formDoc = {
-        id: formId,
+        ownerId: user.uid,
+        characterId: characterId,
         name: formData.name,
+        edition: edition,
+        imageUrl: null,
+        baseTemplateId: null, // Custom forms don't have a template
+        isCustom: true,
         size: formData.size,
-        requiredSpellLevel: formData.tier,
+        tags: tags,
         statModifications: {
           movement: formData.movement,
           naturalAttacks: formData.naturalAttacks,
           specialAbilities: formData.specialAbilities.map(a => a.name),
+          senses: {
+            lowLight: formData.specialAbilities.some(a => a.name.toLowerCase().includes('low-light')),
+            scent: formData.specialAbilities.some(a => a.name.toLowerCase().includes('scent')),
+            darkvision: formData.specialAbilities.some(a => a.name.toLowerCase().includes('darkvision')) ? 60 : undefined,
+            tremorsense: formData.specialAbilities.some(a => a.name.toLowerCase().includes('tremorsense')) ? 60 : undefined,
+          },
         },
-        isCustom: true,
-        createdAt: new Date().toISOString(),
+        requiredDruidLevel: getTierRequiredDruidLevel(formData.tier),
+        requiredSpellLevel: formData.tier,
+        isFavorite: false,
+        notes: null,
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now(),
       };
 
-      await setDoc(
-        doc(db, COLLECTIONS.CHARACTERS, characterId, 'forms', formId),
-        formDoc
-      );
+      await addDoc(collection(db, COLLECTIONS.WILD_SHAPE_FORMS), formDoc);
 
       alert('Custom form created successfully!');
       router.back();

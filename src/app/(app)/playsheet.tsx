@@ -464,7 +464,7 @@ export default function PlaysheetScreen() {
                 </Text>
               </View>
 
-              <View style={{ marginBottom: 8 }}>
+              <View style={{ marginBottom: 12 }}>
                 <Text style={{ fontSize: 12, fontWeight: '700', color: '#6B5344', marginBottom: 6 }}>
                   STAT MODIFIERS (when assumed)
                 </Text>
@@ -493,6 +493,51 @@ export default function PlaysheetScreen() {
                     No stat modifiers for this size/tier combination
                   </Text>
                 )}
+              </View>
+
+              {/* AC Impact Preview */}
+              <View style={{ marginBottom: 8, padding: 10, backgroundColor: 'rgba(127, 209, 168, 0.15)', borderRadius: 6 }}>
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#2A4A3A', marginBottom: 6 }}>
+                  AC IMPACT
+                </Text>
+                {(() => {
+                  const getSizeACBonus = (size: string): number => {
+                    const sizeMap: Record<string, number> = {
+                      'Fine': +8, 'Diminutive': +4, 'Tiny': +2, 'Small': +1,
+                      'Medium': 0, 'Large': -1, 'Huge': -2, 'Gargantuan': -4, 'Colossal': -8
+                    };
+                    return sizeMap[size] || 0;
+                  };
+
+                  const sizeACBonus = getSizeACBonus(form.size);
+                  const naturalArmorBonus = sizeModifiers.naturalArmor || 0;
+                  const dexChange = sizeModifiers.dex || 0;
+                  const dexACChange = Math.floor(dexChange / 2);
+                  const totalACChange = sizeACBonus + naturalArmorBonus + dexACChange;
+
+                  return (
+                    <>
+                      {sizeACBonus !== 0 && (
+                        <Text style={{ fontSize: 13, color: '#2A4A3A', marginBottom: 2 }}>
+                          • {sizeACBonus > 0 ? '+' : ''}{sizeACBonus} from size ({form.size})
+                        </Text>
+                      )}
+                      {naturalArmorBonus > 0 && (
+                        <Text style={{ fontSize: 13, color: '#2A4A3A', marginBottom: 2 }}>
+                          • +{naturalArmorBonus} from natural armor
+                        </Text>
+                      )}
+                      {dexACChange !== 0 && (
+                        <Text style={{ fontSize: 13, color: dexACChange > 0 ? '#2A4A3A' : '#8B4513', marginBottom: 2 }}>
+                          • {dexACChange > 0 ? '+' : ''}{dexACChange} from Dex change ({dexChange > 0 ? '+' : ''}{dexChange} Dex)
+                        </Text>
+                      )}
+                      <Text style={{ fontSize: 14, fontWeight: '700', color: '#2A4A3A', marginTop: 4, paddingTop: 6, borderTopWidth: 1, borderTopColor: 'rgba(42, 74, 58, 0.3)' }}>
+                        Total AC Change: {totalACChange > 0 ? '+' : ''}{totalACChange}
+                      </Text>
+                    </>
+                  );
+                })()}
               </View>
             </Card>
           )}
