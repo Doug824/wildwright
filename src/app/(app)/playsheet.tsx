@@ -411,7 +411,19 @@ export default function PlaysheetScreen() {
 
   // Get tier and size modifiers for preview
   const tier = getTierFromSpell(form.spell);
-  const sizeModifiers = tier ? getSizeModifiers(tier, form.size) : {};
+
+  // Detect element type for elementals
+  const getElementType = (formName: string): string | undefined => {
+    const nameLower = formName.toLowerCase();
+    if (nameLower.includes('air')) return 'Air';
+    if (nameLower.includes('earth')) return 'Earth';
+    if (nameLower.includes('fire')) return 'Fire';
+    if (nameLower.includes('water')) return 'Water';
+    return undefined;
+  };
+
+  const elementType = getElementType(form.name);
+  const sizeModifiers = tier ? getSizeModifiers(tier, form.size, elementType) : {};
 
   // Helper to get EDL requirement
   const getEDLRequirement = (tier: Tier | null): string => {
