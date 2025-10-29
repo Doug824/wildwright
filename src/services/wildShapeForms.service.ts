@@ -30,7 +30,27 @@ import {
 // ============================================================================
 
 /**
- * Create a new wild shape form
+ * Create a new wild shape form in Firestore
+ *
+ * Can be used to create custom forms or learn forms from templates.
+ * Automatically sets ownerId, createdAt, and updatedAt timestamps.
+ *
+ * @param ownerId - The ID of the user who owns this form
+ * @param formData - Form data including name, size, stats, abilities, templateId, etc.
+ * @returns The Firestore document ID of the newly created form
+ * @throws {Error} If form creation fails
+ *
+ * @example
+ * ```typescript
+ * // Learn a form from a template
+ * const formId = await createWildShapeForm('user123', {
+ *   characterId: 'char456',
+ *   name: 'Dire Wolf',
+ *   templateId: 'template789',
+ *   size: 'Large',
+ *   // ... other fields
+ * });
+ * ```
  */
 export const createWildShapeForm = async (
   ownerId: string,
@@ -62,7 +82,19 @@ export const createWildShapeForm = async (
 // ============================================================================
 
 /**
- * Get a single wild shape form by ID
+ * Get a single wild shape form by ID from Firestore
+ *
+ * @param formId - The Firestore document ID of the form
+ * @returns The form with ID, or null if not found
+ * @throws {Error} If the query fails
+ *
+ * @example
+ * ```typescript
+ * const form = await getWildShapeForm('form123');
+ * if (form) {
+ *   console.log(`Form: ${form.name} (${form.size})`);
+ * }
+ * ```
  */
 export const getWildShapeForm = async (formId: string): Promise<WildShapeFormWithId | null> => {
   try {
@@ -83,7 +115,21 @@ export const getWildShapeForm = async (formId: string): Promise<WildShapeFormWit
 };
 
 /**
- * Get all wild shape forms for a user
+ * Get all wild shape forms owned by a user
+ *
+ * Returns forms sorted by creation date (newest first).
+ * Includes both custom forms and learned template forms.
+ *
+ * @param userId - The user's ID (from Firebase Auth)
+ * @returns Array of forms owned by the user (may be empty)
+ * @throws {Error} If the query fails
+ *
+ * @example
+ * ```typescript
+ * const forms = await getUserForms('user123');
+ * const customForms = forms.filter(f => f.isCustom);
+ * const learnedForms = forms.filter(f => f.templateId);
+ * ```
  */
 export const getUserForms = async (userId: string): Promise<WildShapeFormWithId[]> => {
   try {
