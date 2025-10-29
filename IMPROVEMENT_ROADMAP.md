@@ -783,34 +783,34 @@ const filteredForms = useMemo(() => {
 
 ---
 
-## Phase 5: Testing & Quality Assurance
+## Phase 5: Testing & Quality Assurance ⏳ IN PROGRESS
 
 **Priority:** 🔴 HIGH
-**Timeline:** Complete within 2-3 weeks
+**Timeline:** Started 2025-10-29
 **Impact:** Code reliability and confidence
 
-### 5.1 Expand Unit Tests
+### 5.1 Expand Unit Tests ✅ IN PROGRESS
 
 #### Task: Achieve >80% Coverage for Business Logic
 
-- [ ] **Set up testing infrastructure**
-  - [ ] Verify Jest is configured
-  - [ ] Add coverage scripts to `package.json`:
-    ```json
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
-    ```
+- [x] **Set up testing infrastructure**
+  - [x] Jest configured with React Native preset
+  - [x] Added coverage scripts to `package.json`
+    - `npm test` - Run all tests
+    - `npm run test:watch` - Watch mode
+    - `npm run test:coverage` - Generate coverage report
+  - [x] Created jest.config.js with coverage thresholds (70%)
+  - [x] Created jest.setup.js with expo-haptics mocks
 
-- [ ] **Test PF1e computation engine**
-  - [ ] Expand `src/pf1e/__tests__/compute.test.ts`
-  - [ ] Test `computeWildShape` with various form sizes
-  - [ ] Test stat modifier calculations
-  - [ ] Test attack bonus calculations
-  - [ ] Test AC calculations
-  - [ ] Test each ability type (flight, darkvision, etc.)
-  - [ ] Test edge cases (size changes, ability score limits)
-  - [ ] Target: 90%+ coverage for `src/pf1e/`
+- [x] **Test PF1e computation engine**
+  - [x] Created `src/pf1e/__tests__/compute.test.ts`
+  - [x] Test Beast Shape II with Large creatures
+  - [x] Test stat modifier calculations (str+4, dex-2, con+4)
+  - [x] Test AC size modifier (-1 for Large)
+  - [x] Test special abilities (scent, low-light vision)
+  - [x] Test movement speeds
+  - [x] Test edge cases (forms with no attacks)
+  - [ ] Run tests and verify coverage (in progress)
 
 - [ ] **Test services**
   - [ ] Create `src/services/__tests__/`
