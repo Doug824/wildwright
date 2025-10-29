@@ -21,6 +21,8 @@ import { H2, H3 } from '@/components/ui/Heading';
 import { Button } from '@/components/ui/Button';
 import { Chip } from '@/components/ui/Chip';
 import { Toast } from '@/components/ui/Toast';
+import { FormCardSkeleton } from '@/components/skeletons/FormCardSkeleton';
+import { Skeleton } from '@/components/ui/Skeleton';
 
 const styles = StyleSheet.create({
   container: {
@@ -383,12 +385,27 @@ export default function FormsScreen() {
     return (
       <View style={styles.container}>
         <LivingForestBg>
-          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-            <ActivityIndicator size="large" color="#7FD1A8" />
-            <Text style={{ color: '#F9F5EB', marginTop: 16, fontSize: 16 }}>
-              Loading forms...
-            </Text>
-          </View>
+          <ScrollView contentContainerStyle={styles.scrollContent}>
+            {/* Header skeleton */}
+            <View style={styles.header}>
+              <Skeleton width={150} height={32} borderRadius={8} style={{ marginBottom: 8 }} />
+              <Skeleton width={200} height={16} borderRadius={4} />
+            </View>
+
+            {/* Filter chips skeleton */}
+            <View style={styles.filterRow}>
+              <Skeleton width={80} height={32} borderRadius={16} style={{ marginRight: 8 }} />
+              <Skeleton width={90} height={32} borderRadius={16} style={{ marginRight: 8 }} />
+              <Skeleton width={70} height={32} borderRadius={16} style={{ marginRight: 8 }} />
+              <Skeleton width={100} height={32} borderRadius={16} />
+            </View>
+
+            {/* Form cards skeleton */}
+            <FormCardSkeleton />
+            <FormCardSkeleton />
+            <FormCardSkeleton />
+            <FormCardSkeleton />
+          </ScrollView>
         </LivingForestBg>
       </View>
     );

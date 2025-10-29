@@ -20,6 +20,8 @@ import { Button } from '@/components/ui/Button';
 import { Chip } from '@/components/ui/Chip';
 import { Stat } from '@/components/ui/Stat';
 import { Toast } from '@/components/ui/Toast';
+import { TemplateCardSkeleton } from '@/components/skeletons/TemplateCardSkeleton';
+import { Skeleton } from '@/components/ui/Skeleton';
 
 const styles = StyleSheet.create({
   container: {
@@ -301,12 +303,28 @@ export default function LibraryScreen() {
     return (
       <View style={styles.container}>
         <LivingForestBg>
-          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-            <ActivityIndicator size="large" color="#7FD1A8" />
-            <Text style={{ color: '#F9F5EB', marginTop: 16, fontSize: 16 }}>
-              Loading library...
-            </Text>
-          </View>
+          <ScrollView contentContainerStyle={styles.scrollContent}>
+            {/* Header skeleton */}
+            <View style={styles.header}>
+              <Skeleton width={180} height={32} borderRadius={8} style={{ marginBottom: 8 }} />
+              <Skeleton width={220} height={16} borderRadius={4} />
+            </View>
+
+            {/* Filter chips skeleton */}
+            <View style={styles.filterRow}>
+              <Skeleton width={75} height={32} borderRadius={16} style={{ marginRight: 8 }} />
+              <Skeleton width={85} height={32} borderRadius={16} style={{ marginRight: 8 }} />
+              <Skeleton width={65} height={32} borderRadius={16} style={{ marginRight: 8 }} />
+              <Skeleton width={95} height={32} borderRadius={16} />
+            </View>
+
+            {/* Template cards skeleton */}
+            <TemplateCardSkeleton />
+            <TemplateCardSkeleton />
+            <TemplateCardSkeleton />
+            <TemplateCardSkeleton />
+            <TemplateCardSkeleton />
+          </ScrollView>
         </LivingForestBg>
       </View>
     );

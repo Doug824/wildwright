@@ -24,6 +24,8 @@ import { Button } from '@/components/ui/Button';
 import { Chip } from '@/components/ui/Chip';
 import { Stat } from '@/components/ui/Stat';
 import { AttackRow } from '@/components/ui/AttackRow';
+import { CharacterHeaderSkeleton } from '@/components/skeletons/CharacterHeaderSkeleton';
+import { FormCardSkeleton } from '@/components/skeletons/FormCardSkeleton';
 
 const styles = StyleSheet.create({
   container: {
@@ -523,12 +525,30 @@ export default function DashboardScreen() {
     return (
       <View style={styles.container}>
         <LivingForestBg>
-          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-            <ActivityIndicator size="large" color="#7FD1A8" />
-            <Text style={{ color: '#F9F5EB', marginTop: 16, fontSize: 16 }}>
-              Loading character...
-            </Text>
-          </View>
+          <ScrollView contentContainerStyle={styles.scrollContent}>
+            {/* Character header skeleton */}
+            <CharacterHeaderSkeleton />
+
+            {/* Active form skeleton */}
+            <FormCardSkeleton />
+
+            {/* Quick actions skeleton */}
+            <View style={styles.quickActionsRow}>
+              <BarkCard style={{ flex: 1, padding: 16 }}>
+                <View style={{ height: 20 }} />
+              </BarkCard>
+              <BarkCard style={{ flex: 1, padding: 16 }}>
+                <View style={{ height: 20 }} />
+              </BarkCard>
+            </View>
+
+            {/* Favorite forms section skeleton */}
+            <View style={{ marginTop: 24 }}>
+              <CharacterHeaderSkeleton />
+              <FormCardSkeleton />
+              <FormCardSkeleton />
+            </View>
+          </ScrollView>
         </LivingForestBg>
       </View>
     );
