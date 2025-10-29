@@ -183,6 +183,20 @@ export default function SettingsScreen() {
     );
   };
 
+  const confirmLogout = () => {
+    Alert.alert(
+      'Log Out',
+      'Are you sure you want to log out?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Log Out',
+          onPress: handleLogout,
+        },
+      ]
+    );
+  };
+
   const handleLogout = async () => {
     try {
       await authSignOut();
@@ -231,7 +245,7 @@ export default function SettingsScreen() {
 
             <Button
               variant="outline"
-              onPress={handleLogout}
+              onPress={confirmLogout}
               fullWidth
             >
               Log Out

@@ -217,6 +217,7 @@ export default function CreateFormScreen() {
 
   const [currentStep, setCurrentStep] = React.useState(0);
   const [isSaving, setIsSaving] = React.useState(false);
+  const [showCancelConfirmation, setShowCancelConfirmation] = React.useState(false);
 
   // Character ID is automatically available from context
 
@@ -291,6 +292,37 @@ export default function CreateFormScreen() {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
     }
+  };
+
+  // Check if form has any data entered
+  const isFormDirty = () => {
+    return (
+      formData.name !== '' ||
+      formData.naturalAttacks.length > 0 ||
+      formData.specialAbilities.length > 0 ||
+      formData.movement.land !== 30 ||
+      formData.movement.climb !== 0 ||
+      formData.movement.swim !== 0 ||
+      formData.movement.fly !== 0 ||
+      formData.movement.burrow !== 0
+    );
+  };
+
+  const handleCancelPress = () => {
+    if (isFormDirty()) {
+      setShowCancelConfirmation(true);
+    } else {
+      router.back();
+    }
+  };
+
+  const confirmCancel = () => {
+    setShowCancelConfirmation(false);
+    router.back();
+  };
+
+  const cancelCancel = () => {
+    setShowCancelConfirmation(false);
   };
 
   const handleAddAttack = () => {
@@ -461,7 +493,7 @@ export default function CreateFormScreen() {
             styles.backButton,
             pressed && styles.backButtonPressed
           ]}
-          onPress={() => router.back()}
+          onPress={handleCancelPress}
         >
           <Text style={styles.backText}>← Cancel</Text>
         </Pressable>
@@ -870,6 +902,46 @@ export default function CreateFormScreen() {
 
           <View style={styles.bottomPadding} />
         </ScrollView>
+
+        {/* Cancel Confirmation Dialog */}
+        {showCancelConfirmation && (
+          <View style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 1000,
+          }}>
+            <View style={{
+              backgroundColor: '#E8DCC8',
+              padding: 24,
+              borderRadius: 16,
+              width: '85%',
+              maxWidth: 400,
+              borderWidth: 2,
+              borderColor: '#8B7355',
+            }}>
+              <Text style={{ fontSize: 18, fontWeight: '700', color: '#4A3426', marginBottom: 12 }}>
+                Discard Changes?
+              </Text>
+              <Text style={{ fontSize: 14, color: '#6B5344', marginBottom: 24 }}>
+                You have unsaved changes. Are you sure you want to cancel? All progress will be lost.
+              </Text>
+              <View style={{ flexDirection: 'row', gap: 12 }}>
+                <Button variant="outline" onPress={cancelCancel} style={{ flex: 1 }}>
+                  Keep Editing
+                </Button>
+                <Button onPress={confirmCancel} style={{ flex: 1 }}>
+                  Discard
+                </Button>
+              </View>
+            </View>
+          </View>
+        )}
       </LivingForestBg>
     </View>
   );
