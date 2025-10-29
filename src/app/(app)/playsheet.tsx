@@ -8,6 +8,8 @@
 import React from 'react';
 import { ScrollView, View, Text, Pressable, StyleSheet, TextInput, Modal } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useCharacter } from '@/contexts';
+import { useCreateWildShapeForm, useCharacterForms } from '@/hooks/useWildShapeForms';
 import { LivingForestBg } from '@/components/ui/LivingForestBg';
 import { Card } from '@/components/ui/Card';
 import { H2 } from '@/components/ui/Heading';
@@ -19,6 +21,7 @@ import { Tabs } from '@/components/ui/Tabs';
 import { AttackRow } from '@/components/ui/AttackRow';
 import { Button } from '@/components/ui/Button';
 import { getAbilityDescription, SpecialAbility } from '@/pf1e/specialAbilities';
+import { Toast } from '@/components/ui/Toast';
 
 const styles = StyleSheet.create({
   container: {
@@ -176,6 +179,17 @@ const styles = StyleSheet.create({
 export default function PlaysheetScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
+
+  // Character context and forms hooks
+  const { characterId } = useCharacter();
+  const { data: myForms } = useCharacterForms(characterId);
+  const createForm = useCreateWildShapeForm();
+
+  // Toast state
+  const [toastVisible, setToastVisible] = React.useState(false);
+  const [toastMessage, setToastMessage] = React.useState('');
+  const [toastType, setToastType] = React.useState<'success' | 'error' | 'info'>('success');
+
   const tabs = ['Attacks & Damage', 'Defense', 'Skills', 'Effects'];
   const [active, setActive] = React.useState(tabs[0]);
 
@@ -327,6 +341,55 @@ export default function PlaysheetScreen() {
   const handleSwitchForm = () => {
     // Navigate to forms to select a different one
     router.push('/(app)/forms');
+  };
+
+  // Check if template is already learned
+  const isAlreadyLearned = React.useMemo(() => {
+    if (!templateData || !myForms) return false;
+    // Check if any of user's forms have the same name as the template
+    return myForms.some(form => form.name.toLowerCase() === templateData.name.toLowerCase());
+  }, [templateData, myForms]);
+
+  // Learn form handler (for templates from library)
+  const handleLearnForm = async () => {
+    if (!templateData || !characterId) return;
+
+    if (isAlreadyLearned) {
+      setToastMessage('You have already learned this form!');
+      setToastType('info');
+      setToastVisible(true);
+      return;
+    }
+
+    try {
+      // Create a new form based on the template
+      await createForm.mutateAsync({
+        characterId,
+        formData: {
+          name: templateData.name,
+          size: templateData.size,
+          requiredSpellLevel: templateData.requiredSpellLevel,
+          tags: templateData.tags || [],
+          isFavorite: false,
+          statModifications: templateData.statModifications,
+        },
+      });
+
+      setToastMessage(`${templateData.name} added to your forms!`);
+      setToastType('success');
+      setToastVisible(true);
+
+      // Navigate back to library after a short delay
+      setTimeout(() => {
+        router.push('/(app)/library');
+      }, 1500);
+    } catch (error: unknown) {
+      console.error('Error learning form:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      setToastMessage(`Failed to learn form: ${errorMessage}`);
+      setToastType('error');
+      setToastVisible(true);
+    }
   };
 
   // Ability Description Handler
@@ -792,18 +855,38 @@ export default function PlaysheetScreen() {
 
           {/* Footer Actions */}
           {templateData ? (
-            /* Template preview - show Back to Library button */
-            <View style={styles.footerActions}>
-              <Button onPress={() => {
-                // Try router.back() first, fallback to explicit navigation
-                if (params.backTo === 'library') {
-                  router.push('/(app)/library');
-                } else {
-                  router.back();
-                }
-              }} fullWidth>
-                Back to Library
-              </Button>
+            /* Template preview - show Learn Form and Back buttons */
+            <View>
+              {isAlreadyLearned && (
+                <Card style={{ marginBottom: 12, padding: 12, backgroundColor: 'rgba(127, 209, 168, 0.2)', borderColor: '#7FD1A8' }}>
+                  <Text style={{ color: '#2A4A3A', fontSize: 14, fontWeight: '600', textAlign: 'center' }}>
+                    ✓ Already Learned
+                  </Text>
+                </Card>
+              )}
+              <View style={styles.footerActions}>
+                <Button
+                  variant="outline"
+                  onPress={() => {
+                    // Try router.back() first, fallback to explicit navigation
+                    if (params.backTo === 'library') {
+                      router.push('/(app)/library');
+                    } else {
+                      router.back();
+                    }
+                  }}
+                  style={{ flex: 1 }}
+                >
+                  Back to Library
+                </Button>
+                <Button
+                  onPress={handleLearnForm}
+                  style={{ flex: 1 }}
+                  disabled={isAlreadyLearned || createForm.isPending}
+                >
+                  {createForm.isPending ? 'Learning...' : 'Learn This Form'}
+                </Button>
+              </View>
             </View>
           ) : params.fromForms === 'true' ? (
             /* Form preview from Forms page - show Assume Form button */
@@ -889,6 +972,14 @@ export default function PlaysheetScreen() {
             </Pressable>
           </Pressable>
         </Modal>
+
+        {/* Toast Notification */}
+        <Toast
+          visible={toastVisible}
+          message={toastMessage}
+          type={toastType}
+          onDismiss={() => setToastVisible(false)}
+        />
       </LivingForestBg>
     </View>
   );
