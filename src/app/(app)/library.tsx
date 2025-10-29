@@ -22,6 +22,7 @@ import { Stat } from '@/components/ui/Stat';
 import { Toast } from '@/components/ui/Toast';
 import { TemplateCardSkeleton } from '@/components/skeletons/TemplateCardSkeleton';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { success as hapticSuccess, mediumImpact } from '@/utils/haptics';
 
 const styles = StyleSheet.create({
   container: {
@@ -219,6 +220,9 @@ export default function LibraryScreen() {
         return;
       }
 
+      // Medium haptic for form learning
+      await mediumImpact();
+
       // Create a new form using React Query mutation
       await createForm.mutateAsync({
         characterId: characterId,
@@ -235,6 +239,9 @@ export default function LibraryScreen() {
         isFavorite: false,
         notes: template.description,
       });
+
+      // Success haptic
+      await hapticSuccess();
 
       // Show success toast
       setToastMessage(`${template.name} learned! Check Forms tab.`);

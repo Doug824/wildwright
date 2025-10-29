@@ -23,6 +23,7 @@ import { Chip } from '@/components/ui/Chip';
 import { Toast } from '@/components/ui/Toast';
 import { FormCardSkeleton } from '@/components/skeletons/FormCardSkeleton';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { error as hapticError, warning as hapticWarning } from '@/utils/haptics';
 
 const styles = StyleSheet.create({
   container: {
@@ -293,7 +294,9 @@ export default function FormsScreen() {
     router.push('/(app)/library');
   };
 
-  const handleDeleteForm = (formId: string, formName: string) => {
+  const handleDeleteForm = async (formId: string, formName: string) => {
+    // Warning haptic for destructive action
+    await hapticWarning();
     // Show confirmation dialog
     setDeleteConfirmation({ id: formId, name: formName });
   };
@@ -302,6 +305,9 @@ export default function FormsScreen() {
     if (!deleteConfirmation) return;
 
     const { id, name } = deleteConfirmation;
+
+    // Error haptic for deletion
+    await hapticError();
 
     try {
       // Delete using React Query mutation

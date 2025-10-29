@@ -27,6 +27,7 @@ import { Stat } from '@/components/ui/Stat';
 import { AttackRow } from '@/components/ui/AttackRow';
 import { CharacterHeaderSkeleton } from '@/components/skeletons/CharacterHeaderSkeleton';
 import { FormCardSkeleton } from '@/components/skeletons/FormCardSkeleton';
+import { heavyImpact, success as hapticSuccess, lightImpact } from '@/utils/haptics';
 
 const styles = StyleSheet.create({
   container: {
@@ -414,12 +415,17 @@ export default function DashboardScreen() {
       return;
     }
 
+    // Light haptic for selection
+    await lightImpact();
+
     try {
       setSwitchingCharacter(true);
       await switchCharacter(newCharacterId);
       setShowCharacterSwitcher(false);
       // Clear active form when switching characters
       setActiveForm(null);
+      // Success haptic
+      await hapticSuccess();
     } catch (error: unknown) {
       console.error('Failed to switch character:', error);
       alert('Failed to switch character. Please try again.');
@@ -474,8 +480,11 @@ export default function DashboardScreen() {
     }
   }, [selectedFormModal, character]);
 
-  const handleAssumeFormFromModal = () => {
+  const handleAssumeFormFromModal = async () => {
     if (!selectedFormModal || !character || !selectedTier || !selectedSize) return;
+
+    // Heavy haptic for major action
+    await heavyImpact();
 
     try {
       // Convert character to PF1e format
