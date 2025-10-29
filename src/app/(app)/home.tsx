@@ -5,12 +5,11 @@
  * Entry point after character selection.
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { View, Text, ScrollView, Pressable, StyleSheet, Modal, ActivityIndicator } from 'react-native';
-import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
-import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
-import { db, COLLECTIONS } from '@/lib/firebase';
-import { useAuth } from '@/hooks';
+import { useRouter } from 'expo-router';
+import { useCharacter } from '@/contexts';
+import { useCharacterForms } from '@/hooks/useWildShapeForms';
 import { Character, CharacterWithId, CreatureSize, WildShapeFormWithId } from '@/types/firestore';
 import { computePF1e } from '@/pf1e';
 import { characterToBaseCharacter } from '@/pf1e/adapters';
@@ -324,15 +323,24 @@ const styles = StyleSheet.create({
 
 export default function DashboardScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams();
-  const { user } = useAuth(); // Get authenticated user
-  const [character, setCharacter] = useState<CharacterWithId | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [activeForm, setActiveForm] = useState<any>(null); // Will be computed playsheet
-  const [selectedFormModal, setSelectedFormModal] = useState<any>(null);
+
+  // Get character from context (includes automatic loading/caching)
+  const { character, characterId, isLoading: characterLoading } = useCharacter();
+
+  // Get all forms for this character using React Query
+  const { data: allForms, isLoading: formsLoading } = useCharacterForms(characterId);
+
+  // Filter for favorite forms
+  const favoriteForms = useMemo(() => {
+    return allForms?.filter(form => form.isFavorite === true) || [];
+  }, [allForms]);
+
+  const [activeForm, setActiveForm] = useState<WildShapeFormWithId | null>(null); // Will be computed playsheet
+  const [selectedFormModal, setSelectedFormModal] = useState<WildShapeFormWithId | null>(null);
   const [selectedTier, setSelectedTier] = useState<Tier | null>(null);
   const [selectedSize, setSelectedSize] = useState<CreatureSize | null>(null);
-  const [favoriteForms, setFavoriteForms] = useState<WildShapeFormWithId[]>([]);
+
+  const loading = characterLoading || formsLoading;
 
   const characterName = character?.name || 'Loading...';
 
@@ -347,88 +355,8 @@ export default function DashboardScreen() {
     return parts.join(', ');
   };
 
-  // Fetch character data
-  useEffect(() => {
-    const fetchCharacter = async () => {
-      // Try params first, fall back to storage
-      let characterId = params.characterId as string;
-
-      if (!characterId) {
-        // Import getCurrentCharacterId dynamically
-        const { getCurrentCharacterId } = await import('@/lib/storage');
-        characterId = await getCurrentCharacterId() || '';
-      }
-
-      if (!characterId) {
-        console.error('No character ID provided');
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const characterDoc = await getDoc(doc(db, COLLECTIONS.CHARACTERS, characterId));
-        if (characterDoc.exists()) {
-          const characterData = { id: characterDoc.id, ...characterDoc.data() } as CharacterWithId;
-          setCharacter(characterData);
-        } else {
-          console.error('Character not found');
-        }
-      } catch (error) {
-        console.error('Error fetching character:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCharacter();
-  }, [params.characterId]);
-
-  // Fetch favorite forms
-  const fetchFavoriteForms = useCallback(async () => {
-    // Try params first, fall back to storage
-    let characterId = params.characterId as string;
-
-    if (!characterId) {
-      const { getCurrentCharacterId } = await import('@/lib/storage');
-      characterId = await getCurrentCharacterId() || '';
-    }
-
-    if (!characterId || !user?.uid) return;
-
-    try {
-      // Fetch all forms for this character, then filter locally
-      // This avoids needing a composite Firestore index
-      const formsQuery = query(
-        collection(db, COLLECTIONS.WILD_SHAPE_FORMS),
-        where('characterId', '==', characterId),
-        where('ownerId', '==', user.uid) // Required to match Firestore security rules
-      );
-      const snapshot = await getDocs(formsQuery);
-
-      const allForms = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as WildShapeFormWithId[];
-
-      // Filter for favorites locally
-      const favorites = allForms.filter(form => form.isFavorite === true);
-      setFavoriteForms(favorites);
-    } catch (error) {
-      console.error('Error fetching favorite forms:', error);
-    }
-  }, [params.characterId, user?.uid]);
-
-  // Fetch on mount and when dependencies change
-  useEffect(() => {
-    fetchFavoriteForms();
-  }, [fetchFavoriteForms]);
-
-  // Refetch when screen comes into focus
-  useFocusEffect(
-    useCallback(() => {
-      fetchFavoriteForms();
-    }, [fetchFavoriteForms])
-  );
+  // Data fetching is now handled by React Query hooks above
+  // Forms automatically refetch on focus due to React Query config
 
   const handleAssumeShape = () => {
     router.push('/(app)/forms');

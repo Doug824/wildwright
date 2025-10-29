@@ -7,13 +7,15 @@
 
 import { Tabs } from 'expo-router';
 import { Platform, useWindowDimensions } from 'react-native';
+import { CharacterProvider } from '@/contexts';
 
 export default function AppShellLayout() {
   const { width } = useWindowDimensions();
   const isNarrow = width < 400; // Phone-sized screen
 
   return (
-    <Tabs
+    <CharacterProvider>
+      <Tabs
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
@@ -122,6 +124,7 @@ export default function AppShellLayout() {
           href: null, // Hidden from tabs - accessed via navigation
         }}
       />
-    </Tabs>
+      </Tabs>
+    </CharacterProvider>
   );
 }
