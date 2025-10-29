@@ -7,7 +7,10 @@
     "android": "node node_modules/@expo/cli/build/bin/cli start --android",
     "ios": "node node_modules/@expo/cli/build/bin/cli start --ios",
     "web": "node node_modules/@expo/cli/build/bin/cli start --web",
-    "seed-library": "node -r ts-node/register scripts/seedLibrary.ts"
+    "seed-library": "node -r ts-node/register scripts/seedLibrary.ts",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^1.21.0",
