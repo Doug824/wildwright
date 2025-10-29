@@ -8,16 +8,14 @@
 import React from 'react';
 import { ScrollView, View, Text, Pressable, StyleSheet, TextInput } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useCharacter } from '@/contexts';
+import { useCreateWildShapeForm } from '@/hooks/useWildShapeForms';
 import { LivingForestBg } from '@/components/ui/LivingForestBg';
 import { Card } from '@/components/ui/Card';
 import { H2 } from '@/components/ui/Heading';
 import { Button } from '@/components/ui/Button';
 import { Chip } from '@/components/ui/Chip';
 import { SPECIAL_ABILITIES } from '@/pf1e/specialAbilities';
-import { addDoc, collection, Timestamp } from 'firebase/firestore';
-import { db, COLLECTIONS } from '@/lib/firebase';
-import { getCurrentCharacterId } from '@/lib/storage';
-import { useAuth } from '@/hooks';
 
 const styles = StyleSheet.create({
   container: {
@@ -210,19 +208,17 @@ interface FormData {
 
 export default function CreateFormScreen() {
   const router = useRouter();
-  const { user } = useAuth();
-  const [characterId, setCharacterId] = React.useState<string | null>(null);
+
+  // Get character from context
+  const { characterId } = useCharacter();
+
+  // Mutation for creating form
+  const createForm = useCreateWildShapeForm();
+
   const [currentStep, setCurrentStep] = React.useState(0);
   const [isSaving, setIsSaving] = React.useState(false);
 
-  // Load characterId from storage
-  React.useEffect(() => {
-    const loadCharacterId = async () => {
-      const charId = await getCurrentCharacterId();
-      setCharacterId(charId);
-    };
-    loadCharacterId();
-  }, []);
+  // Character ID is automatically available from context
 
   // Form State
   const [formData, setFormData] = React.useState<FormData>({
@@ -386,8 +382,8 @@ export default function CreateFormScreen() {
   };
 
   const handleSave = async () => {
-    if (!characterId || !user?.uid) {
-      alert('No character selected or not logged in');
+    if (!characterId) {
+      alert('No character selected');
       return;
     }
 
@@ -401,13 +397,13 @@ export default function CreateFormScreen() {
       else if (formData.tier.includes('Plant')) tags.push('plant');
       else tags.push('animal');
 
-      const formDoc = {
-        ownerId: user.uid,
+      // Create form using React Query mutation
+      await createForm.mutateAsync({
         characterId: characterId,
         name: formData.name,
         edition: edition,
         imageUrl: null,
-        baseTemplateId: null, // Custom forms don't have a template
+        templateId: null, // Custom forms don't have a template
         isCustom: true,
         size: formData.size,
         tags: tags,
@@ -426,17 +422,14 @@ export default function CreateFormScreen() {
         requiredSpellLevel: formData.tier,
         isFavorite: false,
         notes: null,
-        createdAt: Timestamp.now(),
-        updatedAt: Timestamp.now(),
-      };
-
-      await addDoc(collection(db, COLLECTIONS.WILD_SHAPE_FORMS), formDoc);
+      });
 
       alert('Custom form created successfully!');
       router.back();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error saving form:', error);
-      alert('Failed to save form. Please try again.');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      alert(`Failed to save form: ${errorMessage}`);
     } finally {
       setIsSaving(false);
     }
