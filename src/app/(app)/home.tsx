@@ -9,6 +9,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { View, Text, ScrollView, Pressable, StyleSheet, Modal, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useCharacter } from '@/contexts';
+import { useCharacters } from '@/hooks/useCharacters';
 import { useCharacterForms } from '@/hooks/useWildShapeForms';
 import { Character, CharacterWithId, CreatureSize, WildShapeFormWithId } from '@/types/firestore';
 import { computePF1e } from '@/pf1e';
@@ -327,7 +328,10 @@ export default function DashboardScreen() {
   const router = useRouter();
 
   // Get character from context (includes automatic loading/caching)
-  const { character, characterId, isLoading: characterLoading } = useCharacter();
+  const { character, characterId, isLoading: characterLoading, switchCharacter } = useCharacter();
+
+  // Get all characters for switching
+  const { data: allCharacters = [] } = useCharacters();
 
   // Get all forms for this character using React Query
   const { data: allForms, isLoading: formsLoading } = useCharacterForms(characterId);
@@ -341,6 +345,8 @@ export default function DashboardScreen() {
   const [selectedFormModal, setSelectedFormModal] = useState<WildShapeFormWithId | null>(null);
   const [selectedTier, setSelectedTier] = useState<Tier | null>(null);
   const [selectedSize, setSelectedSize] = useState<CreatureSize | null>(null);
+  const [showCharacterSwitcher, setShowCharacterSwitcher] = useState(false);
+  const [switchingCharacter, setSwitchingCharacter] = useState(false);
 
   const loading = characterLoading || formsLoading;
 
@@ -400,6 +406,26 @@ export default function DashboardScreen() {
   const handleLogout = () => {
     // TODO: Add auth logout
     router.replace('/(auth)/sign-in');
+  };
+
+  const handleSwitchCharacter = async (newCharacterId: string) => {
+    if (newCharacterId === characterId) {
+      setShowCharacterSwitcher(false);
+      return;
+    }
+
+    try {
+      setSwitchingCharacter(true);
+      await switchCharacter(newCharacterId);
+      setShowCharacterSwitcher(false);
+      // Clear active form when switching characters
+      setActiveForm(null);
+    } catch (error: unknown) {
+      console.error('Failed to switch character:', error);
+      alert('Failed to switch character. Please try again.');
+    } finally {
+      setSwitchingCharacter(false);
+    }
   };
 
   const handleOpenFormModal = (form: any) => {
@@ -600,7 +626,25 @@ export default function DashboardScreen() {
         <ScrollView contentContainerStyle={styles.scrollContent}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.welcomeText}>Welcome back,</Text>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+              <Text style={styles.welcomeText}>Welcome back,</Text>
+              {allCharacters.length > 1 && (
+                <Pressable
+                  onPress={() => setShowCharacterSwitcher(true)}
+                  style={{
+                    padding: 8,
+                    borderRadius: 6,
+                    borderWidth: 1,
+                    borderColor: '#7FD1A8',
+                    backgroundColor: 'rgba(127, 209, 168, 0.2)',
+                  }}
+                >
+                  <Text style={{ color: '#F9F5EB', fontSize: 12, fontWeight: '600' }}>
+                    Switch Character
+                  </Text>
+                </Pressable>
+              )}
+            </View>
             <Text style={styles.characterName}>{characterName}</Text>
           </View>
 
@@ -840,6 +884,87 @@ export default function DashboardScreen() {
                   </ScrollView>
                 </BarkCard>
               </View>
+            </Pressable>
+          </Pressable>
+        </Modal>
+
+        {/* Character Switcher Modal */}
+        <Modal
+          visible={showCharacterSwitcher}
+          transparent
+          animationType="fade"
+          onRequestClose={() => !switchingCharacter && setShowCharacterSwitcher(false)}
+        >
+          <Pressable
+            style={{
+              flex: 1,
+              backgroundColor: 'rgba(0, 0, 0, 0.7)',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+            onPress={() => !switchingCharacter && setShowCharacterSwitcher(false)}
+          >
+            <Pressable
+              onPress={(e) => e.stopPropagation()}
+              style={{ width: '90%', maxWidth: 500 }}
+            >
+              <BarkCard style={{ padding: 24 }}>
+                <Text style={{ fontSize: 24, fontWeight: '700', color: '#4A3426', marginBottom: 8 }}>
+                  Switch Character
+                </Text>
+                <Text style={{ fontSize: 14, color: '#6B5344', marginBottom: 20 }}>
+                  Select a character to switch to:
+                </Text>
+
+                <ScrollView style={{ maxHeight: 400 }}>
+                  {allCharacters.map((char) => (
+                    <Pressable
+                      key={char.id}
+                      onPress={() => !switchingCharacter && handleSwitchCharacter(char.id)}
+                      disabled={switchingCharacter}
+                      style={{
+                        padding: 16,
+                        marginBottom: 12,
+                        borderRadius: 12,
+                        borderWidth: 2,
+                        borderColor: char.id === characterId ? '#7FD1A8' : '#8B7355',
+                        backgroundColor: char.id === characterId ? 'rgba(127, 209, 168, 0.2)' : 'rgba(232, 220, 200, 0.3)',
+                      }}
+                    >
+                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <View style={{ flex: 1 }}>
+                          <Text style={{ fontSize: 18, fontWeight: '700', color: '#4A3426', marginBottom: 4 }}>
+                            {char.name}
+                          </Text>
+                          <Text style={{ fontSize: 14, color: '#6B5344' }}>
+                            Level {char.baseStats.level} {char.baseStats.class}
+                          </Text>
+                        </View>
+                        {char.id === characterId && (
+                          <Text style={{ fontSize: 20, marginLeft: 8 }}>✓</Text>
+                        )}
+                      </View>
+                    </Pressable>
+                  ))}
+                </ScrollView>
+
+                {switchingCharacter && (
+                  <View style={{ marginTop: 16, alignItems: 'center' }}>
+                    <ActivityIndicator size="large" color="#7FD1A8" />
+                    <Text style={{ color: '#6B5344', marginTop: 8 }}>Switching character...</Text>
+                  </View>
+                )}
+
+                <Button
+                  variant="outline"
+                  onPress={() => setShowCharacterSwitcher(false)}
+                  fullWidth
+                  style={{ marginTop: 16 }}
+                  disabled={switchingCharacter}
+                >
+                  Cancel
+                </Button>
+              </BarkCard>
             </Pressable>
           </Pressable>
         </Modal>
