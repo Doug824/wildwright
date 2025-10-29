@@ -5,13 +5,12 @@
  * Read-only templates that can be cloned into your personal forms.
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import { collection, query, getDocs, addDoc, where, Timestamp } from 'firebase/firestore';
-import { db, COLLECTIONS } from '@/lib/firebase';
-import { getCurrentCharacterId } from '@/lib/storage';
-import { useAuth } from '@/hooks';
+import { useRouter } from 'expo-router';
+import { useCharacter } from '@/contexts';
+import { useOfficialTemplates } from '@/hooks/useWildShapeTemplates';
+import { useCreateWildShapeForm, useCharacterForms } from '@/hooks/useWildShapeForms';
 import { WildShapeTemplate, WildShapeTemplateWithId, CreatureSize } from '@/types/firestore';
 import { LivingForestBg } from '@/components/ui/LivingForestBg';
 import { BarkCard } from '@/components/ui/BarkCard';
@@ -129,48 +128,32 @@ interface TemplateForm {
 
 export default function LibraryScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams();
-  const { user } = useAuth(); // Get authenticated user
+
+  // Get character from context
+  const { character, characterId } = useCharacter();
+
+  // Get templates using React Query
+  const { data: templates = [], isLoading: templatesLoading } = useOfficialTemplates();
+
+  // Get character's forms to check which templates have been cloned
+  const { data: characterForms = [] } = useCharacterForms(characterId);
+
+  // Mutation for cloning templates
+  const createForm = useCreateWildShapeForm();
+
+  // Track which templates have been cloned
+  const clonedTemplateIds = useMemo(() => {
+    return new Set(characterForms.map(form => form.templateId).filter(Boolean));
+  }, [characterForms]);
+
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
-  const [templates, setTemplates] = useState<WildShapeTemplateWithId[]>([]);
-  const [clonedForms, setClonedForms] = useState<Set<string>>(new Set());
-  const [loading, setLoading] = useState(true);
-  const [characterId, setCharacterId] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState('');
   const [toastVisible, setToastVisible] = useState(false);
   const [toastType, setToastType] = useState<'success' | 'error' | 'info'>('success');
 
-  // Load characterId from storage
-  useEffect(() => {
-    const loadCharacterId = async () => {
-      const charId = await getCurrentCharacterId();
-      setCharacterId(charId);
-    };
-    loadCharacterId();
-  }, []);
+  const loading = templatesLoading;
 
-  // Fetch templates from Firestore
-  useEffect(() => {
-    const fetchTemplates = async () => {
-      try {
-        const templatesQuery = query(collection(db, COLLECTIONS.WILD_SHAPE_TEMPLATES));
-        const snapshot = await getDocs(templatesQuery);
-
-        const templatesData = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        })) as WildShapeTemplateWithId[];
-
-        setTemplates(templatesData);
-      } catch (error) {
-        console.error('Error fetching templates:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTemplates();
-  }, []);
+  // Data fetching handled by React Query hooks above
 
   // Filter categories
   const sizeFilters = ['Diminutive', 'Tiny', 'Small', 'Medium', 'Large', 'Huge', 'Gargantuan', 'Colossal'];
@@ -190,13 +173,8 @@ export default function LibraryScreen() {
   };
 
   const handleClone = async (templateId: string) => {
-    const userId = user?.uid; // Use Firebase Auth user
-    console.log('Clone attempt:', { userId, characterId, templateId });
-
-    if (!userId || !characterId) {
-      const message = `Please select a character first. (userId: ${userId ? 'OK' : 'MISSING'}, characterId: ${characterId ? 'OK' : 'MISSING'})`;
-      console.error(message);
-      setToastMessage(message);
+    if (!characterId) {
+      setToastMessage('Please select a character first.');
       setToastType('error');
       setToastVisible(true);
       return;
@@ -209,34 +187,21 @@ export default function LibraryScreen() {
         return;
       }
 
-      console.log('Cloning template:', template.name);
-
-      // Check if form already exists
-      const existingFormsQuery = query(
-        collection(db, COLLECTIONS.WILD_SHAPE_FORMS),
-        where('characterId', '==', characterId),
-        where('ownerId', '==', userId),
-        where('baseTemplateId', '==', templateId)
-      );
-      const existingSnapshot = await getDocs(existingFormsQuery);
-
-      if (!existingSnapshot.empty) {
-        // Form already exists
+      // Check if already cloned using our memoized set
+      if (clonedTemplateIds.has(templateId)) {
         setToastMessage(`${template.name} is already in your Forms!`);
         setToastType('info');
         setToastVisible(true);
-        setClonedForms(prev => new Set(prev).add(templateId));
         return;
       }
 
-      // Create a new form in wildShapeForms collection
-      const docRef = await addDoc(collection(db, COLLECTIONS.WILD_SHAPE_FORMS), {
-        ownerId: userId,
+      // Create a new form using React Query mutation
+      await createForm.mutateAsync({
         characterId: characterId,
         name: template.name,
         edition: template.edition,
         imageUrl: null,
-        baseTemplateId: templateId,
+        templateId: templateId,
         isCustom: false,
         size: template.size,
         tags: template.tags,
@@ -245,22 +210,17 @@ export default function LibraryScreen() {
         requiredSpellLevel: template.requiredSpellLevel,
         isFavorite: false,
         notes: template.description,
-        createdAt: Timestamp.now(),
-        updatedAt: Timestamp.now(),
       });
-
-      console.log('Form created successfully with ID:', docRef.id);
-      setClonedForms(prev => new Set(prev).add(templateId));
 
       // Show success toast
       setToastMessage(`${template.name} learned! Check Forms tab.`);
       setToastType('success');
       setToastVisible(true);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error cloning form:', error);
 
-      // Show error toast
-      setToastMessage(`Error: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      setToastMessage(`Error: ${errorMessage}`);
       setToastType('error');
       setToastVisible(true);
     }
@@ -288,7 +248,7 @@ export default function LibraryScreen() {
   };
 
   // Helper function to format movement
-  const formatMovement = (movement: any) => {
+  const formatMovement = (movement: Record<string, number>) => {
     const parts = [];
     if (movement.land) parts.push(`${movement.land} ft`);
     if (movement.fly) parts.push(`fly ${movement.fly} ft`);
@@ -446,7 +406,7 @@ export default function LibraryScreen() {
                 <Stat label="Speed" value={formatMovement(template.statModifications.movement)} />
               </View>
 
-              {clonedForms.has(template.id) ? (
+              {clonedTemplateIds.has(template.id) ? (
                 <View style={styles.clonedBadge}>
                   <Text style={styles.clonedText}>✓ Learned!</Text>
                 </View>
