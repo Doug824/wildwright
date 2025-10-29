@@ -5,13 +5,11 @@
  * Swipe cards with filters by size, spell tier, and tags.
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useMemo } from 'react';
 import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
-import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
-import { collection, query, getDocs, where, updateDoc, deleteDoc, doc, getDoc } from 'firebase/firestore';
-import { db, COLLECTIONS } from '@/lib/firebase';
-import { getCurrentCharacterId } from '@/lib/storage';
-import { useAuth } from '@/hooks';
+import { useRouter } from 'expo-router';
+import { useCharacter } from '@/contexts';
+import { useCharacterForms, useUpdateWildShapeForm, useDeleteWildShapeForm } from '@/hooks/useWildShapeForms';
 import { WildShapeFormWithId, CharacterWithId } from '@/types/firestore';
 import { computePF1e } from '@/pf1e';
 import { characterToBaseCharacter } from '@/pf1e/adapters';
@@ -146,65 +144,27 @@ interface WildshapeForm {
 
 export default function FormsScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams();
+
+  // Get character from context
+  const { character, characterId } = useCharacter();
+
+  // Get forms using React Query
+  const { data: forms = [], isLoading } = useCharacterForms(characterId);
+
+  // Mutations
+  const updateForm = useUpdateWildShapeForm();
+  const deleteForm = useDeleteWildShapeForm();
+
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
-  const [forms, setForms] = useState<WildShapeFormWithId[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [characterId, setCharacterId] = useState<string | null>(null);
-  const { user } = useAuth(); // Get authenticated user
   const [toastMessage, setToastMessage] = useState('');
   const [toastVisible, setToastVisible] = useState(false);
   const [toastType, setToastType] = useState<'success' | 'error' | 'info'>('success');
   const [deleteConfirmation, setDeleteConfirmation] = useState<{ id: string; name: string } | null>(null);
 
-  // Load characterId from storage
-  useEffect(() => {
-    const loadCharacterId = async () => {
-      const charId = await getCurrentCharacterId();
-      setCharacterId(charId);
-    };
-    loadCharacterId();
-  }, []);
+  const loading = isLoading;
 
-  // Fetch user's learned forms from Firestore
-  const fetchForms = useCallback(async () => {
-    if (!characterId || !user?.uid) {
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const formsQuery = query(
-        collection(db, COLLECTIONS.WILD_SHAPE_FORMS),
-        where('characterId', '==', characterId),
-        where('ownerId', '==', user.uid) // Required to match Firestore security rules
-      );
-      const snapshot = await getDocs(formsQuery);
-
-      const formsData = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as WildShapeFormWithId[];
-
-      setForms(formsData);
-    } catch (error) {
-      console.error('Error fetching forms:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, [characterId, user?.uid]);
-
-  // Fetch on mount and when dependencies change
-  useEffect(() => {
-    fetchForms();
-  }, [fetchForms]);
-
-  // Refetch when screen comes into focus (e.g., after learning a form from library)
-  useFocusEffect(
-    useCallback(() => {
-      fetchForms();
-    }, [fetchForms])
-  );
+  // Data fetching handled by React Query hooks
+  // Auto-refetches on focus due to React Query config
 
   // Filter categories
   const sizeFilters = ['Diminutive', 'Tiny', 'Small', 'Medium', 'Large', 'Huge', 'Gargantuan', 'Colossal'];
@@ -230,27 +190,21 @@ export default function FormsScreen() {
 
       const newFavoriteStatus = !form.isFavorite;
 
-      // Update in Firestore
-      await updateDoc(doc(db, COLLECTIONS.WILD_SHAPE_FORMS, formId), {
-        isFavorite: newFavoriteStatus,
+      // Update using React Query mutation
+      await updateForm.mutateAsync({
+        formId,
+        updates: { isFavorite: newFavoriteStatus },
       });
-
-      // Update local state
-      setForms(prev =>
-        prev.map(f =>
-          f.id === formId ? { ...f, isFavorite: newFavoriteStatus } : f
-        )
-      );
 
       // Show success toast
       setToastMessage(newFavoriteStatus ? `${form.name} added to favorites!` : `${form.name} removed from favorites`);
       setToastType('success');
       setToastVisible(true);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating favorite:', error);
 
-      // Show error toast
-      setToastMessage(`Failed to update favorite: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      setToastMessage(`Failed to update favorite: ${errorMessage}`);
       setToastType('error');
       setToastVisible(true);
     }
@@ -258,19 +212,9 @@ export default function FormsScreen() {
 
   const handleAssumeForm = async (formId: string) => {
     const form = forms.find(f => f.id === formId);
-    if (!form || !characterId) return;
+    if (!form || !character) return;
 
     try {
-      // Fetch character data to compute stats
-      const characterDoc = await getDoc(doc(db, COLLECTIONS.CHARACTERS, characterId));
-      if (!characterDoc.exists()) {
-        setToastMessage('Character not found');
-        setToastType('error');
-        setToastVisible(true);
-        return;
-      }
-
-      const character = { id: characterDoc.id, ...characterDoc.data() } as CharacterWithId;
 
       // Convert to PF1e format
       const baseChar = characterToBaseCharacter(character);
@@ -334,9 +278,10 @@ export default function FormsScreen() {
           })
         }
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error computing form stats:', error);
-      setToastMessage(`Failed to assume form: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      setToastMessage(`Failed to assume form: ${errorMessage}`);
       setToastType('error');
       setToastVisible(true);
     }
@@ -357,21 +302,19 @@ export default function FormsScreen() {
     const { id, name } = deleteConfirmation;
 
     try {
-      // Delete from Firestore
-      await deleteDoc(doc(db, COLLECTIONS.WILD_SHAPE_FORMS, id));
-
-      // Update local state
-      setForms(prev => prev.filter(f => f.id !== id));
+      // Delete using React Query mutation
+      await deleteForm.mutateAsync(id);
 
       // Show success toast
       setToastMessage(`${name} deleted successfully`);
       setToastType('success');
       setToastVisible(true);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error deleting form:', error);
 
       // Show error toast
-      setToastMessage(`Failed to delete form: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      setToastMessage(`Failed to delete form: ${errorMessage}`);
       setToastType('error');
       setToastVisible(true);
     } finally {
