@@ -5,8 +5,8 @@
  * Read-only templates that can be cloned into your personal forms.
  */
 
-import { useState, useMemo } from 'react';
-import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
+import { useState, useMemo, useEffect, useCallback } from 'react';
+import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator, TextInput } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useCharacter } from '@/contexts';
 import { useOfficialTemplates } from '@/hooks/useWildShapeTemplates';
@@ -149,11 +149,27 @@ export default function LibraryScreen() {
   }, [characterForms]);
 
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [sortBy, setSortBy] = useState<'name-asc' | 'name-desc' | 'cr-asc' | 'cr-desc' | 'size-asc' | 'size-desc' | 'recent'>('name-asc');
+  const [edlMin, setEdlMin] = useState<string>('');
+  const [edlMax, setEdlMax] = useState<string>('');
+  const [showLearnedOnly, setShowLearnedOnly] = useState(false);
+  const [hideLearnedForms, setHideLearnedForms] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastVisible, setToastVisible] = useState(false);
   const [toastType, setToastType] = useState<'success' | 'error' | 'info'>('success');
 
   const loading = templatesLoading;
+
+  // Debounce search input (300ms delay)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   // Data fetching handled by React Query hooks above
 
@@ -172,6 +188,12 @@ export default function LibraryScreen() {
 
   const clearFilters = () => {
     setSelectedFilters([]);
+    setSearchQuery('');
+    setSortBy('name-asc');
+    setEdlMin('');
+    setEdlMax('');
+    setShowLearnedOnly(false);
+    setHideLearnedForms(false);
   };
 
   const handleClone = async (templateId: string) => {
@@ -260,44 +282,104 @@ export default function LibraryScreen() {
     return parts.join(', ');
   };
 
-  const filteredTemplates = templates.filter(template => {
-    if (selectedFilters.length === 0) return true;
+  // Size order for sorting
+  const sizeOrder: Record<string, number> = {
+    'Diminutive': 1,
+    'Tiny': 2,
+    'Small': 3,
+    'Medium': 4,
+    'Large': 5,
+    'Huge': 6,
+    'Gargantuan': 7,
+    'Colossal': 8
+  };
 
-    // Separate filters by category
-    const selectedSizes = selectedFilters.filter(f => sizeFilters.includes(f));
-    const selectedTypes = selectedFilters.filter(f => typeFilters.includes(f));
-    const selectedSpeeds = selectedFilters.filter(f => speedFilters.includes(f));
+  const filteredAndSortedTemplates = useMemo(() => {
+    // First, filter by search query
+    let results = templates.filter(template => {
+      // Search filter (case-insensitive)
+      const matchesSearch = debouncedSearch === '' ||
+        template.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+        template.tags.some(tag => tag.toLowerCase().includes(debouncedSearch.toLowerCase())) ||
+        template.requiredSpellLevel.toLowerCase().includes(debouncedSearch.toLowerCase());
 
-    // Check size filter (OR within category)
-    const matchesSize = selectedSizes.length === 0 || selectedSizes.includes(template.size);
+      if (!matchesSearch) return false;
 
-    // Check type filter (OR within category)
-    // Type comes from the seed data - need to check tags or derive from requiredSpellLevel
-    const templateType = template.tags.find(tag =>
-      tag.includes('animal') || tag.includes('elemental') || tag.includes('plant') || tag.includes('magical-beast')
-    );
-    const matchesType = selectedTypes.length === 0 || selectedTypes.some(type => {
-      if (type === 'Animal') return templateType?.includes('animal');
-      if (type === 'Elemental') return templateType?.includes('elemental');
-      if (type === 'Plant') return templateType?.includes('plant');
-      if (type === 'Magical Beast') return templateType?.includes('magical-beast');
-      return false;
+      // EDL Range filter
+      const minEDL = edlMin ? parseInt(edlMin, 10) : 0;
+      const maxEDL = edlMax ? parseInt(edlMax, 10) : Infinity;
+      const matchesEDL = template.requiredDruidLevel >= minEDL && template.requiredDruidLevel <= maxEDL;
+
+      if (!matchesEDL) return false;
+
+      // Learned/Unlearned filter
+      const isLearned = clonedTemplateIds.has(template.id);
+      if (showLearnedOnly && !isLearned) return false;
+      if (hideLearnedForms && isLearned) return false;
+
+      // Category filters
+      if (selectedFilters.length === 0) return true;
+
+      // Separate filters by category
+      const selectedSizes = selectedFilters.filter(f => sizeFilters.includes(f));
+      const selectedTypes = selectedFilters.filter(f => typeFilters.includes(f));
+      const selectedSpeeds = selectedFilters.filter(f => speedFilters.includes(f));
+
+      // Check size filter (OR within category)
+      const matchesSize = selectedSizes.length === 0 || selectedSizes.includes(template.size);
+
+      // Check type filter (OR within category)
+      const templateType = template.tags.find(tag =>
+        tag.includes('animal') || tag.includes('elemental') || tag.includes('plant') || tag.includes('magical-beast')
+      );
+      const matchesType = selectedTypes.length === 0 || selectedTypes.some(type => {
+        if (type === 'Animal') return templateType?.includes('animal');
+        if (type === 'Elemental') return templateType?.includes('elemental');
+        if (type === 'Plant') return templateType?.includes('plant');
+        if (type === 'Magical Beast') return templateType?.includes('magical-beast');
+        return false;
+      });
+
+      // Check speed filter (OR within category)
+      const matchesSpeed = selectedSpeeds.length === 0 || selectedSpeeds.some(speed => {
+        const movement = template.statModifications.movement;
+        if (speed === 'Swim') return !!movement.swim;
+        if (speed === 'Climb') return !!movement.climb;
+        if (speed === 'Land') return !!movement.land;
+        if (speed === 'Fly') return !!movement.fly;
+        if (speed === 'Burrow') return !!movement.burrow;
+        return false;
+      });
+
+      // All categories must match (AND logic between categories)
+      return matchesSize && matchesType && matchesSpeed;
     });
 
-    // Check speed filter (OR within category)
-    const matchesSpeed = selectedSpeeds.length === 0 || selectedSpeeds.some(speed => {
-      const movement = template.statModifications.movement;
-      if (speed === 'Swim') return !!movement.swim;
-      if (speed === 'Climb') return !!movement.climb;
-      if (speed === 'Land') return !!movement.land;
-      if (speed === 'Fly') return !!movement.fly;
-      if (speed === 'Burrow') return !!movement.burrow;
-      return false;
+    // Then, sort the filtered results
+    results.sort((a, b) => {
+      switch (sortBy) {
+        case 'name-asc':
+          return a.name.localeCompare(b.name);
+        case 'name-desc':
+          return b.name.localeCompare(a.name);
+        case 'cr-asc':
+          return a.requiredDruidLevel - b.requiredDruidLevel;
+        case 'cr-desc':
+          return b.requiredDruidLevel - a.requiredDruidLevel;
+        case 'size-asc':
+          return (sizeOrder[a.size] || 0) - (sizeOrder[b.size] || 0);
+        case 'size-desc':
+          return (sizeOrder[b.size] || 0) - (sizeOrder[a.size] || 0);
+        case 'recent':
+          // Fallback to name if no timestamp available
+          return a.name.localeCompare(b.name);
+        default:
+          return 0;
+      }
     });
 
-    // All categories must match (AND logic between categories)
-    return matchesSize && matchesType && matchesSpeed;
-  });
+    return results;
+  }, [templates, debouncedSearch, selectedFilters, sortBy, edlMin, edlMax, showLearnedOnly, hideLearnedForms, clonedTemplateIds, sizeFilters, typeFilters, speedFilters]);
 
   if (loading) {
     return (
@@ -338,19 +420,118 @@ export default function LibraryScreen() {
           <View style={styles.header}>
             <Text style={styles.title}>Template Library</Text>
             <Text style={styles.subtitle}>
-              {filteredTemplates.length} of {templates.length} forms
-              {selectedFilters.length > 0 && (
-                <Text style={{ color: '#7FD1A8' }}> • {selectedFilters.length} filters active</Text>
+              {filteredAndSortedTemplates.length} of {templates.length} forms
+              {(selectedFilters.length > 0 || debouncedSearch) && (
+                <Text style={{ color: '#7FD1A8' }}>
+                  {' '}• {selectedFilters.length > 0 && `${selectedFilters.length} filters`}
+                  {selectedFilters.length > 0 && debouncedSearch && ', '}
+                  {debouncedSearch && 'searching'}
+                </Text>
               )}
             </Text>
           </View>
 
-          {/* Filters */}
-          {selectedFilters.length > 0 && (
+          {/* Search Bar */}
+          <TextInput
+            style={styles.searchBar}
+            placeholder="Search forms by name or ability..."
+            placeholderTextColor="#8B7355"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+
+          {/* Sort Dropdown */}
+          <View style={{ marginBottom: 12 }}>
+            <Text style={{ color: '#D4C5A9', fontSize: 11, fontWeight: '700', marginBottom: 6 }}>
+              SORT BY
+            </Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 6 }}>
+              <Pressable onPress={() => setSortBy('name-asc')}>
+                <Chip label="Name (A-Z)" variant={sortBy === 'name-asc' ? 'mist' : 'default'} />
+              </Pressable>
+              <Pressable onPress={() => setSortBy('name-desc')}>
+                <Chip label="Name (Z-A)" variant={sortBy === 'name-desc' ? 'mist' : 'default'} />
+              </Pressable>
+              <Pressable onPress={() => setSortBy('cr-asc')}>
+                <Chip label="EDL (Low)" variant={sortBy === 'cr-asc' ? 'mist' : 'default'} />
+              </Pressable>
+              <Pressable onPress={() => setSortBy('cr-desc')}>
+                <Chip label="EDL (High)" variant={sortBy === 'cr-desc' ? 'mist' : 'default'} />
+              </Pressable>
+              <Pressable onPress={() => setSortBy('size-asc')}>
+                <Chip label="Size (Small)" variant={sortBy === 'size-asc' ? 'mist' : 'default'} />
+              </Pressable>
+              <Pressable onPress={() => setSortBy('size-desc')}>
+                <Chip label="Size (Large)" variant={sortBy === 'size-desc' ? 'mist' : 'default'} />
+              </Pressable>
+            </ScrollView>
+          </View>
+
+          {/* Clear Filters Button */}
+          {(selectedFilters.length > 0 || debouncedSearch || sortBy !== 'name-asc' || edlMin || edlMax || showLearnedOnly || hideLearnedForms) && (
             <Button variant="outline" onPress={clearFilters} fullWidth style={{ marginBottom: 12 }}>
-              Clear All Filters
+              Clear All Filters & Sort
             </Button>
           )}
+
+          {/* Advanced Filters */}
+          <View style={{ marginBottom: 12 }}>
+            <Text style={{ color: '#D4C5A9', fontSize: 11, fontWeight: '700', marginBottom: 6 }}>
+              ADVANCED FILTERS
+            </Text>
+
+            {/* EDL Range */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8, gap: 8 }}>
+              <Text style={{ color: '#D4C5A9', fontSize: 12, fontWeight: '600' }}>EDL:</Text>
+              <TextInput
+                style={[styles.searchBar, { flex: 1, padding: 8, marginBottom: 0 }]}
+                placeholder="Min"
+                placeholderTextColor="#8B7355"
+                value={edlMin}
+                onChangeText={setEdlMin}
+                keyboardType="number-pad"
+              />
+              <Text style={{ color: '#D4C5A9', fontSize: 12 }}>to</Text>
+              <TextInput
+                style={[styles.searchBar, { flex: 1, padding: 8, marginBottom: 0 }]}
+                placeholder="Max"
+                placeholderTextColor="#8B7355"
+                value={edlMax}
+                onChangeText={setEdlMax}
+                keyboardType="number-pad"
+              />
+            </View>
+
+            {/* Learned Filter Toggles */}
+            <View style={{ flexDirection: 'row', gap: 8 }}>
+              <Pressable
+                onPress={() => {
+                  setShowLearnedOnly(!showLearnedOnly);
+                  if (!showLearnedOnly) setHideLearnedForms(false);
+                }}
+                style={{ flex: 1 }}
+              >
+                <Chip
+                  label="Show Learned Only"
+                  variant={showLearnedOnly ? 'mist' : 'default'}
+                />
+              </Pressable>
+              <Pressable
+                onPress={() => {
+                  setHideLearnedForms(!hideLearnedForms);
+                  if (!hideLearnedForms) setShowLearnedOnly(false);
+                }}
+                style={{ flex: 1 }}
+              >
+                <Chip
+                  label="Hide Learned"
+                  variant={hideLearnedForms ? 'mist' : 'default'}
+                />
+              </Pressable>
+            </View>
+          </View>
 
           {/* Size Filters */}
           <View style={{ marginBottom: 6 }}>
@@ -404,7 +585,17 @@ export default function LibraryScreen() {
           </View>
 
           {/* Templates List */}
-          {filteredTemplates.map((template) => (
+          {filteredAndSortedTemplates.length === 0 ? (
+            <MistCard style={{ padding: 24, alignItems: 'center' }}>
+              <Text style={{ color: '#1A0F08', fontSize: 16, fontWeight: '600', marginBottom: 8 }}>
+                No forms found
+              </Text>
+              <Text style={{ color: '#4A3426', fontSize: 14, textAlign: 'center' }}>
+                Try adjusting your search or filters
+              </Text>
+            </MistCard>
+          ) : (
+            filteredAndSortedTemplates.map((template) => (
             <BarkCard key={template.id} style={styles.templateCard}>
               <View style={styles.templateHeader}>
                 <Text style={styles.templateName}>{template.name}</Text>
@@ -446,7 +637,8 @@ export default function LibraryScreen() {
                 </View>
               )}
             </BarkCard>
-          ))}
+          ))
+          )}
         </ScrollView>
 
         {/* Toast Notification */}
