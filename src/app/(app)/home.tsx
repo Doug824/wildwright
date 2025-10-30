@@ -7,7 +7,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { View, Text, ScrollView, Pressable, StyleSheet, Modal, ActivityIndicator } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useCharacter } from '@/contexts';
 import { useCharacters } from '@/hooks/useCharacters';
 import { useCharacterForms } from '@/hooks/useWildShapeForms';
@@ -327,6 +327,7 @@ const styles = StyleSheet.create({
 
 export default function DashboardScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams();
 
   // Get character from context (includes automatic loading/caching)
   const { character, characterId, isLoading: characterLoading, switchCharacter } = useCharacter();
