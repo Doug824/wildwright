@@ -1,0 +1,22 @@
+[
+  { "key": "rend", "name": "Rend", "text": "If two specified attacks hit (often two claws or talons), deal extra damage as listed." },
+  { "key": "powerful-charge", "name": "Powerful Charge", "text": "On a charge, a listed natural attack deals extra damage dice." },
+  { "key": "sudden-swoop", "name": "Sudden Swoop", "text": "When charging while flying, does not provoke on entering target's space and gains bonus damage." },
+  { "key": "evasion", "name": "Evasion", "text": "On a successful Reflex save vs. effects that allow half damage, take no damage instead." },
+  { "key": "diving-charge", "name": "Diving Charge", "text": "On a flying charge, may continue movement after the attack in the same direction, up to remaining distance." },
+  { "key": "go-for-the-eyes", "name": "Go for the Eyes", "text": "On a critical hit with talons/rake, target must save or be blinded for a short duration." },
+  { "key": "hunting-talons", "name": "Hunting Talons", "text": "Talon damage is treated as if the creature were two sizes larger." },
+  { "key": "thumb-spikes", "name": "Thumb Spikes", "text": "Claw criticals have an increased multiplier (typically ×3) per the stat block." },
+  { "key": "stun", "name": "Stun (Tail)", "text": "Tail hit forces a Fortitude save or dazes/stuns the target for a duration (on crit, longer)." },
+  { "key": "blood-rage", "name": "Blood Rage", "text": "After taking damage, the creature can enter a rage, gaining STR/CON and –AC for a short time." },
+  { "key": "tearing-bite", "name": "Tearing Bite", "text": "Bite has an expanded threat range or other improved crit property." },
+  { "key": "ambush-attack", "name": "Ambush Attack", "text": "On a successful surprise-round bite, deal extra precision damage and expand crit threat for that attack." },
+  { "key": "reflexive-strike", "name": "Reflexive Strike", "text": "Grants additional attacks of opportunity per round using specified natural weapon." },
+  { "key": "easily-trained", "name": "Easily Trained", "text": "Bonuses to Handle Animal to teach tricks; can learn additional tricks beyond normal." },
+  { "key": "razor-sharp-beak", "name": "Razor-Sharp Beak", "text": "Bite has an increased critical multiplier (e.g., ×3) per stat block." },
+  { "key": "difficult-to-train", "name": "Difficult to Train", "text": "Penalty to attempts to train the creature using Handle Animal." },
+  { "key": "sprint", "name": "Sprint", "text": "Once per minute, increase land speed to a listed value for 1 round." },
+  { "key": "petrification", "name": "Petrification", "text": "On hit or gaze, target must save or accrue petrifying effects; full rules per creature entry." },
+  { "key": "stony-gaze", "name": "Stony Gaze", "text": "Gaze that compels eye contact; repeated saves escalate from staggered to petrified if contact continues." },
+  { "key": "poison-skin", "name": "Poison Skin", "text": "Contact with skin or trail exposes to contact poison; details per creature entry." }
+]

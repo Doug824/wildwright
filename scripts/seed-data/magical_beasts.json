@@ -1,47 +1,47 @@
 [
   {
-    "name": "Basilisk",
-    "slug": "basilisk",
+    "name": "Basilisk Snake",
+    "slug": "basilisk-snake",
     "type": "Magical Beast",
-    "size": "Medium",
+    "size": "Tiny",
     "speed": { "land": 20 },
-    "senses": ["darkvision 60", "low-light vision"],
-    "attacks": [{ "name": "bite", "damage": "1d8" }],
-    "abilities": ["petrifying gaze"],
+    "senses": ["darkvision 60 ft", "low-light vision"],
+    "attacks": [{ "name": "bite", "damage": "1d4" }],
+    "abilities": ["stony gaze", "poison skin"],
     "formTier": "Beast Shape III",
     "minEDL": 8,
-    "tags": ["beast-shape-iii", "magical-beast"],
-    "source": "d20pfsrd"
+    "tags": ["magical-beast", "reptile", "beast-shape-iii"],
+    "source": "3pp/d20pfsrd"
   },
   {
     "name": "Cockatrice",
     "slug": "cockatrice",
     "type": "Magical Beast",
     "size": "Small",
-    "speed": { "land": 20, "fly": 60, "flyManeuver": "Poor" },
-    "senses": ["darkvision 60", "low-light vision"],
-    "attacks": [{ "name": "bite", "damage": "1d4" }],
+    "speed": { "land": 20, "fly": 60 },
+    "senses": ["darkvision 60 ft", "low-light vision"],
+    "attacks": [{ "name": "bite", "damage": "1d4", "riders": ["petrification"] }],
     "abilities": ["petrification"],
     "formTier": "Beast Shape III",
     "minEDL": 8,
-    "tags": ["beast-shape-iii", "magical-beast"],
+    "tags": ["magical-beast", "avian", "beast-shape-iii"],
     "source": "d20pfsrd"
   },
   {
-    "name": "Griffon, Dwarf",
-    "slug": "griffon-dwarf",
+    "name": "Dwarf Griffon",
+    "slug": "dwarf-griffon",
     "type": "Magical Beast",
-    "size": "Medium",
-    "speed": { "land": 30, "fly": 60 },
-    "senses": ["low-light vision", "darkvision 60"],
+    "size": "Small",
+    "speed": { "land": 20, "fly": 80 },
+    "senses": ["darkvision 60 ft", "low-light vision", "scent"],
     "attacks": [
-      { "name": "beak", "damage": "1d6" },
-      { "name": "talon", "damage": "1d4", "count": 2 }
+      { "name": "bite", "damage": "1d4" },
+      { "name": "talon", "damage": "1d6", "count": 2 }
     ],
-    "abilities": ["pounce", "rake", "go for the eyes"],
+    "abilities": ["diving charge", "go for the eyes", "pounce", "rake", "hunting talons"],
     "formTier": "Beast Shape III",
     "minEDL": 8,
-    "tags": ["beast-shape-iii", "magical-beast", "griffon"],
-    "source": "d20pfsrd"
+    "tags": ["magical-beast", "avian", "beast-shape-iii"],
+    "source": "3pp/d20pfsrd"
   }
 ]
