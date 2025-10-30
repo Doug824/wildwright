@@ -448,7 +448,7 @@ export default function DashboardScreen() {
   // Auto-select tier and size when modal opens
   useEffect(() => {
     if (selectedFormModal && character) {
-      const edl = character.baseStats.effectiveDruidLevel;
+      const edl = character.baseStats.effectiveDruidLevel || character.baseStats.level;
       const tierAvailability = getTierForEDL(edl);
 
       if (tierAvailability) {

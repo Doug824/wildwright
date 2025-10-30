@@ -242,7 +242,7 @@ export default function FormsScreen() {
       };
 
       // Get tier for character level
-      const edl = character.class === 'Druid' ? character.level : 0;
+      const edl = character.baseStats.effectiveDruidLevel || character.baseStats.level;
       const tierAvailability = getTierForEDL(edl);
       if (!tierAvailability) {
         setToastMessage('Character level too low for Wild Shape');
