@@ -245,7 +245,9 @@ function transformCreature(creature: JsonCreature): WildShapeTemplate {
  */
 function loadAllCreatures(): JsonCreature[] {
   const seedDataPath = path.join(__dirname, 'seed-data');
-  const files = fs.readdirSync(seedDataPath).filter((f) => f.endsWith('.json'));
+  const files = fs.readdirSync(seedDataPath)
+    .filter((f) => f.endsWith('.json'))
+    .filter((f) => f !== 'abilities.json'); // Skip abilities.json
 
   const allCreatures: JsonCreature[] = [];
 
