@@ -10,6 +10,7 @@ import { auth } from '@/lib/firebase';
 import {
   signUp as signUpService,
   signIn as signInService,
+  signInWithGoogle as signInWithGoogleService,
   signOut as signOutService,
   resetPassword as resetPasswordService,
   sendSignInLink as sendSignInLinkService,
@@ -26,6 +27,7 @@ interface UseAuthReturn extends AuthState {
   // Actions
   signUp: (email: string, password: string, displayName?: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   sendSignInLink: (email: string) => Promise<void>;
@@ -96,6 +98,22 @@ export const useAuth = (): UseAuthReturn => {
     try {
       setState((prev) => ({ ...prev, loading: true, error: null }));
       await signInService(email, password);
+      // User state will be updated by onAuthStateChanged
+    } catch (error) {
+      setState((prev) => ({
+        ...prev,
+        loading: false,
+        error: error as Error,
+      }));
+      throw error;
+    }
+  }, []);
+
+  // Sign in with Google
+  const signInWithGoogle = useCallback(async () => {
+    try {
+      setState((prev) => ({ ...prev, loading: true, error: null }));
+      await signInWithGoogleService();
       // User state will be updated by onAuthStateChanged
     } catch (error) {
       setState((prev) => ({
@@ -181,6 +199,7 @@ export const useAuth = (): UseAuthReturn => {
     error: state.error,
     signUp,
     signIn,
+    signInWithGoogle,
     signOut,
     resetPassword,
     sendSignInLink,

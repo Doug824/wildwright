@@ -7,6 +7,8 @@
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider,
   signOut as firebaseSignOut,
   sendPasswordResetEmail,
   sendSignInLinkToEmail,
@@ -74,6 +76,40 @@ export const signIn = async (email: string, password: string): Promise<User> => 
     return userCredential.user;
   } catch (error) {
     console.error('Sign in error:', error);
+    throw handleAuthError(error as AuthError);
+  }
+};
+
+/**
+ * Sign in with Google
+ */
+export const signInWithGoogle = async (): Promise<User> => {
+  try {
+    const provider = new GoogleAuthProvider();
+    const userCredential = await signInWithPopup(auth, provider);
+    const user = userCredential.user;
+
+    // Check if user profile exists, create if not
+    const userDocRef = doc(db, COLLECTIONS.USERS, user.uid);
+    const userDoc = await getDoc(userDocRef);
+
+    if (!userDoc.exists()) {
+      // Create user profile for new Google user
+      const userProfile: CreateUserProfile = {
+        email: user.email || '',
+        displayName: user.displayName || null,
+      };
+
+      await setDoc(userDocRef, {
+        ...userProfile,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+    }
+
+    return user;
+  } catch (error) {
+    console.error('Google sign in error:', error);
     throw handleAuthError(error as AuthError);
   }
 };

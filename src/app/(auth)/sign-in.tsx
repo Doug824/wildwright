@@ -6,7 +6,7 @@
  */
 
 import { useState } from 'react';
-import { ScrollView, View, Text, Pressable, StyleSheet, Alert, Image } from 'react-native';
+import { ScrollView, View, Text, Pressable, StyleSheet, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { H2 } from '@/components/ui/Heading';
 import { Card } from '@/components/ui/Card';
@@ -38,9 +38,9 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   logo: {
-    width: 120,
-    height: 120,
-    borderRadius: 20,
+    width: 100,
+    height: 100,
+    borderRadius: 16,
   },
   appTitle: {
     color: '#F9F5EB',
@@ -121,11 +121,12 @@ const styles = StyleSheet.create({
 
 export default function SignInScreen() {
   const router = useRouter();
-  const { signIn } = useAuth();
+  const { signIn, signInWithGoogle } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState('');
 
   const handleSignIn = async () => {
@@ -144,6 +145,20 @@ export default function SignInScreen() {
     } catch (error: any) {
       setError(error.message || 'Invalid credentials');
       setLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setError(''); // Clear previous errors
+
+    try {
+      setGoogleLoading(true);
+      await signInWithGoogle();
+      // Force navigate after successful sign in
+      router.replace('/character-picker');
+    } catch (error: any) {
+      setError(error.message || 'Google sign-in failed');
+      setGoogleLoading(false);
     }
   };
 
@@ -223,7 +238,8 @@ export default function SignInScreen() {
           <Button
             variant="outline"
             fullWidth
-            onPress={() => Alert.alert('Coming Soon', 'Google sign in will be available soon')}
+            onPress={handleGoogleSignIn}
+            loading={googleLoading}
           >
             Continue with Google
           </Button>

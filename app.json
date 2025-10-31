@@ -25,7 +25,26 @@
       }
     },
     "web": {
-      "bundler": "metro"
+      "bundler": "metro",
+      "favicon": "./assets/icon.png",
+      "themeColor": "#1A3A2E",
+      "backgroundColor": "#1A3A2E",
+      "display": "standalone",
+      "orientation": "portrait",
+      "startUrl": "/",
+      "name": "WildWright",
+      "shortName": "WildWright",
+      "description": "Wild Shape companion app for Pathfinder druids",
+      "lang": "en",
+      "scope": "/",
+      "icons": [
+        {
+          "src": "./assets/icon.png",
+          "sizes": "any",
+          "type": "image/png",
+          "purpose": "any maskable"
+        }
+      ]
     },
     "plugins": [
       "expo-router"

@@ -16,3 +16,6 @@ export * from './useWildShapeForms';
 
 // Wild Shape Templates
 export * from './useWildShapeTemplates';
+
+// PWA
+export * from './useServiceWorker';
