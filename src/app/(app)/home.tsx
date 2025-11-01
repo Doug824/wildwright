@@ -448,7 +448,11 @@ export default function DashboardScreen() {
   // Auto-select tier and size when modal opens
   useEffect(() => {
     if (selectedFormModal && character) {
-      const edl = character.baseStats.effectiveDruidLevel || character.baseStats.level;
+      const edl = character.baseStats.effectiveDruidLevel
+        || character.baseStats.level
+        || (character as any).effectiveDruidLevel
+        || (character as any).level
+        || 1;
       const tierAvailability = getTierForEDL(edl);
 
       if (tierAvailability) {
@@ -510,12 +514,24 @@ export default function DashboardScreen() {
         traits: selectedFormModal.statModifications.specialAbilities || [],
       };
 
+      // Extract element type for Elemental forms
+      let element: 'Air' | 'Earth' | 'Fire' | 'Water' | undefined;
+      if (pf1eForm.kind === 'Elemental') {
+        const nameLower = selectedFormModal.name.toLowerCase();
+        const allText = [nameLower, ...selectedFormModal.tags.map((t: string) => t.toLowerCase())].join(' ');
+        if (allText.includes('air')) element = 'Air';
+        else if (allText.includes('earth')) element = 'Earth';
+        else if (allText.includes('fire')) element = 'Fire';
+        else if (allText.includes('water')) element = 'Water';
+      }
+
       // Compute the playsheet using PF1e engine with selected tier/size
       const computedPlaysheet = computePF1e({
         base: baseChar,
         form: pf1eForm as any,
         tier: selectedTier,
         chosenSize: selectedSize,
+        element,
       });
 
       // Store computed playsheet as active form
@@ -532,7 +548,9 @@ export default function DashboardScreen() {
       // TODO: Save to DB and track daily uses
     } catch (error: any) {
       console.error('Error computing wildshape form:', error);
-      alert(`Error assuming form: ${error.message}. Check console for details.`);
+      setToastMessage(`Error assuming form: ${error.message}`);
+      setToastType('error');
+      setToastVisible(true);
     }
   };
 
@@ -784,7 +802,11 @@ export default function DashboardScreen() {
 
                         {/* Tier Selection */}
                         {character && (() => {
-                          const edl = character.baseStats.effectiveDruidLevel;
+                          const edl = character.baseStats.effectiveDruidLevel
+                            || character.baseStats.level
+                            || (character as any).effectiveDruidLevel
+                            || (character as any).level
+                            || 1;
                           const tierAvailability = getTierForEDL(edl);
                           if (!tierAvailability) return null;
 
@@ -820,7 +842,11 @@ export default function DashboardScreen() {
 
                         {/* Size Selection */}
                         {character && selectedTier && (() => {
-                          const edl = character.baseStats.effectiveDruidLevel;
+                          const edl = character.baseStats.effectiveDruidLevel
+                            || character.baseStats.level
+                            || (character as any).effectiveDruidLevel
+                            || (character as any).level
+                            || 1;
                           const tierAvailability = getTierForEDL(edl);
                           if (!tierAvailability) return null;
 

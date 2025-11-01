@@ -241,8 +241,12 @@ export default function FormsScreen() {
         traits: form.statModifications.specialAbilities || [],
       };
 
-      // Get tier for character level
-      const edl = character.baseStats.effectiveDruidLevel || character.baseStats.level;
+      // Get tier for character level - check multiple locations for EDL
+      const edl = character.baseStats.effectiveDruidLevel
+        || character.baseStats.level
+        || (character as any).effectiveDruidLevel
+        || (character as any).level
+        || 1;
       const tierAvailability = getTierForEDL(edl);
       if (!tierAvailability) {
         setToastMessage('Character level too low for Wild Shape');
@@ -261,12 +265,24 @@ export default function FormsScreen() {
         tier = tierAvailability.animal;
       }
 
+      // Extract element type for Elemental forms
+      let element: 'Air' | 'Earth' | 'Fire' | 'Water' | undefined;
+      if (pf1eForm.kind === 'Elemental') {
+        const nameLower = form.name.toLowerCase();
+        const allText = [nameLower, ...form.tags.map((t: string) => t.toLowerCase())].join(' ');
+        if (allText.includes('air')) element = 'Air';
+        else if (allText.includes('earth')) element = 'Earth';
+        else if (allText.includes('fire')) element = 'Fire';
+        else if (allText.includes('water')) element = 'Water';
+      }
+
       // Compute stats
       const computedPlaysheet = computePF1e({
         base: baseChar,
         form: pf1eForm as any,
         tier,
         chosenSize: form.size,
+        element,
       });
 
       // Navigate with computed data
