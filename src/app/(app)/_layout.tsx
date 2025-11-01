@@ -19,6 +19,10 @@ export default function AppShellLayout() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
           backgroundColor: '#2A4A3A', // forest-600
           borderTopColor: '#7FD1A8', // magical green glow
           borderTopWidth: 3,

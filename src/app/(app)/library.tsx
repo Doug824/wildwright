@@ -490,24 +490,26 @@ export default function LibraryScreen() {
             </Text>
 
             {/* EDL Range */}
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8, gap: 8 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8, gap: 8, flexWrap: 'wrap' }}>
               <Text style={{ color: '#D4C5A9', fontSize: 12, fontWeight: '600' }}>EDL:</Text>
               <TextInput
-                style={[styles.searchBar, { flex: 1, padding: 8, marginBottom: 0 }]}
+                style={[styles.searchBar, { width: 60, padding: 8, marginBottom: 0, textAlign: 'center' }]}
                 placeholder="Min"
                 placeholderTextColor="#8B7355"
                 value={edlMin}
                 onChangeText={setEdlMin}
                 keyboardType="number-pad"
+                maxLength={2}
               />
               <Text style={{ color: '#D4C5A9', fontSize: 12 }}>to</Text>
               <TextInput
-                style={[styles.searchBar, { flex: 1, padding: 8, marginBottom: 0 }]}
+                style={[styles.searchBar, { width: 60, padding: 8, marginBottom: 0, textAlign: 'center' }]}
                 placeholder="Max"
                 placeholderTextColor="#8B7355"
                 value={edlMax}
                 onChangeText={setEdlMax}
                 keyboardType="number-pad"
+                maxLength={2}
               />
             </View>
 
