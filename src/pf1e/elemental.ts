@@ -52,30 +52,50 @@ export const ELEMENTAL_SIZE_BONUS: Record<
 
   'Elemental Body III': {
     Air: {
+      Small: { dex: +2, naturalArmor: +2 },  // Same as Body I
+      Medium: { dex: +4, naturalArmor: +3 }, // Same as Body II
       Large: { str: +2, dex: +4, naturalArmor: +4 },
     },
     Earth: {
+      Small: { str: +2, naturalArmor: +4 },  // Same as Body I
+      Medium: { str: +4, naturalArmor: +5 }, // Same as Body II
       Large: { str: +6, dex: -2, con: +2, naturalArmor: +6 },
     },
     Fire: {
+      Small: { dex: +2, naturalArmor: +2 },  // Same as Body I
+      Medium: { dex: +4, naturalArmor: +3 }, // Same as Body II
       Large: { dex: +4, con: +2, naturalArmor: +4 },
     },
     Water: {
+      Small: { con: +2, naturalArmor: +4 },  // Same as Body I
+      Medium: { con: +4, naturalArmor: +5 }, // Same as Body II
       Large: { str: +2, dex: -2, con: +6, naturalArmor: +6 },
     },
   },
 
   'Elemental Body IV': {
     Air: {
+      Small: { dex: +2, naturalArmor: +2 },  // Same as Body I
+      Medium: { dex: +4, naturalArmor: +3 }, // Same as Body II
+      Large: { str: +2, dex: +4, naturalArmor: +4 }, // Same as Body III
       Huge: { str: +4, dex: +6, naturalArmor: +4 },
     },
     Earth: {
+      Small: { str: +2, naturalArmor: +4 },  // Same as Body I
+      Medium: { str: +4, naturalArmor: +5 }, // Same as Body II
+      Large: { str: +6, dex: -2, con: +2, naturalArmor: +6 }, // Same as Body III
       Huge: { str: +8, dex: -2, con: +4, naturalArmor: +6 },
     },
     Fire: {
+      Small: { dex: +2, naturalArmor: +2 },  // Same as Body I
+      Medium: { dex: +4, naturalArmor: +3 }, // Same as Body II
+      Large: { dex: +4, con: +2, naturalArmor: +4 }, // Same as Body III
       Huge: { dex: +6, con: +4, naturalArmor: +4 },
     },
     Water: {
+      Small: { con: +2, naturalArmor: +4 },  // Same as Body I
+      Medium: { con: +4, naturalArmor: +5 }, // Same as Body II
+      Large: { str: +2, dex: -2, con: +6, naturalArmor: +6 }, // Same as Body III
       Huge: { str: +4, dex: -2, con: +8, naturalArmor: +6 },
     },
   },
@@ -89,7 +109,17 @@ export function getElementalSizeModifiers(
   element: ElementType,
   size: CreatureSize
 ): SizeModifiers {
-  return ELEMENTAL_SIZE_BONUS[tier]?.[element]?.[size] || {};
+  console.log('[ELEMENTAL] Looking up modifiers:', JSON.stringify({ tier, element, size }));
+  const result = ELEMENTAL_SIZE_BONUS[tier]?.[element]?.[size] || {};
+  console.log('[ELEMENTAL] Found modifiers:', JSON.stringify(result));
+  console.log('[ELEMENTAL] Available tiers:', Object.keys(ELEMENTAL_SIZE_BONUS));
+  if (ELEMENTAL_SIZE_BONUS[tier]) {
+    console.log('[ELEMENTAL] Available elements for this tier:', Object.keys(ELEMENTAL_SIZE_BONUS[tier]));
+    if (ELEMENTAL_SIZE_BONUS[tier][element]) {
+      console.log('[ELEMENTAL] Available sizes for this element:', Object.keys(ELEMENTAL_SIZE_BONUS[tier][element]));
+    }
+  }
+  return result;
 }
 
 // ============================================================================

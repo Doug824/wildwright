@@ -75,6 +75,37 @@ export const EDL_TO_TIERS: Record<number, TierAvailability> = {
     plant: 'Plant Shape III',
     sizes: ['Diminutive', 'Tiny', 'Small', 'Medium', 'Large', 'Huge'],
   },
+  // Epic levels 21-30 (same as level 20)
+  22: {
+    animal: 'Beast Shape III',
+    elemental: 'Elemental Body IV',
+    plant: 'Plant Shape III',
+    sizes: ['Diminutive', 'Tiny', 'Small', 'Medium', 'Large', 'Huge'],
+  },
+  24: {
+    animal: 'Beast Shape III',
+    elemental: 'Elemental Body IV',
+    plant: 'Plant Shape III',
+    sizes: ['Diminutive', 'Tiny', 'Small', 'Medium', 'Large', 'Huge'],
+  },
+  26: {
+    animal: 'Beast Shape III',
+    elemental: 'Elemental Body IV',
+    plant: 'Plant Shape III',
+    sizes: ['Diminutive', 'Tiny', 'Small', 'Medium', 'Large', 'Huge'],
+  },
+  28: {
+    animal: 'Beast Shape III',
+    elemental: 'Elemental Body IV',
+    plant: 'Plant Shape III',
+    sizes: ['Diminutive', 'Tiny', 'Small', 'Medium', 'Large', 'Huge'],
+  },
+  30: {
+    animal: 'Beast Shape III',
+    elemental: 'Elemental Body IV',
+    plant: 'Plant Shape III',
+    sizes: ['Diminutive', 'Tiny', 'Small', 'Medium', 'Large', 'Huge'],
+  },
 };
 
 /**
