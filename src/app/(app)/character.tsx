@@ -5,12 +5,13 @@
  * This is the character editor within the app shell.
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet, TextInput } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db, COLLECTIONS } from '@/lib/firebase';
 import { useAuth } from '@/hooks';
+import { useCharacter } from '@/contexts';
 import { LivingForestBg } from '@/components/ui/LivingForestBg';
 import { BarkCard } from '@/components/ui/BarkCard';
 import { H2, H3 } from '@/components/ui/Heading';
@@ -159,6 +160,7 @@ export default function CharacterScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const { user } = useAuth();
+  const { character, characterId } = useCharacter();
   const isNew = params.new === 'true';
 
   // Character state
@@ -201,6 +203,66 @@ export default function CharacterScreen() {
   const [toastVisible, setToastVisible] = useState(false);
   const [toastType, setToastType] = useState<'success' | 'error' | 'info'>('success');
 
+  // Load existing character data when editing
+  useEffect(() => {
+    if (!isNew && character) {
+      console.log('[CHARACTER] Loading existing character:', character);
+      setName(character.name || 'Character');
+
+      // Load level - check multiple locations
+      const charLevel = character.baseStats?.level || character.level || 1;
+      setLevel(String(charLevel));
+
+      // Load EDL - check multiple locations, default to character level
+      const edl = character.baseStats?.effectiveDruidLevel
+        || (character as any).effectiveDruidLevel
+        || character.baseStats?.level
+        || character.level
+        || charLevel;
+      setEffectiveDruidLevel(edl);
+
+      // Load ability scores
+      const abilities = character.baseStats?.abilityScores || (character.baseStats as any);
+      setStr(String(abilities.str || 10));
+      setDex(String(abilities.dex || 10));
+      setConState(String(abilities.con || 10));
+      setInt(String(abilities.int || 10));
+      setWis(String(abilities.wis || 10));
+      setCha(String(abilities.cha || 10));
+
+      // Load combat stats
+      const combatStats = (character as any).combatStats || {};
+      setBaseHP(String(combatStats.baseHP || character.baseStats?.hp?.max || 0));
+      setBaseAttackBonus(String(combatStats.baseAttackBonus || character.baseStats?.bab || 0));
+      setBaseNaturalArmor(String(combatStats.baseNaturalArmor || 0));
+
+      // Load saves
+      const saves = character.baseStats?.saves || combatStats.saves || {};
+      setFortSave(String(saves.fortitude || saves.fort || 0));
+      setRefSave(String(saves.reflex || saves.ref || 0));
+      setWillSave(String(saves.will || 0));
+
+      // Load AC bonuses
+      const acBonuses = combatStats.acBonuses || {};
+      setArmorBonus(String(acBonuses.armor || 0));
+      setDeflectionBonus(String(acBonuses.deflection || 0));
+      setShieldBonus(String(acBonuses.shield || 0));
+      setDodgeBonus(String(acBonuses.dodge || 0));
+
+      // Load attack/damage modifiers
+      setAttackStatModifier(combatStats.attackStatModifier || 'STR');
+      setDamageStatModifier(combatStats.damageStatModifier || 'STR');
+      setDamageMultiplier(combatStats.damageMultiplier || 1);
+      setMiscAttackBonus(String(combatStats.miscAttackBonus || 0));
+      setMiscDamageBonus(String(combatStats.miscDamageBonus || 0));
+
+      // Load feats
+      if (character.feats && Array.isArray(character.feats)) {
+        setActiveFeats(new Set(character.feats));
+      }
+    }
+  }, [isNew, character]);
+
   // TODO: Add custom feats/traits system - need to research which feats affect wildshape mechanics
   // and create a way for users to add custom feats with their effects
   const availableFeats = [
@@ -221,7 +283,7 @@ export default function CharacterScreen() {
   };
 
   const adjustEDL = (delta: number) => {
-    setEffectiveDruidLevel(prev => Math.max(1, Math.min(20, prev + delta)));
+    setEffectiveDruidLevel(prev => Math.max(1, Math.min(30, prev + delta)));
   };
 
   const handleSave = async () => {
@@ -237,14 +299,35 @@ export default function CharacterScreen() {
       name,
       class: 'Druid', // CRITICAL: Required for tier computation
       level: parseInt(level) || 1,
-      effectiveDruidLevel,
       baseStats: {
-        str: parseInt(str) || 10,
-        dex: parseInt(dex) || 10,
-        con: parseInt(con) || 10,
-        int: parseInt(int) || 10,
-        wis: parseInt(wis) || 10,
-        cha: parseInt(cha) || 10,
+        level: parseInt(level) || 1,
+        effectiveDruidLevel,
+        abilityScores: {
+          str: parseInt(str) || 10,
+          dex: parseInt(dex) || 10,
+          con: parseInt(con) || 10,
+          int: parseInt(int) || 10,
+          wis: parseInt(wis) || 10,
+          cha: parseInt(cha) || 10,
+        },
+        ac: 10, // Will be calculated
+        hp: {
+          current: parseInt(baseHP) || 0,
+          max: parseInt(baseHP) || 0,
+        },
+        saves: {
+          fortitude: parseInt(fortSave) || 0,
+          reflex: parseInt(refSave) || 0,
+          will: parseInt(willSave) || 0,
+        },
+        bab: parseInt(baseAttackBonus) || 0,
+        skills: {},
+        movement: {
+          land: 30, // Default
+        },
+        senses: [],
+        size: 'Medium',
+        traits: [],
       },
       combatStats: {
         baseAttackBonus: parseInt(baseAttackBonus) || 0,
@@ -285,7 +368,18 @@ export default function CharacterScreen() {
           router.replace('/character-picker');
         }, 1500);
       } else {
-        // TODO: Update existing character
+        // Update existing character
+        if (!characterId) {
+          throw new Error('No character ID found for update');
+        }
+
+        const characterRef = doc(db, COLLECTIONS.CHARACTERS, characterId);
+        await updateDoc(characterRef, {
+          ...characterData,
+          updatedAt: serverTimestamp(),
+        });
+
+        console.log('[CHARACTER] Character updated successfully:', characterId);
         setToastMessage('Changes saved successfully!');
         setToastType('success');
         setToastVisible(true);
