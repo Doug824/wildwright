@@ -62,6 +62,12 @@ export interface BaseCharacter {
     tremorsense?: number;
     blindsense?: number;
   };
+  // Attack and damage configuration
+  attackStatModifier?: 'STR' | 'DEX' | 'WIS';
+  damageStatModifier?: 'STR' | 'DEX' | 'WIS';
+  damageMultiplier?: number; // e.g., 1, 1.5, 2
+  miscAttackBonus?: number;
+  miscDamageBonus?: number;
   feats?: string[];
   traits?: string[];
 }

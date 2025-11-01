@@ -188,12 +188,22 @@ export function computePF1e(input: ComputeInput): ComputedPlaysheet {
       throw new Error('Elemental Body requires element parameter');
     }
 
+    console.log('[COMPUTE] Elemental transformation:', JSON.stringify({
+      tier,
+      element: input.element,
+      size,
+      'ability before': { ...ability }
+    }, null, 2));
+
     const sizeModifiers = getElementalSizeModifiers(tier, input.element, size);
+    console.log('[COMPUTE] Size modifiers:', JSON.stringify(sizeModifiers, null, 2));
+
     const grants = getElementalGrants(input.element);
     const elementMovement = getElementalMovementForTier(input.element, tier);
 
     // Apply ability bonuses
     if (sizeModifiers.str) {
+      console.log('[COMPUTE] Applying STR:', sizeModifiers.str, 'to', ability.str);
       ability.str += sizeModifiers.str;
       explain.push({
         target: 'ability.str',
@@ -203,6 +213,7 @@ export function computePF1e(input: ComputeInput): ComputedPlaysheet {
       });
     }
     if (sizeModifiers.dex) {
+      console.log('[COMPUTE] Applying DEX:', sizeModifiers.dex, 'to', ability.dex);
       ability.dex += sizeModifiers.dex;
       explain.push({
         target: 'ability.dex',
@@ -212,6 +223,7 @@ export function computePF1e(input: ComputeInput): ComputedPlaysheet {
       });
     }
     if (sizeModifiers.con) {
+      console.log('[COMPUTE] Applying CON:', sizeModifiers.con, 'to', ability.con);
       ability.con += sizeModifiers.con;
       explain.push({
         target: 'ability.con',
@@ -220,6 +232,8 @@ export function computePF1e(input: ComputeInput): ComputedPlaysheet {
         source: 'tier',
       });
     }
+
+    console.log('[COMPUTE] Ability after modifiers:', JSON.stringify(ability, null, 2));
     if (sizeModifiers.naturalArmor) {
       naturalArmorBonus += sizeModifiers.naturalArmor;
       explain.push({
@@ -326,7 +340,9 @@ export function computePF1e(input: ComputeInput): ComputedPlaysheet {
   // ============================================================================
 
   const sizeACMod = SIZE_TO_HIT_AC[size] ?? 0;
+  const strMod = abilityMod(ability.str);
   const dexMod = abilityMod(ability.dex);
+  const wisMod = abilityMod(ability.wis);
   const natural = (base.ac.natural || 0) + naturalArmorBonus;
 
   const acBreakdown = {
@@ -341,9 +357,24 @@ export function computePF1e(input: ComputeInput): ComputedPlaysheet {
     misc: base.ac.misc || 0,
   };
 
+  console.log('[COMPUTE] AC calculation:', JSON.stringify({
+    'base.ac.armor': base.ac.armor,
+    'base.ac.shield': base.ac.shield,
+    'base.ac.natural': base.ac.natural,
+    'base.ac.deflection': base.ac.deflection,
+    'base.ac.dodge': base.ac.dodge,
+    'naturalArmorBonus': naturalArmorBonus,
+    'sizeACMod': sizeACMod,
+    'dexMod': dexMod,
+    'ability.dex': ability.dex,
+    'acBreakdown': acBreakdown
+  }, null, 2));
+
   const totalAC = Object.values(acBreakdown).reduce((sum, val) => sum + (val || 0), 0);
   const touchAC = 10 + dexMod + sizeACMod + (base.ac.deflection || 0) + (base.ac.dodge || 0) + (base.ac.misc || 0);
   const flatFootedAC = totalAC - dexMod;
+
+  console.log('[COMPUTE] Final AC:', JSON.stringify({ totalAC, touchAC, flatFootedAC }));
 
   // ============================================================================
   // 4. COMPUTE SAVES
@@ -398,11 +429,22 @@ export function computePF1e(input: ComputeInput): ComputedPlaysheet {
   // 5. COMPUTE HP
   // ============================================================================
 
+  console.log('[COMPUTE] HP calculation:', {
+    'base.hp': base.hp,
+    'base.level': base.level,
+    'baseFortMod': baseFortMod,
+    'newFortMod': newFortMod,
+    'base.ability.con': base.ability.con,
+    'ability.con': ability.con
+  });
+
   const hpDelta = (newFortMod - baseFortMod) * base.level;
   const hp = {
     max: base.hp.max + hpDelta,
     current: base.hp.current + hpDelta,
   };
+
+  console.log('[COMPUTE] Final HP:', { hpDelta, hp });
 
   if (hpDelta !== 0) {
     explain.push({
@@ -417,20 +459,49 @@ export function computePF1e(input: ComputeInput): ComputedPlaysheet {
   // 6. COMPUTE ATTACKS
   // ============================================================================
 
-  const strMod = abilityMod(ability.str);
+  // Determine which ability modifier to use for attack
+  const attackStatModifier = base.attackStatModifier || 'STR';
+  let attackAbilityMod = strMod;
+  if (attackStatModifier === 'DEX') attackAbilityMod = dexMod;
+  else if (attackStatModifier === 'WIS') attackAbilityMod = wisMod;
+
+  // Determine which ability modifier to use for damage
+  const damageStatModifier = base.damageStatModifier || 'STR';
+  let damageAbilityMod = strMod;
+  if (damageStatModifier === 'DEX') damageAbilityMod = dexMod;
+  else if (damageStatModifier === 'WIS') damageAbilityMod = wisMod;
+
+  const damageMultiplier = base.damageMultiplier || 1;
+  const miscAttackBonus = base.miscAttackBonus || 0;
+  const miscDamageBonus = base.miscDamageBonus || 0;
+
+  console.log('[COMPUTE] Attack calculation:', {
+    attackStatModifier,
+    attackAbilityMod,
+    damageStatModifier,
+    damageAbilityMod,
+    damageMultiplier,
+    miscAttackBonus,
+    miscDamageBonus,
+  });
+
   const attacks: ComputedAttack[] = form.naturalAttacks.map((attack) => {
     const count = attack.count ?? 1;
     const isPrimary = attack.primary !== false;
 
-    // Attack bonus: BAB + STR + Size
-    const attackBonus = base.bab + strMod + sizeACMod + (isPrimary ? 0 : -5);
+    // Attack bonus: BAB + Attack Stat Mod + Size + Misc Attack Bonus
+    const attackBonus = base.bab + attackAbilityMod + sizeACMod + (isPrimary ? 0 : -5) + miscAttackBonus;
 
     // Damage dice scaled for size
     const scaledDice = scaleDamageForSize(attack.dice, 'Medium', size);
 
-    // Damage modifier: full STR for primary, half STR for secondary
-    const dmgMod = isPrimary ? strMod : Math.floor(strMod / 2);
-    const damageDice = `${scaledDice}${dmgMod !== 0 ? (dmgMod > 0 ? `+${dmgMod}` : `${dmgMod}`) : ''}`;
+    // Damage modifier: Apply multiplier to stat mod only, then add misc damage bonus
+    // For primary attacks: full multiplier, for secondary: half of stat mod first, then apply multiplier
+    let baseDmgMod = isPrimary ? damageAbilityMod : Math.floor(damageAbilityMod / 2);
+    const dmgModWithMultiplier = Math.floor(baseDmgMod * damageMultiplier);
+    const totalDmgMod = dmgModWithMultiplier + miscDamageBonus;
+
+    const damageDice = `${scaledDice}${totalDmgMod !== 0 ? (totalDmgMod > 0 ? `+${totalDmgMod}` : `${totalDmgMod}`) : ''}`;
 
     return {
       name: attack.type.charAt(0).toUpperCase() + attack.type.slice(1),
@@ -440,10 +511,13 @@ export function computePF1e(input: ComputeInput): ComputedPlaysheet {
       traits: attack.traits,
       explain: [
         { target: 'attack', label: 'BAB', delta: base.bab, source: 'base' },
-        { target: 'attack', label: 'STR mod', delta: strMod, source: 'calc' },
+        { target: 'attack', label: `${attackStatModifier} mod`, delta: attackAbilityMod, source: 'calc' },
         { target: 'attack', label: 'Size', delta: sizeACMod, source: 'size' },
+        ...(miscAttackBonus !== 0 ? [{ target: 'attack' as const, label: 'Misc', delta: miscAttackBonus, source: 'base' as const }] : []),
         { target: 'damage', label: 'Size scaling', delta: scaledDice, source: 'size' },
-        { target: 'damage', label: isPrimary ? 'STR (primary)' : 'STR (secondary)', delta: dmgMod, source: 'calc' },
+        { target: 'damage', label: `${damageStatModifier} (${isPrimary ? 'primary' : 'secondary'})`, delta: baseDmgMod, source: 'calc' },
+        ...(damageMultiplier !== 1 ? [{ target: 'damage' as const, label: `×${damageMultiplier} multiplier`, delta: dmgModWithMultiplier - baseDmgMod, source: 'calc' as const }] : []),
+        ...(miscDamageBonus !== 0 ? [{ target: 'damage' as const, label: 'Misc', delta: miscDamageBonus, source: 'base' as const }] : []),
       ],
     };
   });

@@ -15,25 +15,96 @@ import { BaseCharacter, Form, Tier, ElementType, FormKind } from './types';
  * Convert Firestore Character to PF1e BaseCharacter
  */
 export function characterToBaseCharacter(character: Character | CharacterWithId): BaseCharacter {
+  // Handle both old and new character structures
+  const abilityScores = character.baseStats.abilityScores || {
+    str: (character.baseStats as any).str || 10,
+    dex: (character.baseStats as any).dex || 10,
+    con: (character.baseStats as any).con || 10,
+    int: (character.baseStats as any).int || 10,
+    wis: (character.baseStats as any).wis || 10,
+    cha: (character.baseStats as any).cha || 10,
+  };
+
+  // Handle both old and new HP structures
+  // Check BOTH locations and use whichever has a non-zero value
+  let hp: { current: number; max: number };
+
+  console.log('[ADAPTER] Character HP debug:', {
+    'baseStats.hp': character.baseStats.hp,
+    'combatStats.baseHP': (character as any).combatStats?.baseHP,
+    'combatStats': (character as any).combatStats
+  });
+
+  // Try baseStats.hp first
+  if (typeof character.baseStats.hp === 'object' && character.baseStats.hp !== null && character.baseStats.hp.max > 0) {
+    hp = character.baseStats.hp;
+    console.log('[ADAPTER] Using baseStats.hp:', hp);
+  } else if (typeof character.baseStats.hp === 'number' && character.baseStats.hp > 0) {
+    // Old structure: hp as number in baseStats
+    hp = { current: character.baseStats.hp, max: character.baseStats.hp };
+    console.log('[ADAPTER] Using baseStats.hp as number:', hp);
+  } else if ((character as any).combatStats?.baseHP && (character as any).combatStats.baseHP > 0) {
+    // HP stored in combatStats (common for older characters)
+    const baseHP = (character as any).combatStats.baseHP;
+    hp = { current: baseHP, max: baseHP };
+    console.log('[ADAPTER] Using combatStats.baseHP:', hp);
+  } else {
+    // Absolute fallback - use 1 so it's obvious something is wrong
+    console.warn('[ADAPTER] Character HP not found in any expected location, defaulting to 1');
+    hp = { current: 1, max: 1 };
+  }
+
+  // Extract BAB - check baseStats first, then combatStats
+  const bab = character.baseStats.bab ?? (character as any).combatStats?.baseAttackBonus ?? 0;
+
+  // Extract AC bonuses from combatStats if available
+  const acBonuses = (character as any).combatStats?.acBonuses || {};
+  const baseNaturalArmor = (character as any).combatStats?.baseNaturalArmor || 0;
+
+  // Extract level - check multiple locations
+  const level = character.baseStats.level ?? character.level ?? (character as any).combatStats?.level ?? 1;
+
+  console.log('[ADAPTER] Level debug:', {
+    'baseStats.level': character.baseStats.level,
+    'character.level': character.level,
+    'combatStats.level': (character as any).combatStats?.level,
+    'using': level
+  });
+
+  // Extract attack/damage configuration from combatStats
+  const combatStats = (character as any).combatStats || {};
+  const attackStatModifier = combatStats.attackStatModifier || 'STR';
+  const damageStatModifier = combatStats.damageStatModifier || 'STR';
+  const damageMultiplier = combatStats.damageMultiplier || 1;
+  const miscAttackBonus = combatStats.miscAttackBonus || 0;
+  const miscDamageBonus = combatStats.miscDamageBonus || 0;
+
+  console.log('[ADAPTER] Combat config:', {
+    attackStatModifier,
+    damageStatModifier,
+    damageMultiplier,
+    miscAttackBonus,
+    miscDamageBonus,
+  });
+
   return {
-    level: character.baseStats.level,
+    level,
     effectiveDruidLevel: character.baseStats.effectiveDruidLevel,
-    ability: character.baseStats.abilityScores,
-    hp: character.baseStats.hp,
-    bab: character.baseStats.bab,
+    ability: abilityScores,
+    hp,
+    bab,
     ac: {
-      // Extract AC breakdown if stored, otherwise use defaults
-      armor: 0, // TODO: Extract from gear/equipment
-      shield: 0,
-      natural: 0,
-      deflection: 0,
-      dodge: 0,
-      misc: 0,
+      armor: acBonuses.armor || 0,
+      shield: acBonuses.shield || 0,
+      natural: baseNaturalArmor,
+      deflection: acBonuses.deflection || 0,
+      dodge: acBonuses.dodge || 0,
+      misc: 0, // Not currently tracked in character builder
     },
     saves: {
-      fortitude: character.baseStats.saves?.fortitude || 0,
-      reflex: character.baseStats.saves?.reflex || 0,
-      will: character.baseStats.saves?.will || 0,
+      fortitude: character.baseStats.saves?.fortitude || (character as any).combatStats?.saves?.fort || 0,
+      reflex: character.baseStats.saves?.reflex || (character as any).combatStats?.saves?.ref || 0,
+      will: character.baseStats.saves?.will || (character as any).combatStats?.saves?.will || 0,
     },
     movement: {
       land: character.baseStats.movement?.land || 30,
@@ -47,6 +118,11 @@ export function characterToBaseCharacter(character: Character | CharacterWithId)
       scent: character.baseStats.senses?.includes('scent') || false,
       darkvision: extractDarkvisionRange(character.baseStats.senses || []),
     },
+    attackStatModifier,
+    damageStatModifier,
+    damageMultiplier,
+    miscAttackBonus,
+    miscDamageBonus,
     feats: character.features?.feats || [],
     traits: character.features?.raceTraits || [],
   };
