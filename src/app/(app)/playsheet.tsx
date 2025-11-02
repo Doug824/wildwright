@@ -457,18 +457,19 @@ export default function PlaysheetScreen() {
   const modifiers = calculateModifiers();
 
   // Helper to get tier from spell level
+  // IMPORTANT: Check higher tiers first to avoid matching "Beast Shape I" in "Beast Shape III"
   const getTierFromSpell = (spell: string): Tier | null => {
-    if (spell?.includes('Beast Shape I')) return 'Beast Shape I';
-    if (spell?.includes('Beast Shape II')) return 'Beast Shape II';
-    if (spell?.includes('Beast Shape III')) return 'Beast Shape III';
     if (spell?.includes('Beast Shape IV')) return 'Beast Shape IV';
-    if (spell?.includes('Elemental Body I')) return 'Elemental Body I';
-    if (spell?.includes('Elemental Body II')) return 'Elemental Body II';
-    if (spell?.includes('Elemental Body III')) return 'Elemental Body III';
+    if (spell?.includes('Beast Shape III')) return 'Beast Shape III';
+    if (spell?.includes('Beast Shape II')) return 'Beast Shape II';
+    if (spell?.includes('Beast Shape I')) return 'Beast Shape I';
     if (spell?.includes('Elemental Body IV')) return 'Elemental Body IV';
-    if (spell?.includes('Plant Shape I')) return 'Plant Shape I';
-    if (spell?.includes('Plant Shape II')) return 'Plant Shape II';
+    if (spell?.includes('Elemental Body III')) return 'Elemental Body III';
+    if (spell?.includes('Elemental Body II')) return 'Elemental Body II';
+    if (spell?.includes('Elemental Body I')) return 'Elemental Body I';
     if (spell?.includes('Plant Shape III')) return 'Plant Shape III';
+    if (spell?.includes('Plant Shape II')) return 'Plant Shape II';
+    if (spell?.includes('Plant Shape I')) return 'Plant Shape I';
     return null;
   };
 

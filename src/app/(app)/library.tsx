@@ -6,7 +6,7 @@
  */
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
-import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator, TextInput } from 'react-native';
+import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator, TextInput, Modal } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useCharacter } from '@/contexts';
 import { useOfficialTemplates } from '@/hooks/useWildShapeTemplates';
@@ -23,6 +23,7 @@ import { Toast } from '@/components/ui/Toast';
 import { TemplateCardSkeleton } from '@/components/skeletons/TemplateCardSkeleton';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { success as hapticSuccess, mediumImpact } from '@/utils/haptics';
+import { getAbilityDescription, SpecialAbility } from '@/pf1e/specialAbilities';
 
 const styles = StyleSheet.create({
   container: {
@@ -115,6 +116,54 @@ const styles = StyleSheet.create({
     color: '#1A0F08',
     fontSize: 16,
   },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: '#F9F5EB',
+    borderRadius: 12,
+    padding: 20,
+    maxWidth: 500,
+    width: '100%',
+    maxHeight: '80%',
+    borderWidth: 2,
+    borderColor: '#B97A3D',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#4A3426',
+  },
+  modalCategory: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#7FD1A8',
+    textTransform: 'uppercase',
+    marginBottom: 8,
+  },
+  modalDescription: {
+    fontSize: 14,
+    color: '#4A3426',
+    lineHeight: 20,
+  },
+  closeButton: {
+    padding: 8,
+  },
+  closeButtonText: {
+    fontSize: 24,
+    color: '#B97A3D',
+    fontWeight: '700',
+  },
 });
 
 interface TemplateForm {
@@ -160,6 +209,10 @@ export default function LibraryScreen() {
   const [toastMessage, setToastMessage] = useState('');
   const [toastVisible, setToastVisible] = useState(false);
   const [toastType, setToastType] = useState<'success' | 'error' | 'info'>('success');
+
+  // Ability modal state
+  const [selectedAbility, setSelectedAbility] = useState<SpecialAbility | null>(null);
+  const [showAbilityModal, setShowAbilityModal] = useState(false);
 
   const loading = templatesLoading;
 
@@ -276,6 +329,15 @@ export default function LibraryScreen() {
         backTo: 'library', // Track where we came from
       }
     });
+  };
+
+  // Ability description handler
+  const handleAbilityPress = (abilityName: string) => {
+    const ability = getAbilityDescription(abilityName);
+    if (ability) {
+      setSelectedAbility(ability);
+      setShowAbilityModal(true);
+    }
   };
 
   // Helper function to format movement
@@ -615,7 +677,9 @@ export default function LibraryScreen() {
 
               <View style={styles.chipRow}>
                 {template.statModifications.specialAbilities.slice(0, 4).map((ability, idx) => (
-                  <Chip key={idx} label={ability} variant="mist" />
+                  <Pressable key={idx} onPress={() => handleAbilityPress(ability)}>
+                    <Chip label={ability} variant="mist" />
+                  </Pressable>
                 ))}
               </View>
 
@@ -657,6 +721,50 @@ export default function LibraryScreen() {
           onHide={() => setToastVisible(false)}
           type={toastType}
         />
+
+        {/* Ability Description Modal */}
+        <Modal
+          visible={showAbilityModal}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowAbilityModal(false)}
+        >
+          <Pressable
+            style={styles.modalOverlay}
+            onPress={() => setShowAbilityModal(false)}
+          >
+            <Pressable
+              style={styles.modalContent}
+              onPress={(e) => e.stopPropagation()}
+            >
+              {selectedAbility && (
+                <>
+                  <View style={styles.modalHeader}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.modalCategory}>
+                        {selectedAbility.category}
+                      </Text>
+                      <Text style={styles.modalTitle}>
+                        {selectedAbility.name}
+                      </Text>
+                    </View>
+                    <Pressable
+                      style={styles.closeButton}
+                      onPress={() => setShowAbilityModal(false)}
+                    >
+                      <Text style={styles.closeButtonText}>×</Text>
+                    </Pressable>
+                  </View>
+                  <ScrollView>
+                    <Text style={styles.modalDescription}>
+                      {selectedAbility.description}
+                    </Text>
+                  </ScrollView>
+                </>
+              )}
+            </Pressable>
+          </Pressable>
+        </Modal>
       </LivingForestBg>
     </View>
   );

@@ -6,7 +6,7 @@
  */
 
 import { useState, useMemo } from 'react';
-import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator, Modal } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useCharacter } from '@/contexts';
 import { useCharacterForms, useUpdateWildShapeForm, useDeleteWildShapeForm } from '@/hooks/useWildShapeForms';
@@ -24,6 +24,7 @@ import { Toast } from '@/components/ui/Toast';
 import { FormCardSkeleton } from '@/components/skeletons/FormCardSkeleton';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { error as hapticError, warning as hapticWarning } from '@/utils/haptics';
+import { getAbilityDescription, SpecialAbility } from '@/pf1e/specialAbilities';
 
 const styles = StyleSheet.create({
   container: {
@@ -130,6 +131,54 @@ const styles = StyleSheet.create({
   createButton: {
     marginTop: 20,
   },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: '#F9F5EB',
+    borderRadius: 12,
+    padding: 20,
+    maxWidth: 500,
+    width: '100%',
+    maxHeight: '80%',
+    borderWidth: 2,
+    borderColor: '#B97A3D',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#4A3426',
+  },
+  modalCategory: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#7FD1A8',
+    textTransform: 'uppercase',
+    marginBottom: 8,
+  },
+  modalDescription: {
+    fontSize: 14,
+    color: '#4A3426',
+    lineHeight: 20,
+  },
+  closeButton: {
+    padding: 8,
+  },
+  closeButtonText: {
+    fontSize: 24,
+    color: '#B97A3D',
+    fontWeight: '700',
+  },
 });
 
 interface WildshapeForm {
@@ -163,6 +212,10 @@ export default function FormsScreen() {
   const [toastVisible, setToastVisible] = useState(false);
   const [toastType, setToastType] = useState<'success' | 'error' | 'info'>('success');
   const [deleteConfirmation, setDeleteConfirmation] = useState<{ id: string; name: string } | null>(null);
+
+  // Ability modal state
+  const [selectedAbility, setSelectedAbility] = useState<SpecialAbility | null>(null);
+  const [showAbilityModal, setShowAbilityModal] = useState(false);
 
   const loading = isLoading;
 
@@ -308,6 +361,15 @@ export default function FormsScreen() {
 
   const handleCloneFromLibrary = () => {
     router.push('/(app)/library');
+  };
+
+  // Ability description handler
+  const handleAbilityPress = (abilityName: string) => {
+    const ability = getAbilityDescription(abilityName);
+    if (ability) {
+      setSelectedAbility(ability);
+      setShowAbilityModal(true);
+    }
   };
 
   const handleDeleteForm = async (formId: string, formName: string) => {
@@ -560,7 +622,9 @@ export default function FormsScreen() {
 
                   <View style={styles.chipRow}>
                     {form.statModifications.specialAbilities.slice(0, 4).map((ability, idx) => (
-                      <Chip key={idx} label={ability} variant="mist" />
+                      <Pressable key={idx} onPress={() => handleAbilityPress(ability)}>
+                        <Chip label={ability} variant="mist" />
+                      </Pressable>
                     ))}
                   </View>
 
@@ -636,6 +700,50 @@ export default function FormsScreen() {
             </View>
           </View>
         )}
+
+        {/* Ability Description Modal */}
+        <Modal
+          visible={showAbilityModal}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowAbilityModal(false)}
+        >
+          <Pressable
+            style={styles.modalOverlay}
+            onPress={() => setShowAbilityModal(false)}
+          >
+            <Pressable
+              style={styles.modalContent}
+              onPress={(e) => e.stopPropagation()}
+            >
+              {selectedAbility && (
+                <>
+                  <View style={styles.modalHeader}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.modalCategory}>
+                        {selectedAbility.category}
+                      </Text>
+                      <Text style={styles.modalTitle}>
+                        {selectedAbility.name}
+                      </Text>
+                    </View>
+                    <Pressable
+                      style={styles.closeButton}
+                      onPress={() => setShowAbilityModal(false)}
+                    >
+                      <Text style={styles.closeButtonText}>×</Text>
+                    </Pressable>
+                  </View>
+                  <ScrollView>
+                    <Text style={styles.modalDescription}>
+                      {selectedAbility.description}
+                    </Text>
+                  </ScrollView>
+                </>
+              )}
+            </Pressable>
+          </Pressable>
+        </Modal>
       </LivingForestBg>
     </View>
   );
