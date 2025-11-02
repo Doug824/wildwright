@@ -15,13 +15,15 @@ import { Card } from '@/components/ui/Card';
 import { H2 } from '@/components/ui/Heading';
 import { Chip } from '@/components/ui/Chip';
 import { Stat } from '@/components/ui/Stat';
-import { getSizeModifiers } from '@/pf1e/tiers';
+import { getSizeModifiers, getTierForEDL } from '@/pf1e/tiers';
 import { Tier } from '@/pf1e/types';
 import { Tabs } from '@/components/ui/Tabs';
 import { AttackRow } from '@/components/ui/AttackRow';
 import { Button } from '@/components/ui/Button';
 import { getAbilityDescription, SpecialAbility } from '@/pf1e/specialAbilities';
 import { Toast } from '@/components/ui/Toast';
+import { computePF1e } from '@/pf1e';
+import { characterToBaseCharacter } from '@/pf1e/adapters';
 
 const styles = StyleSheet.create({
   container: {
@@ -181,7 +183,7 @@ export default function PlaysheetScreen() {
   const params = useLocalSearchParams();
 
   // Character context and forms hooks
-  const { characterId } = useCharacter();
+  const { character, characterId } = useCharacter();
   const { data: myForms } = useCharacterForms(characterId);
   const createForm = useCreateWildShapeForm();
 
@@ -341,6 +343,102 @@ export default function PlaysheetScreen() {
   const handleSwitchForm = () => {
     // Navigate to forms to select a different one
     router.push('/(app)/forms');
+  };
+
+  // Assume form with computed stats
+  const handleAssumeForm = () => {
+    if (!formData || !character) {
+      setToastMessage('Missing form or character data');
+      setToastType('error');
+      setToastVisible(true);
+      return;
+    }
+
+    try {
+      // Convert to PF1e format
+      const baseChar = characterToBaseCharacter(character);
+
+      // Convert form to PF1e format
+      const pf1eForm = {
+        id: formData.id,
+        name: formData.name,
+        kind: formData.tags?.includes('elemental') ? 'Elemental' :
+              formData.tags?.includes('plant') ? 'Plant' :
+              formData.tags?.includes('magical-beast') ? 'Magical Beast' : 'Animal',
+        baseSize: formData.size,
+        naturalAttacks: formData.statModifications.naturalAttacks.map((attack: any) => ({
+          type: attack.name.toLowerCase() as any,
+          dice: attack.damage,
+          primary: true,
+          traits: attack.traits || [],
+        })),
+        movement: formData.statModifications.movement,
+        senses: formData.statModifications.senses || {},
+        traits: formData.statModifications.specialAbilities || [],
+      };
+
+      // Get tier for character level
+      const edl = character.baseStats.effectiveDruidLevel
+        || character.baseStats.level
+        || (character as any).effectiveDruidLevel
+        || (character as any).level
+        || 1;
+      const tierAvailability = getTierForEDL(edl);
+      if (!tierAvailability) {
+        setToastMessage('Character level too low for Wild Shape');
+        setToastType('error');
+        setToastVisible(true);
+        return;
+      }
+
+      // Determine tier based on form kind
+      let tier;
+      if (pf1eForm.kind === 'Elemental' && tierAvailability.elemental) {
+        tier = tierAvailability.elemental;
+      } else if (pf1eForm.kind === 'Plant' && tierAvailability.plant) {
+        tier = tierAvailability.plant;
+      } else {
+        tier = tierAvailability.animal;
+      }
+
+      // Extract element type for Elemental forms
+      let element: 'Air' | 'Earth' | 'Fire' | 'Water' | undefined;
+      if (pf1eForm.kind === 'Elemental') {
+        const nameLower = formData.name.toLowerCase();
+        const allText = [nameLower, ...formData.tags.map((t: string) => t.toLowerCase())].join(' ');
+        if (allText.includes('air')) element = 'Air';
+        else if (allText.includes('earth')) element = 'Earth';
+        else if (allText.includes('fire')) element = 'Fire';
+        else if (allText.includes('water')) element = 'Water';
+      }
+
+      // Compute stats
+      const computedPlaysheet = computePF1e({
+        base: baseChar,
+        form: pf1eForm as any,
+        tier,
+        chosenSize: formData.size,
+        element,
+      });
+
+      // Navigate with computed data
+      router.push({
+        pathname: '/(app)/home',
+        params: {
+          assumedFormData: JSON.stringify({
+            ...formData,
+            computed: computedPlaysheet,
+            tier,
+          })
+        }
+      });
+    } catch (error: unknown) {
+      console.error('Error computing form stats:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      setToastMessage(`Failed to assume form: ${errorMessage}`);
+      setToastType('error');
+      setToastVisible(true);
+    }
   };
 
   // Check if template is already learned
@@ -902,15 +1000,7 @@ export default function PlaysheetScreen() {
               }} style={{ flex: 1 }}>
                 Back
               </Button>
-              <Button onPress={() => {
-                // Navigate to home with the form assumed
-                router.push({
-                  pathname: '/(app)/home',
-                  params: {
-                    assumedFormData: params.formData as string,
-                  }
-                });
-              }} style={{ flex: 1 }}>
+              <Button onPress={handleAssumeForm} style={{ flex: 1 }}>
                 Assume This Form
               </Button>
             </View>
