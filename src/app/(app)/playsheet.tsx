@@ -256,14 +256,24 @@ export default function PlaysheetScreen() {
     name: formData?.name || 'Wild Shape',
     size: computedData.size,
     spell: formData?.requiredSpellLevel || formData?.spell || 'Beast Shape',
-    movement: `${computedData.movement.land} ft${computedData.movement.climb ? `, Climb ${computedData.movement.climb} ft` : ''}${computedData.movement.swim ? `, Swim ${computedData.movement.swim} ft` : ''}${computedData.movement.fly ? `, Fly ${computedData.movement.fly} ft` : ''}`,
+    movement: (() => {
+      const parts = [];
+      if (computedData.movement.land) parts.push(`${computedData.movement.land} ft`);
+      if (computedData.movement.climb) parts.push(`Climb ${computedData.movement.climb} ft`);
+      if (computedData.movement.swim) parts.push(`Swim ${computedData.movement.swim} ft`);
+      if (computedData.movement.fly) parts.push(`Fly ${computedData.movement.fly} ft`);
+      if (computedData.movement.burrow) parts.push(`Burrow ${computedData.movement.burrow} ft`);
+      return parts.join(', ');
+    })(),
     attacks: computedData.attacks.map((attack: any) => ({
       name: attack.name,
       bonus: attack.attackBonus >= 0 ? `+${attack.attackBonus}` : `${attack.attackBonus}`,
       damage: attack.damageDice,
-      trait: attack.traits?.[0],
+      // Show all traits for this attack, joined with commas
+      trait: attack.traits && attack.traits.length > 0 ? attack.traits.join(', ') : undefined,
     })),
-    abilities: computedData.traits,
+    // Use form-specific abilities, not computed traits (which include tier grants)
+    abilities: formData?.statModifications?.specialAbilities || [],
     stats: {
       hp: computedData.hp.max,
       ac: computedData.ac.total,
