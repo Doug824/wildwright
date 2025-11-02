@@ -424,6 +424,14 @@ export default function PlaysheetScreen() {
         else if (allText.includes('water')) element = 'Water';
       }
 
+      console.log('[PLAYSHEET] Assuming form with:', {
+        name: formData.name,
+        size: formData.size,
+        tier,
+        element,
+        kind: pf1eForm.kind
+      });
+
       // Compute stats
       const computedPlaysheet = computePF1e({
         base: baseChar,
@@ -432,6 +440,8 @@ export default function PlaysheetScreen() {
         chosenSize: formData.size,
         element,
       });
+
+      console.log('[PLAYSHEET] Computed AC:', computedPlaysheet.ac);
 
       // Navigate with computed data
       router.push({
