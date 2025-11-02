@@ -22,7 +22,12 @@
       "Bash(grep:*)",
       "Bash(cd /mnt/d/Phoenix Games/wildwright && npx tsc:*)",
       "Bash(ls:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(cd /mnt/d/Phoenix\\ Games/wildwright && npm run build:web:*)",
+      "Bash(cd:*)",
+      "Bash(firebase deploy:*)",
+      "Bash(npm run build:web:*)",
+      "Bash(npm run deploy:*)"
     ],
     "deny": [],
     "ask": []
