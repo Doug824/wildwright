@@ -389,29 +389,9 @@ export default function PlaysheetScreen() {
         traits: formData.statModifications.specialAbilities || [],
       };
 
-      // Get tier for character level
-      const edl = character.baseStats.effectiveDruidLevel
-        || character.baseStats.level
-        || (character as any).effectiveDruidLevel
-        || (character as any).level
-        || 1;
-      const tierAvailability = getTierForEDL(edl);
-      if (!tierAvailability) {
-        setToastMessage('Character level too low for Wild Shape');
-        setToastType('error');
-        setToastVisible(true);
-        return;
-      }
-
-      // Determine tier based on form kind
-      let tier;
-      if (pf1eForm.kind === 'Elemental' && tierAvailability.elemental) {
-        tier = tierAvailability.elemental;
-      } else if (pf1eForm.kind === 'Plant' && tierAvailability.plant) {
-        tier = tierAvailability.plant;
-      } else {
-        tier = tierAvailability.animal;
-      }
+      // Use the tier from the form itself (already validated when it was added)
+      // Forms store their required spell level which IS the tier
+      const tier = formData.requiredSpellLevel || formData.spell || 'Beast Shape I';
 
       // Extract element type for Elemental forms
       let element: 'Air' | 'Earth' | 'Fire' | 'Water' | undefined;
