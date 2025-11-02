@@ -258,11 +258,13 @@ export default function PlaysheetScreen() {
     spell: formData?.requiredSpellLevel || formData?.spell || 'Beast Shape',
     movement: (() => {
       const parts = [];
+      // Always show land speed
       if (computedData.movement.land) parts.push(`${computedData.movement.land} ft`);
-      if (computedData.movement.climb) parts.push(`Climb ${computedData.movement.climb} ft`);
-      if (computedData.movement.swim) parts.push(`Swim ${computedData.movement.swim} ft`);
-      if (computedData.movement.fly) parts.push(`Fly ${computedData.movement.fly} ft`);
-      if (computedData.movement.burrow) parts.push(`Burrow ${computedData.movement.burrow} ft`);
+      // Only show other movement types if the FORM has them (not inherited from base character)
+      if (formData?.statModifications?.movement?.climb) parts.push(`Climb ${computedData.movement.climb} ft`);
+      if (formData?.statModifications?.movement?.swim) parts.push(`Swim ${computedData.movement.swim} ft`);
+      if (formData?.statModifications?.movement?.fly) parts.push(`Fly ${computedData.movement.fly} ft`);
+      if (formData?.statModifications?.movement?.burrow) parts.push(`Burrow ${computedData.movement.burrow} ft`);
       return parts.join(', ');
     })(),
     attacks: computedData.attacks.map((attack: any) => ({
