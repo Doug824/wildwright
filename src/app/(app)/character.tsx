@@ -6,7 +6,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet, TextInput } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TextInput, Pressable } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { collection, addDoc, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db, COLLECTIONS } from '@/lib/firebase';
@@ -154,6 +154,16 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     marginTop: 8,
   },
+  subsectionLabel: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#4A3426',
+    marginBottom: 12,
+    marginTop: 20,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(139, 115, 85, 0.3)',
+  },
 });
 
 export default function CharacterScreen() {
@@ -186,17 +196,17 @@ export default function CharacterScreen() {
   const [armorBonus, setArmorBonus] = useState('0');
   const [deflectionBonus, setDeflectionBonus] = useState('0');
   const [shieldBonus, setShieldBonus] = useState('0');
-  const [attackStatModifier, setAttackStatModifier] = useState<'STR' | 'DEX' | 'WIS'>('STR');
-  const [damageStatModifier, setDamageStatModifier] = useState<'STR' | 'DEX' | 'WIS'>('STR');
-  const [damageMultiplier, setDamageMultiplier] = useState<'1' | '1.5' | '2'>('1');
   const [baseHP, setBaseHP] = useState('64');
-  const [miscAttackBonus, setMiscAttackBonus] = useState('0');
-  const [miscDamageBonus, setMiscDamageBonus] = useState('0');
 
-  // Feats/Traits
-  const [activeFeats, setActiveFeats] = useState<Set<string>>(
-    new Set(['Natural Spell'])
-  );
+  // Misc bonuses with labels
+  interface MiscBonus {
+    id: string;
+    type: 'attack' | 'damage' | 'both';
+    value: string;
+    note: string;
+  }
+
+  const [miscBonuses, setMiscBonuses] = useState<MiscBonus[]>([]);
 
   // Toast state
   const [toastMessage, setToastMessage] = useState('');
@@ -249,37 +259,54 @@ export default function CharacterScreen() {
       setShieldBonus(String(acBonuses.shield || 0));
       setDodgeBonus(String(acBonuses.dodge || 0));
 
-      // Load attack/damage modifiers
-      setAttackStatModifier(combatStats.attackStatModifier || 'STR');
-      setDamageStatModifier(combatStats.damageStatModifier || 'STR');
-      setDamageMultiplier(combatStats.damageMultiplier || 1);
-      setMiscAttackBonus(String(combatStats.miscAttackBonus || 0));
-      setMiscDamageBonus(String(combatStats.miscDamageBonus || 0));
-
-      // Load feats
-      if (character.feats && Array.isArray(character.feats)) {
-        setActiveFeats(new Set(character.feats));
+      // Load misc bonuses
+      if (combatStats.miscBonuses && Array.isArray(combatStats.miscBonuses)) {
+        setMiscBonuses(combatStats.miscBonuses);
+      } else if (combatStats.miscAttackBonus || combatStats.miscDamageBonus) {
+        // Migrate old single-value bonuses to new format
+        const migrated: MiscBonus[] = [];
+        if (combatStats.miscAttackBonus && combatStats.miscAttackBonus !== 0) {
+          migrated.push({
+            id: Date.now().toString(),
+            type: 'attack',
+            value: String(combatStats.miscAttackBonus),
+            note: 'Mighty Fists'
+          });
+        }
+        if (combatStats.miscDamageBonus && combatStats.miscDamageBonus !== 0) {
+          migrated.push({
+            id: (Date.now() + 1).toString(),
+            type: 'damage',
+            value: String(combatStats.miscDamageBonus),
+            note: 'Mighty Fists'
+          });
+        }
+        setMiscBonuses(migrated);
       }
     }
   }, [isNew, character]);
 
-  // TODO: Add custom feats/traits system - need to research which feats affect wildshape mechanics
-  // and create a way for users to add custom feats with their effects
-  const availableFeats = [
-    'Natural Spell',
-    'Planar Wild Shape',
-  ];
-
-  const toggleFeat = (feat: string) => {
-    setActiveFeats(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(feat)) {
-        newSet.delete(feat);
-      } else {
-        newSet.add(feat);
+  // Misc bonus management
+  const addMiscBonus = () => {
+    setMiscBonuses([
+      ...miscBonuses,
+      {
+        id: Date.now().toString(),
+        type: 'attack',
+        value: '0',
+        note: ''
       }
-      return newSet;
-    });
+    ]);
+  };
+
+  const updateMiscBonus = (id: string, field: keyof MiscBonus, value: string) => {
+    setMiscBonuses(miscBonuses.map(bonus =>
+      bonus.id === id ? { ...bonus, [field]: value } : bonus
+    ));
+  };
+
+  const removeMiscBonus = (id: string) => {
+    setMiscBonuses(miscBonuses.filter(bonus => bonus.id !== id));
   };
 
   const adjustEDL = (delta: number) => {
@@ -344,13 +371,11 @@ export default function CharacterScreen() {
           shield: parseInt(shieldBonus) || 0,
           dodge: parseInt(dodgeBonus) || 0,
         },
-        attackStatModifier,
-        damageStatModifier,
-        damageMultiplier,
-        miscAttackBonus: parseInt(miscAttackBonus) || 0,
-        miscDamageBonus: parseInt(miscDamageBonus) || 0,
+        miscBonuses: miscBonuses.map(bonus => ({
+          ...bonus,
+          value: parseInt(bonus.value) || 0
+        })),
       },
-      feats: Array.from(activeFeats),
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     };
@@ -452,7 +477,10 @@ export default function CharacterScreen() {
 
           {/* Base Stats */}
           <BarkCard style={styles.sectionCard}>
-            <Text style={styles.sectionTitle}>Base Ability Scores</Text>
+            <Text style={styles.sectionTitle}>Ability Scores (with all gear)</Text>
+            <Text style={styles.helpText}>
+              Enter your total ability scores including all permanent bonuses from items, level-ups, etc.
+            </Text>
 
             <View style={styles.statsGrid}>
               <View style={styles.statInput}>
@@ -519,6 +547,7 @@ export default function CharacterScreen() {
           <BarkCard style={styles.sectionCard}>
             <Text style={styles.sectionTitle}>Combat Stats</Text>
 
+            <Text style={styles.subsectionLabel}>Base Combat Stats</Text>
             <View style={styles.statsGrid}>
               <View style={styles.statInput}>
                 <Text style={styles.label}>BAB</Text>
@@ -555,6 +584,7 @@ export default function CharacterScreen() {
               </View>
             </View>
 
+            <Text style={styles.subsectionLabel}>Saving Throws</Text>
             <View style={styles.statsGrid}>
               <View style={styles.statInput}>
                 <Text style={styles.label}>Fort</Text>
@@ -585,6 +615,7 @@ export default function CharacterScreen() {
               </View>
             </View>
 
+            <Text style={styles.subsectionLabel}>AC Bonuses</Text>
             <View style={styles.statsGrid}>
               <View style={styles.statInput}>
                 <Text style={styles.label}>Armor</Text>
@@ -619,9 +650,6 @@ export default function CharacterScreen() {
                   placeholderTextColor="#8B7355"
                 />
               </View>
-            </View>
-
-            <View style={styles.statsGrid}>
               <View style={styles.statInput}>
                 <Text style={styles.label}>Dodge</Text>
                 <TextInput
@@ -635,93 +663,59 @@ export default function CharacterScreen() {
               </View>
             </View>
 
-            <Text style={styles.selectLabel}>Attack Stat Modifier</Text>
-            <View style={styles.selectRow}>
-              <View onTouchEnd={() => setAttackStatModifier('STR')}>
-                <Chip label="STR" variant={attackStatModifier === 'STR' ? 'mist' : 'default'} />
-              </View>
-              <View onTouchEnd={() => setAttackStatModifier('DEX')}>
-                <Chip label="DEX" variant={attackStatModifier === 'DEX' ? 'mist' : 'default'} />
-              </View>
-              <View onTouchEnd={() => setAttackStatModifier('WIS')}>
-                <Chip label="WIS" variant={attackStatModifier === 'WIS' ? 'mist' : 'default'} />
-              </View>
-            </View>
-
-            <Text style={styles.selectLabel}>Damage Stat Modifier</Text>
-            <View style={styles.selectRow}>
-              <View onTouchEnd={() => setDamageStatModifier('STR')}>
-                <Chip label="STR" variant={damageStatModifier === 'STR' ? 'mist' : 'default'} />
-              </View>
-              <View onTouchEnd={() => setDamageStatModifier('DEX')}>
-                <Chip label="DEX" variant={damageStatModifier === 'DEX' ? 'mist' : 'default'} />
-              </View>
-              <View onTouchEnd={() => setDamageStatModifier('WIS')}>
-                <Chip label="WIS" variant={damageStatModifier === 'WIS' ? 'mist' : 'default'} />
-              </View>
-            </View>
-
-            <Text style={styles.selectLabel}>Damage Multiplier</Text>
-            <View style={styles.selectRow}>
-              <View onTouchEnd={() => setDamageMultiplier('1')}>
-                <Chip label="×1" variant={damageMultiplier === '1' ? 'mist' : 'default'} />
-              </View>
-              <View onTouchEnd={() => setDamageMultiplier('1.5')}>
-                <Chip label="×1.5" variant={damageMultiplier === '1.5' ? 'mist' : 'default'} />
-              </View>
-              <View onTouchEnd={() => setDamageMultiplier('2')}>
-                <Chip label="×2" variant={damageMultiplier === '2' ? 'mist' : 'default'} />
-              </View>
-            </View>
-
-            <Text style={styles.selectLabel}>Misc Bonuses (from gear, buffs, etc.)</Text>
-            <View style={styles.statsGrid}>
-              <View style={styles.statInput}>
-                <Text style={styles.label}>Attack</Text>
-                <TextInput
-                  style={styles.input}
-                  value={miscAttackBonus}
-                  onChangeText={setMiscAttackBonus}
-                  keyboardType="numeric"
-                  placeholder="0"
-                  placeholderTextColor="#8B7355"
-                />
-              </View>
-              <View style={styles.statInput}>
-                <Text style={styles.label}>Damage</Text>
-                <TextInput
-                  style={styles.input}
-                  value={miscDamageBonus}
-                  onChangeText={setMiscDamageBonus}
-                  keyboardType="numeric"
-                  placeholder="0"
-                  placeholderTextColor="#8B7355"
-                />
-              </View>
-            </View>
-
+            <Text style={styles.selectLabel}>Misc Bonuses (gear, buffs, magic items, etc.)</Text>
             <Text style={styles.helpText}>
-              These stats are used to calculate your wildshape combat values. Misc bonuses include things like Amulet of Mighty Fists, enhancement bonuses, etc.
-            </Text>
-          </BarkCard>
-
-          {/* Feats & Traits */}
-          <BarkCard style={styles.sectionCard}>
-            <Text style={styles.sectionTitle}>Feats & Traits</Text>
-            <Text style={styles.helpText}>
-              Select the feats and traits that affect your wildshape
+              Add bonuses from Amulet of Mighty Fists, enhancement bonuses, buffs, etc. Each bonus can apply to attack, damage, or both.
             </Text>
 
-            <View style={styles.featRow}>
-              {availableFeats.map((feat) => (
-                <View key={feat} onTouchEnd={() => toggleFeat(feat)}>
-                  <Chip
-                    label={feat}
-                    variant={activeFeats.has(feat) ? 'mist' : 'default'}
+            {miscBonuses.map((bonus) => (
+              <View key={bonus.id} style={{ marginBottom: 16, padding: 12, backgroundColor: 'rgba(232, 220, 200, 0.3)', borderRadius: 8 }}>
+                <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8 }}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.label}>Type</Text>
+                    <View style={styles.selectRow}>
+                      <Pressable onPress={() => updateMiscBonus(bonus.id, 'type', 'attack')}>
+                        <Chip label="Attack" variant={bonus.type === 'attack' ? 'mist' : 'default'} />
+                      </Pressable>
+                      <Pressable onPress={() => updateMiscBonus(bonus.id, 'type', 'damage')}>
+                        <Chip label="Damage" variant={bonus.type === 'damage' ? 'mist' : 'default'} />
+                      </Pressable>
+                      <Pressable onPress={() => updateMiscBonus(bonus.id, 'type', 'both')}>
+                        <Chip label="Both" variant={bonus.type === 'both' ? 'mist' : 'default'} />
+                      </Pressable>
+                    </View>
+                  </View>
+                  <View style={{ width: 80 }}>
+                    <Text style={styles.label}>Bonus</Text>
+                    <TextInput
+                      style={styles.input}
+                      value={bonus.value}
+                      onChangeText={(val) => updateMiscBonus(bonus.id, 'value', val)}
+                      keyboardType="numeric"
+                      placeholder="0"
+                      placeholderTextColor="#8B7355"
+                    />
+                  </View>
+                </View>
+                <View style={{ marginBottom: 8 }}>
+                  <Text style={styles.label}>Note (what is this from?)</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={bonus.note}
+                    onChangeText={(val) => updateMiscBonus(bonus.id, 'note', val)}
+                    placeholder="e.g., Amulet of Mighty Fists +1"
+                    placeholderTextColor="#8B7355"
                   />
                 </View>
-              ))}
-            </View>
+                <Button variant="danger" size="sm" onPress={() => removeMiscBonus(bonus.id)}>
+                  Remove
+                </Button>
+              </View>
+            ))}
+
+            <Button variant="secondary" onPress={addMiscBonus} fullWidth>
+              Add Misc Bonus
+            </Button>
           </BarkCard>
 
           {/* Save Button */}

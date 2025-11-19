@@ -40,12 +40,12 @@ const styles = StyleSheet.create({
 
   // Variant styles
   primary: {
-    backgroundColor: '#5C7A5E', // Deep forest green
-    borderColor: '#7FD1A8', // Magical green glow border
+    backgroundColor: '#3D5A3F', // Much darker forest green for better contrast
+    borderColor: '#4A9B6E', // Darker magical green border for better visibility
   },
   secondary: {
-    backgroundColor: '#8B7355', // Rich earth brown
-    borderColor: '#B8977E',
+    backgroundColor: '#5D4A38', // Much darker earth brown for better contrast
+    borderColor: '#8B7355',
   },
   outline: {
     backgroundColor: 'transparent',
@@ -62,10 +62,10 @@ const styles = StyleSheet.create({
 
   // Pressed states
   primaryPressed: {
-    backgroundColor: '#4A6249',
+    backgroundColor: '#2D4530', // Even darker when pressed
   },
   secondaryPressed: {
-    backgroundColor: '#725F46',
+    backgroundColor: '#4A3B2C', // Even darker when pressed
   },
   outlinePressed: {
     backgroundColor: 'rgba(107, 159, 127, 0.2)',
@@ -109,13 +109,13 @@ const styles = StyleSheet.create({
     fontSize: 17,
   },
   textPrimary: {
-    color: '#F9F5EB', // Light parchment
-    textShadowColor: '#7FD1A8',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 6,
+    color: '#FFFFFF', // Bright white for maximum readability
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   textSecondary: {
-    color: '#F0E8D5', // Parchment
+    color: '#FFFFFF', // Bright white for better contrast
   },
   textOutline: {
     color: '#5C7A5E', // Forest green
@@ -212,7 +212,7 @@ export function Button({
         pressed && !isDisabled && pressedVariantStyle,
         {
           // Magical glow shadow (druidic green for primary, natural for others)
-          shadowColor: variant === 'primary' ? '#7FD1A8' : (variant === 'danger' ? '#B85555' : '#2C1810'),
+          shadowColor: variant === 'primary' ? '#4A9B6E' : (variant === 'danger' ? '#B85555' : '#2C1810'),
           shadowOffset: { width: 0, height: pressed ? 3 : 6 },
           shadowOpacity: pressed ? 0.4 : 0.7,
           shadowRadius: pressed ? 10 : 18,

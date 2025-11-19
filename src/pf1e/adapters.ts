@@ -71,18 +71,31 @@ export function characterToBaseCharacter(character: Character | CharacterWithId)
     'using': level
   });
 
-  // Extract attack/damage configuration from combatStats
+  // Extract attack/damage bonuses from combatStats
   const combatStats = (character as any).combatStats || {};
-  const attackStatModifier = combatStats.attackStatModifier || 'STR';
-  const damageStatModifier = combatStats.damageStatModifier || 'STR';
-  const damageMultiplier = combatStats.damageMultiplier || 1;
-  const miscAttackBonus = combatStats.miscAttackBonus || 0;
-  const miscDamageBonus = combatStats.miscDamageBonus || 0;
 
-  console.log('[ADAPTER] Combat config:', {
-    attackStatModifier,
-    damageStatModifier,
-    damageMultiplier,
+  // Calculate misc bonuses from new array format or use old single values
+  let miscAttackBonus = 0;
+  let miscDamageBonus = 0;
+
+  if (combatStats.miscBonuses && Array.isArray(combatStats.miscBonuses)) {
+    // New format: sum up all bonuses by type
+    combatStats.miscBonuses.forEach((bonus: any) => {
+      const value = typeof bonus.value === 'number' ? bonus.value : parseInt(bonus.value) || 0;
+      if (bonus.type === 'attack' || bonus.type === 'both') {
+        miscAttackBonus += value;
+      }
+      if (bonus.type === 'damage' || bonus.type === 'both') {
+        miscDamageBonus += value;
+      }
+    });
+  } else {
+    // Old format: single values
+    miscAttackBonus = combatStats.miscAttackBonus || 0;
+    miscDamageBonus = combatStats.miscDamageBonus || 0;
+  }
+
+  console.log('[ADAPTER] Misc bonuses:', {
     miscAttackBonus,
     miscDamageBonus,
   });
@@ -118,9 +131,6 @@ export function characterToBaseCharacter(character: Character | CharacterWithId)
       scent: character.baseStats.senses?.includes('scent') || false,
       darkvision: extractDarkvisionRange(character.baseStats.senses || []),
     },
-    attackStatModifier,
-    damageStatModifier,
-    damageMultiplier,
     miscAttackBonus,
     miscDamageBonus,
     feats: character.features?.feats || [],

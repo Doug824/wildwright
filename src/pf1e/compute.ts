@@ -343,7 +343,7 @@ export function computePF1e(input: ComputeInput): ComputedPlaysheet {
   const strMod = abilityMod(ability.str);
   const dexMod = abilityMod(ability.dex);
   const wisMod = abilityMod(ability.wis);
-  const natural = (base.ac.natural || 0) + naturalArmorBonus;
+  const natural = Math.max(base.ac.natural || 0, naturalArmorBonus);
 
   const acBreakdown = {
     base: 10,
@@ -493,7 +493,7 @@ export function computePF1e(input: ComputeInput): ComputedPlaysheet {
     const attackBonus = base.bab + attackAbilityMod + sizeACMod + (isPrimary ? 0 : -5) + miscAttackBonus;
 
     // Damage dice scaled for size
-    const scaledDice = scaleDamageForSize(attack.dice, 'Medium', size);
+    const scaledDice = scaleDamageForSize(attack.dice, form.baseSize, size);
 
     // Damage modifier: Apply multiplier to stat mod only, then add misc damage bonus
     // For primary attacks: full multiplier, for secondary: half of stat mod first, then apply multiplier

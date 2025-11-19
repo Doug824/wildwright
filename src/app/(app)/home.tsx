@@ -340,7 +340,8 @@ export default function DashboardScreen() {
 
   // Filter for favorite forms
   const favoriteForms = useMemo(() => {
-    return allForms?.filter(form => form.isFavorite === true) || [];
+    if (!allForms || !Array.isArray(allForms)) return [];
+    return allForms.filter(form => form.isFavorite === true);
   }, [allForms]);
 
   const [activeForm, setActiveForm] = useState<WildShapeFormWithId | null>(null); // Will be computed playsheet
@@ -611,20 +612,61 @@ export default function DashboardScreen() {
                   </View>
                 )}
 
-                <Button onPress={handleViewPlaysheet} fullWidth style={{ marginTop: 16 }}>
-                  View Full Playsheet
-                </Button>
+                <View style={{ flexDirection: 'row', gap: 8, marginTop: 16 }}>
+                  <Button onPress={() => setActiveForm(null)} variant="secondary" style={{ flex: 1 }}>
+                    Revert Form
+                  </Button>
+                  <Button onPress={handleViewPlaysheet} style={{ flex: 1 }}>
+                    Playsheet
+                  </Button>
+                </View>
               </BarkCard>
             </GlowHalo>
           ) : (
             <MistCard intensity="medium">
               <View style={styles.emptyFormCard}>
-                <Text style={styles.emptyIcon}>🐺</Text>
-                <Text style={styles.emptyTitle}>No Form Assumed</Text>
-                <Text style={styles.emptyText}>
-                  Choose a wildshape form to begin your transformation
-                </Text>
-                <Button onPress={handleAssumeShape}>
+                <Text style={{ fontSize: 20, fontWeight: '700', color: '#F9F5EB', marginBottom: 4 }}>Humanoid Form</Text>
+                <Text style={{ color: '#E8DCC8', marginBottom: 16, fontSize: 14 }}>Natural State</Text>
+
+                <View style={styles.statsPreview}>
+                  <View style={styles.statQuick}>
+                    <Text style={[styles.statLabel, { color: '#D4C5A9' }]}>AC</Text>
+                    <Text style={[styles.statValue, { color: '#F9F5EB' }]}>
+                      {(() => {
+                        if (!character?.baseStats?.abilityScores) return 10;
+                        const dexMod = Math.floor((character.baseStats.abilityScores.dex - 10) / 2);
+                        const armor = character?.combatStats?.acBonuses?.armor || 0;
+                        const shield = character?.combatStats?.acBonuses?.shield || 0;
+                        const naturalArmor = character?.combatStats?.baseNaturalArmor || 0;
+                        const deflection = character?.combatStats?.acBonuses?.deflection || 0;
+                        const dodge = character?.combatStats?.acBonuses?.dodge || 0;
+                        return 10 + dexMod + armor + shield + naturalArmor + deflection + dodge;
+                      })()}
+                    </Text>
+                  </View>
+                  <View style={styles.statQuick}>
+                    <Text style={[styles.statLabel, { color: '#D4C5A9' }]}>HP</Text>
+                    <Text style={[styles.statValue, { color: '#F9F5EB' }]}>{character?.baseStats?.hp?.max || character?.combatStats?.baseHP || 0}</Text>
+                  </View>
+                  <View style={styles.statQuick}>
+                    <Text style={[styles.statLabel, { color: '#D4C5A9' }]}>Fort</Text>
+                    <Text style={[styles.statValue, { color: '#F9F5EB' }]}>{character?.baseStats?.saves?.fortitude || 0}</Text>
+                  </View>
+                  <View style={styles.statQuick}>
+                    <Text style={[styles.statLabel, { color: '#D4C5A9' }]}>Ref</Text>
+                    <Text style={[styles.statValue, { color: '#F9F5EB' }]}>{character?.baseStats?.saves?.reflex || 0}</Text>
+                  </View>
+                  <View style={styles.statQuick}>
+                    <Text style={[styles.statLabel, { color: '#D4C5A9' }]}>Will</Text>
+                    <Text style={[styles.statValue, { color: '#F9F5EB' }]}>{character?.baseStats?.saves?.will || 0}</Text>
+                  </View>
+                  <View style={styles.statQuick}>
+                    <Text style={[styles.statLabel, { color: '#D4C5A9' }]}>Movement</Text>
+                    <Text style={[styles.statValue, { color: '#F9F5EB' }]}>30 ft</Text>
+                  </View>
+                </View>
+
+                <Button onPress={handleAssumeShape} fullWidth style={{ marginTop: 16 }}>
                   Wildshape
                 </Button>
               </View>
@@ -634,9 +676,9 @@ export default function DashboardScreen() {
           {/* Favorites */}
           <View>
             <Text style={styles.sectionTitle}>Favorite Forms</Text>
-            {favoriteForms.length > 0 ? (
+            {favoriteForms && favoriteForms.length > 0 ? (
               <View style={styles.favoritesRow}>
-                {favoriteForms.map((form) => (
+                {(favoriteForms || []).map((form) => (
                   <Pressable key={form.id} onPress={() => handleOpenFormModal(form)} style={styles.favoriteCard}>
                     <BarkCard>
                       <Text style={styles.favoriteName}>{form.name}</Text>
@@ -690,7 +732,7 @@ export default function DashboardScreen() {
                 </Text>
 
                 <ScrollView style={{ maxHeight: 400 }}>
-                  {allCharacters.map((char) => (
+                  {(allCharacters || []).map((char) => (
                     <Pressable
                       key={char.id}
                       onPress={() => !switchingCharacter && handleSwitchCharacter(char.id)}

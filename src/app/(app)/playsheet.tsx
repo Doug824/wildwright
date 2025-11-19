@@ -176,6 +176,30 @@ const styles = StyleSheet.create({
     color: '#B97A3D',
     fontWeight: '700',
   },
+  modifiersRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 12,
+    flexWrap: 'wrap',
+  },
+  modifierButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: 'rgba(127, 209, 168, 0.2)',
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#7FD1A8',
+  },
+  modifierButtonText: {
+    color: '#2A4A3A',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  modifierLabel: {
+    color: '#6B5344',
+    fontSize: 10,
+    marginBottom: 2,
+  },
 });
 
 export default function PlaysheetScreen() {
@@ -199,16 +223,39 @@ export default function PlaysheetScreen() {
   interface ActiveEffect {
     id: string;
     name: string;
-    types: Array<'ac' | 'attack' | 'damage'>; // Now supports multiple types
-    value: number;
+    enabled: boolean;
     duration?: string;
+    modifiers: {
+      ac?: number;
+      attack?: number;
+      damage?: number;
+      str?: number;
+      dex?: number;
+      con?: number;
+      int?: number;
+      wis?: number;
+      cha?: number;
+      damageDiceAdd?: string; // e.g., "2d6" for Holy
+      damageDiceSteps?: number; // e.g., +1 for Enlarge Person
+    };
   }
 
   const [activeEffects, setActiveEffects] = React.useState<ActiveEffect[]>([]);
   const [showAddEffect, setShowAddEffect] = React.useState(false);
   const [newEffectName, setNewEffectName] = React.useState('');
-  const [newEffectTypes, setNewEffectTypes] = React.useState<Set<'ac' | 'attack' | 'damage'>>(new Set());
-  const [newEffectValue, setNewEffectValue] = React.useState('');
+
+  // New effect form state
+  const [newEffectAC, setNewEffectAC] = React.useState('');
+  const [newEffectAttack, setNewEffectAttack] = React.useState('');
+  const [newEffectDamage, setNewEffectDamage] = React.useState('');
+  const [newEffectSTR, setNewEffectSTR] = React.useState('');
+  const [newEffectDEX, setNewEffectDEX] = React.useState('');
+  const [newEffectCON, setNewEffectCON] = React.useState('');
+  const [newEffectINT, setNewEffectINT] = React.useState('');
+  const [newEffectWIS, setNewEffectWIS] = React.useState('');
+  const [newEffectCHA, setNewEffectCHA] = React.useState('');
+  const [newEffectDamageDiceAdd, setNewEffectDamageDiceAdd] = React.useState('');
+  const [newEffectDamageDiceSteps, setNewEffectDamageDiceSteps] = React.useState('');
 
   // Ability Description Modal State
   const [selectedAbility, setSelectedAbility] = React.useState<SpecialAbility | null>(null);
@@ -251,23 +298,130 @@ export default function PlaysheetScreen() {
     return null;
   }, [params.templateData]);
 
-  // Use computed data if available, template/form data for preview, otherwise fall back to mock
-  const form = computedData ? {
+  // Attack/Damage Modifier State
+  const [attackStatModifier, setAttackStatModifier] = React.useState<'STR' | 'DEX' | 'WIS'>('STR');
+  const [damageStatModifier, setDamageStatModifier] = React.useState<'STR' | 'DEX' | 'WIS'>('STR');
+  const [damageMultiplier, setDamageMultiplier] = React.useState<1 | 1.5 | 2>(1);
+  const [recomputedData, setRecomputedData] = React.useState<any>(null);
+
+  // Initialize modifiers from character data
+  React.useEffect(() => {
+    if (character?.combatStats) {
+      setAttackStatModifier(character.combatStats.attackStatModifier || 'STR');
+      setDamageStatModifier(character.combatStats.damageStatModifier || 'STR');
+      setDamageMultiplier(character.combatStats.damageMultiplier || 1);
+    }
+  }, [character]);
+
+  // Cycle through attack stat options
+  const cycleAttackStat = () => {
+    setAttackStatModifier(prev => {
+      if (prev === 'STR') return 'DEX';
+      if (prev === 'DEX') return 'WIS';
+      return 'STR';
+    });
+  };
+
+  // Cycle through damage stat options
+  const cycleDamageStat = () => {
+    setDamageStatModifier(prev => {
+      if (prev === 'STR') return 'DEX';
+      if (prev === 'DEX') return 'WIS';
+      return 'STR';
+    });
+  };
+
+  // Cycle through damage multiplier options
+  const cycleDamageMultiplier = () => {
+    setDamageMultiplier(prev => {
+      if (prev === 1) return 1.5;
+      if (prev === 1.5) return 2;
+      return 1;
+    });
+  };
+
+  // Recompute when modifiers change
+  React.useEffect(() => {
+    if (character && formData && computedData) {
+      try {
+        const baseChar = characterToBaseCharacter(character);
+        // Update base character with new modifiers
+        baseChar.attackStatModifier = attackStatModifier;
+        baseChar.damageStatModifier = damageStatModifier;
+        baseChar.damageMultiplier = damageMultiplier;
+
+        // Apply ability score bonuses from effects
+        const mods = calculateModifiers();
+        baseChar.ability.str += mods.str;
+        baseChar.ability.dex += mods.dex;
+        baseChar.ability.con += mods.con;
+        baseChar.ability.int += mods.int;
+        baseChar.ability.wis += mods.wis;
+        baseChar.ability.cha += mods.cha;
+
+        // Get form from formData
+        const form = {
+          id: formData.id || formData.name,
+          name: formData.name,
+          kind: formData.requiredSpellLevel?.includes('Elemental') ? 'Elemental' as const :
+                formData.requiredSpellLevel?.includes('Plant') ? 'Plant' as const : 'Animal' as const,
+          baseSize: formData.size,
+          naturalAttacks: (formData.statModifications?.naturalAttacks || []).map((attack: any) => ({
+            type: attack.name.toLowerCase().includes('bite') ? 'bite' as const :
+                  attack.name.toLowerCase().includes('claw') ? 'claw' as const :
+                  attack.name.toLowerCase().includes('slam') ? 'slam' as const : 'other' as const,
+            dice: attack.damage,
+            count: attack.count || 1,
+            primary: attack.type === 'primary',
+            traits: [],
+          })),
+          movement: formData.statModifications?.movement || {},
+          senses: formData.statModifications?.senses || {},
+          traits: formData.statModifications?.specialAbilities || [],
+          tags: formData.tags,
+        };
+
+        // Get tier and element
+        const tier = formData.requiredSpellLevel;
+        const element = form.name.toLowerCase().includes('air') ? 'Air' as const :
+                       form.name.toLowerCase().includes('earth') ? 'Earth' as const :
+                       form.name.toLowerCase().includes('fire') ? 'Fire' as const :
+                       form.name.toLowerCase().includes('water') ? 'Water' as const : undefined;
+
+        // Recompute
+        const newComputed = computePF1e({
+          base: baseChar,
+          form,
+          tier,
+          chosenSize: formData.size,
+          element,
+        });
+
+        setRecomputedData(newComputed);
+      } catch (error) {
+        console.error('Error recomputing:', error);
+      }
+    }
+  }, [attackStatModifier, damageStatModifier, damageMultiplier, character, formData, computedData, activeEffects]);
+
+  // Use recomputed data if available, otherwise computed data, template/form data for preview, otherwise fall back to mock
+  const activeComputedData = recomputedData || computedData;
+  const form = activeComputedData ? {
     name: formData?.name || 'Wild Shape',
-    size: computedData.size,
+    size: activeComputedData.size,
     spell: formData?.requiredSpellLevel || formData?.spell || 'Beast Shape',
     movement: (() => {
       const parts = [];
       // Always show land speed
-      if (computedData.movement.land) parts.push(`${computedData.movement.land} ft`);
+      if (activeComputedData.movement.land) parts.push(`${activeComputedData.movement.land} ft`);
       // Only show other movement types if the FORM has them (not inherited from base character)
-      if (formData?.statModifications?.movement?.climb) parts.push(`Climb ${computedData.movement.climb} ft`);
-      if (formData?.statModifications?.movement?.swim) parts.push(`Swim ${computedData.movement.swim} ft`);
-      if (formData?.statModifications?.movement?.fly) parts.push(`Fly ${computedData.movement.fly} ft`);
-      if (formData?.statModifications?.movement?.burrow) parts.push(`Burrow ${computedData.movement.burrow} ft`);
+      if (formData?.statModifications?.movement?.climb) parts.push(`Climb ${activeComputedData.movement.climb} ft`);
+      if (formData?.statModifications?.movement?.swim) parts.push(`Swim ${activeComputedData.movement.swim} ft`);
+      if (formData?.statModifications?.movement?.fly) parts.push(`Fly ${activeComputedData.movement.fly} ft`);
+      if (formData?.statModifications?.movement?.burrow) parts.push(`Burrow ${activeComputedData.movement.burrow} ft`);
       return parts.join(', ');
     })(),
-    attacks: computedData.attacks.map((attack: any) => ({
+    attacks: activeComputedData.attacks.map((attack: any) => ({
       name: attack.name,
       bonus: attack.attackBonus >= 0 ? `+${attack.attackBonus}` : `${attack.attackBonus}`,
       damage: attack.damageDice,
@@ -277,11 +431,11 @@ export default function PlaysheetScreen() {
     // Use form-specific abilities, not computed traits (which include tier grants)
     abilities: formData?.statModifications?.specialAbilities || [],
     stats: {
-      hp: computedData.hp.max,
-      ac: computedData.ac.total,
-      touchAC: computedData.ac.touch,
-      flatFootedAC: computedData.ac.flatFooted,
-      speed: `${computedData.movement.land} ft`,
+      hp: activeComputedData.hp.max,
+      ac: activeComputedData.ac.total,
+      touchAC: activeComputedData.ac.touch,
+      flatFootedAC: activeComputedData.ac.flatFooted,
+      speed: `${activeComputedData.movement.land} ft`,
     },
   } : templateData ? {
     // Template preview (from library)
@@ -502,32 +656,48 @@ export default function PlaysheetScreen() {
   };
 
   // Active Effects Handlers
-  const toggleEffectType = (type: 'ac' | 'attack' | 'damage') => {
-    setNewEffectTypes(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(type)) {
-        newSet.delete(type);
-      } else {
-        newSet.add(type);
-      }
-      return newSet;
-    });
-  };
-
   const addEffect = () => {
-    if (!newEffectName || !newEffectValue || newEffectTypes.size === 0) return;
+    if (!newEffectName) return;
+
+    // Build modifiers object from non-empty fields
+    const modifiers: ActiveEffect['modifiers'] = {};
+    if (newEffectAC) modifiers.ac = parseInt(newEffectAC);
+    if (newEffectAttack) modifiers.attack = parseInt(newEffectAttack);
+    if (newEffectDamage) modifiers.damage = parseInt(newEffectDamage);
+    if (newEffectSTR) modifiers.str = parseInt(newEffectSTR);
+    if (newEffectDEX) modifiers.dex = parseInt(newEffectDEX);
+    if (newEffectCON) modifiers.con = parseInt(newEffectCON);
+    if (newEffectINT) modifiers.int = parseInt(newEffectINT);
+    if (newEffectWIS) modifiers.wis = parseInt(newEffectWIS);
+    if (newEffectCHA) modifiers.cha = parseInt(newEffectCHA);
+    if (newEffectDamageDiceAdd) modifiers.damageDiceAdd = newEffectDamageDiceAdd;
+    if (newEffectDamageDiceSteps) modifiers.damageDiceSteps = parseInt(newEffectDamageDiceSteps);
+
+    // Require at least one modifier
+    if (Object.keys(modifiers).length === 0) return;
 
     const effect: ActiveEffect = {
       id: Date.now().toString(),
       name: newEffectName,
-      types: Array.from(newEffectTypes),
-      value: parseInt(newEffectValue),
+      modifiers,
+      enabled: true,
     };
 
     setActiveEffects(prev => [...prev, effect]);
+
+    // Clear form
     setNewEffectName('');
-    setNewEffectValue('');
-    setNewEffectTypes(new Set());
+    setNewEffectAC('');
+    setNewEffectAttack('');
+    setNewEffectDamage('');
+    setNewEffectSTR('');
+    setNewEffectDEX('');
+    setNewEffectCON('');
+    setNewEffectINT('');
+    setNewEffectWIS('');
+    setNewEffectCHA('');
+    setNewEffectDamageDiceAdd('');
+    setNewEffectDamageDiceSteps('');
     setShowAddEffect(false);
   };
 
@@ -535,20 +705,42 @@ export default function PlaysheetScreen() {
     setActiveEffects(prev => prev.filter(e => e.id !== id));
   };
 
-  // Calculate total modifiers from active effects
+  const toggleEffect = (id: string) => {
+    setActiveEffects(prev => prev.map(e =>
+      e.id === id ? { ...e, enabled: !e.enabled } : e
+    ));
+  };
+
+  // Calculate total modifiers from active effects (only enabled ones)
   const calculateModifiers = () => {
     const modifiers = {
       ac: 0,
       attack: 0,
       damage: 0,
+      str: 0,
+      dex: 0,
+      con: 0,
+      int: 0,
+      wis: 0,
+      cha: 0,
+      damageDiceAdd: [] as string[],
+      damageDiceSteps: 0,
     };
 
     activeEffects.forEach(effect => {
-      effect.types.forEach(type => {
-        if (type === 'ac') modifiers.ac += effect.value;
-        if (type === 'attack') modifiers.attack += effect.value;
-        if (type === 'damage') modifiers.damage += effect.value;
-      });
+      if (!effect.enabled) return; // Skip disabled effects
+
+      if (effect.modifiers.ac) modifiers.ac += effect.modifiers.ac;
+      if (effect.modifiers.attack) modifiers.attack += effect.modifiers.attack;
+      if (effect.modifiers.damage) modifiers.damage += effect.modifiers.damage;
+      if (effect.modifiers.str) modifiers.str += effect.modifiers.str;
+      if (effect.modifiers.dex) modifiers.dex += effect.modifiers.dex;
+      if (effect.modifiers.con) modifiers.con += effect.modifiers.con;
+      if (effect.modifiers.int) modifiers.int += effect.modifiers.int;
+      if (effect.modifiers.wis) modifiers.wis += effect.modifiers.wis;
+      if (effect.modifiers.cha) modifiers.cha += effect.modifiers.cha;
+      if (effect.modifiers.damageDiceAdd) modifiers.damageDiceAdd.push(effect.modifiers.damageDiceAdd);
+      if (effect.modifiers.damageDiceSteps) modifiers.damageDiceSteps += effect.modifiers.damageDiceSteps;
     });
 
     return modifiers;
@@ -686,10 +878,15 @@ export default function PlaysheetScreen() {
                   };
 
                   const sizeACBonus = getSizeACBonus(form.size);
-                  const naturalArmorBonus = sizeModifiers.naturalArmor || 0;
+                  const formNaturalArmor = sizeModifiers.naturalArmor || 0;
+
+                  // Calculate natural armor delta (uses max, not stacking)
+                  const baseNaturalArmor = character?.combatStats?.baseNaturalArmor || 0;
+                  const naturalArmorDelta = Math.max(formNaturalArmor, baseNaturalArmor) - baseNaturalArmor;
+
                   const dexChange = sizeModifiers.dex || 0;
                   const dexACChange = Math.floor(dexChange / 2);
-                  const totalACChange = sizeACBonus + naturalArmorBonus + dexACChange;
+                  const totalACChange = sizeACBonus + naturalArmorDelta + dexACChange;
 
                   return (
                     <>
@@ -698,9 +895,14 @@ export default function PlaysheetScreen() {
                           • {sizeACBonus > 0 ? '+' : ''}{sizeACBonus} from size ({form.size})
                         </Text>
                       )}
-                      {naturalArmorBonus > 0 && (
+                      {naturalArmorDelta > 0 && (
                         <Text style={{ fontSize: 13, color: '#2A4A3A', marginBottom: 2 }}>
-                          • +{naturalArmorBonus} from natural armor
+                          • +{naturalArmorDelta} from natural armor (form grants {formNaturalArmor}, you have {baseNaturalArmor})
+                        </Text>
+                      )}
+                      {naturalArmorDelta === 0 && formNaturalArmor > 0 && (
+                        <Text style={{ fontSize: 13, color: '#8B4513', marginBottom: 2, fontStyle: 'italic' }}>
+                          • No natural armor benefit (form grants {formNaturalArmor}, you already have {baseNaturalArmor})
                         </Text>
                       )}
                       {dexACChange !== 0 && (
@@ -759,6 +961,29 @@ export default function PlaysheetScreen() {
           {/* Attacks & Damage Tab */}
           {active === 'Attacks & Damage' && (
             <Card style={styles.tabContent}>
+              {/* Only show modifiers for computed data (not template preview) */}
+              {computedData && character && (
+                <>
+                  <Text style={styles.sectionTitle}>
+                    Attack & Damage Modifiers
+                  </Text>
+                  <View style={styles.modifiersRow}>
+                    <Pressable onPress={cycleAttackStat} style={styles.modifierButton}>
+                      <Text style={styles.modifierLabel}>Attack Stat</Text>
+                      <Text style={styles.modifierButtonText}>{attackStatModifier}</Text>
+                    </Pressable>
+                    <Pressable onPress={cycleDamageStat} style={styles.modifierButton}>
+                      <Text style={styles.modifierLabel}>Damage Stat</Text>
+                      <Text style={styles.modifierButtonText}>{damageStatModifier}</Text>
+                    </Pressable>
+                    <Pressable onPress={cycleDamageMultiplier} style={styles.modifierButton}>
+                      <Text style={styles.modifierLabel}>Damage Multi</Text>
+                      <Text style={styles.modifierButtonText}>×{damageMultiplier}</Text>
+                    </Pressable>
+                  </View>
+                </>
+              )}
+
               <Text style={styles.sectionTitle}>
                 Natural Attacks
               </Text>
@@ -768,10 +993,25 @@ export default function PlaysheetScreen() {
                 const modifiedBonus = baseBonus + modifiers.attack;
                 const displayBonus = modifiedBonus >= 0 ? `+${modifiedBonus}` : `${modifiedBonus}`;
 
-                // Apply damage modifier
-                const displayDamage = modifiers.damage !== 0
-                  ? `${attack.damage}${modifiers.damage > 0 ? '+' : ''}${modifiers.damage}`
-                  : attack.damage;
+                // Parse damage to separate dice and modifier
+                const damageMatch = attack.damage.match(/^(\d+d\d+)([+-]\d+)?$/);
+                let displayDamage = attack.damage;
+
+                if (damageMatch) {
+                  const dice = damageMatch[1]; // e.g., "2d6"
+                  const baseDamageMod = damageMatch[2] ? parseInt(damageMatch[2]) : 0; // e.g., 15 from "+15"
+                  const totalDamageMod = baseDamageMod + modifiers.damage;
+
+                  // Combine into single modifier
+                  if (totalDamageMod !== 0) {
+                    displayDamage = `${dice}${totalDamageMod > 0 ? '+' : ''}${totalDamageMod}`;
+                  } else {
+                    displayDamage = dice;
+                  }
+                } else if (modifiers.damage !== 0) {
+                  // Fallback: just append if we can't parse
+                  displayDamage = `${attack.damage}${modifiers.damage > 0 ? '+' : ''}${modifiers.damage}`;
+                }
 
                 return (
                   <AttackRow
@@ -879,21 +1119,44 @@ export default function PlaysheetScreen() {
               )}
 
               {/* Active Effects List */}
-              {activeEffects.map(effect => (
-                <View key={effect.id} style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, padding: 12, backgroundColor: 'rgba(139, 115, 85, 0.1)', borderRadius: 8 }}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={{ fontSize: 14, fontWeight: '700', color: '#4A3426' }}>
-                      {effect.name}
-                    </Text>
-                    <Text style={{ fontSize: 12, color: '#6B5344' }}>
-                      {effect.types.map(t => t.toUpperCase()).join(', ')}: {effect.value > 0 ? '+' : ''}{effect.value}
-                    </Text>
+              {activeEffects.map(effect => {
+                // Build a readable list of all modifiers for this effect
+                const modList = [];
+                if (effect.modifiers.ac) modList.push(`AC ${effect.modifiers.ac > 0 ? '+' : ''}${effect.modifiers.ac}`);
+                if (effect.modifiers.attack) modList.push(`Attack ${effect.modifiers.attack > 0 ? '+' : ''}${effect.modifiers.attack}`);
+                if (effect.modifiers.damage) modList.push(`Damage ${effect.modifiers.damage > 0 ? '+' : ''}${effect.modifiers.damage}`);
+                if (effect.modifiers.str) modList.push(`STR ${effect.modifiers.str > 0 ? '+' : ''}${effect.modifiers.str}`);
+                if (effect.modifiers.dex) modList.push(`DEX ${effect.modifiers.dex > 0 ? '+' : ''}${effect.modifiers.dex}`);
+                if (effect.modifiers.con) modList.push(`CON ${effect.modifiers.con > 0 ? '+' : ''}${effect.modifiers.con}`);
+                if (effect.modifiers.int) modList.push(`INT ${effect.modifiers.int > 0 ? '+' : ''}${effect.modifiers.int}`);
+                if (effect.modifiers.wis) modList.push(`WIS ${effect.modifiers.wis > 0 ? '+' : ''}${effect.modifiers.wis}`);
+                if (effect.modifiers.cha) modList.push(`CHA ${effect.modifiers.cha > 0 ? '+' : ''}${effect.modifiers.cha}`);
+                if (effect.modifiers.damageDiceAdd) modList.push(`+${effect.modifiers.damageDiceAdd} damage`);
+                if (effect.modifiers.damageDiceSteps) modList.push(`Dice size ${effect.modifiers.damageDiceSteps > 0 ? '+' : ''}${effect.modifiers.damageDiceSteps} steps`);
+
+                return (
+                  <View key={effect.id} style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, padding: 12, backgroundColor: effect.enabled ? 'rgba(127, 209, 168, 0.15)' : 'rgba(139, 115, 85, 0.1)', borderRadius: 8, opacity: effect.enabled ? 1 : 0.5 }}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 14, fontWeight: '700', color: '#4A3426' }}>
+                        {effect.name} {!effect.enabled && '(Disabled)'}
+                      </Text>
+                      <Text style={{ fontSize: 12, color: '#6B5344' }}>
+                        {modList.join(', ')}
+                      </Text>
+                    </View>
+                    <View style={{ flexDirection: 'row', gap: 4 }}>
+                      <Pressable onPress={() => toggleEffect(effect.id)} style={{ padding: 8, backgroundColor: effect.enabled ? '#7FD1A8' : '#E8DCC8', borderRadius: 4 }}>
+                        <Text style={{ fontSize: 12, fontWeight: '600', color: effect.enabled ? '#2A4A3A' : '#6B5344' }}>
+                          {effect.enabled ? 'ON' : 'OFF'}
+                        </Text>
+                      </Pressable>
+                      <Pressable onPress={() => removeEffect(effect.id)} style={{ padding: 8 }}>
+                        <Text style={{ fontSize: 16, color: '#B97A3D' }}>✕</Text>
+                      </Pressable>
+                    </View>
                   </View>
-                  <Pressable onPress={() => removeEffect(effect.id)} style={{ padding: 8 }}>
-                    <Text style={{ fontSize: 16, color: '#B97A3D' }}>✕</Text>
-                  </Pressable>
-                </View>
-              ))}
+                );
+              })}
 
               {activeEffects.length === 0 && !showAddEffect && (
                 <Text style={styles.infoText}>
@@ -903,38 +1166,146 @@ export default function PlaysheetScreen() {
 
               {/* Add Effect Form */}
               {showAddEffect && (
-                <View style={{ marginTop: 12, padding: 12, backgroundColor: 'rgba(185, 122, 61, 0.1)', borderRadius: 8 }}>
-                  <Text style={{ fontSize: 12, fontWeight: '700', color: '#4A3426', marginBottom: 8 }}>
+                <ScrollView style={{ marginTop: 12, padding: 12, backgroundColor: 'rgba(185, 122, 61, 0.1)', borderRadius: 8, maxHeight: 500 }}>
+                  <Text style={{ fontSize: 14, fontWeight: '700', color: '#4A3426', marginBottom: 12 }}>
                     ADD EFFECT
                   </Text>
+
                   <TextInput
-                    placeholder="Effect name (e.g., Haste)"
+                    placeholder="Effect name (e.g., Rage, Bull's Strength, Holy)"
                     value={newEffectName}
                     onChangeText={setNewEffectName}
-                    style={{ backgroundColor: '#FFF', padding: 8, borderRadius: 4, marginBottom: 8, borderWidth: 1, borderColor: '#8B7355' }}
+                    style={{ backgroundColor: '#FFF', padding: 10, borderRadius: 4, marginBottom: 12, borderWidth: 1, borderColor: '#8B7355', fontSize: 14 }}
                   />
-                  <Text style={{ fontSize: 11, color: '#6B5344', marginBottom: 6 }}>
-                    Select one or more targets:
+
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: '#4A3426', marginBottom: 8, marginTop: 4 }}>
+                    COMBAT MODIFIERS
+                  </Text>
+                  <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 11, color: '#6B5344', marginBottom: 4 }}>AC</Text>
+                      <TextInput
+                        placeholder="0"
+                        value={newEffectAC}
+                        onChangeText={setNewEffectAC}
+                        keyboardType="numeric"
+                        style={{ backgroundColor: '#FFF', padding: 8, borderRadius: 4, borderWidth: 1, borderColor: '#8B7355' }}
+                      />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 11, color: '#6B5344', marginBottom: 4 }}>Attack</Text>
+                      <TextInput
+                        placeholder="0"
+                        value={newEffectAttack}
+                        onChangeText={setNewEffectAttack}
+                        keyboardType="numeric"
+                        style={{ backgroundColor: '#FFF', padding: 8, borderRadius: 4, borderWidth: 1, borderColor: '#8B7355' }}
+                      />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 11, color: '#6B5344', marginBottom: 4 }}>Damage</Text>
+                      <TextInput
+                        placeholder="0"
+                        value={newEffectDamage}
+                        onChangeText={setNewEffectDamage}
+                        keyboardType="numeric"
+                        style={{ backgroundColor: '#FFF', padding: 8, borderRadius: 4, borderWidth: 1, borderColor: '#8B7355' }}
+                      />
+                    </View>
+                  </View>
+
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: '#4A3426', marginBottom: 8, marginTop: 4 }}>
+                    ABILITY SCORES
                   </Text>
                   <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8 }}>
-                    <Pressable onPress={() => toggleEffectType('ac')} style={{ flex: 1, padding: 8, backgroundColor: newEffectTypes.has('ac') ? '#7FD1A8' : '#E8DCC8', borderRadius: 4 }}>
-                      <Text style={{ textAlign: 'center', fontSize: 12, fontWeight: '600' }}>AC</Text>
-                    </Pressable>
-                    <Pressable onPress={() => toggleEffectType('attack')} style={{ flex: 1, padding: 8, backgroundColor: newEffectTypes.has('attack') ? '#7FD1A8' : '#E8DCC8', borderRadius: 4 }}>
-                      <Text style={{ textAlign: 'center', fontSize: 12, fontWeight: '600' }}>Attack</Text>
-                    </Pressable>
-                    <Pressable onPress={() => toggleEffectType('damage')} style={{ flex: 1, padding: 8, backgroundColor: newEffectTypes.has('damage') ? '#7FD1A8' : '#E8DCC8', borderRadius: 4 }}>
-                      <Text style={{ textAlign: 'center', fontSize: 12, fontWeight: '600' }}>Damage</Text>
-                    </Pressable>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 11, color: '#6B5344', marginBottom: 4 }}>STR</Text>
+                      <TextInput
+                        placeholder="0"
+                        value={newEffectSTR}
+                        onChangeText={setNewEffectSTR}
+                        keyboardType="numeric"
+                        style={{ backgroundColor: '#FFF', padding: 8, borderRadius: 4, borderWidth: 1, borderColor: '#8B7355' }}
+                      />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 11, color: '#6B5344', marginBottom: 4 }}>DEX</Text>
+                      <TextInput
+                        placeholder="0"
+                        value={newEffectDEX}
+                        onChangeText={setNewEffectDEX}
+                        keyboardType="numeric"
+                        style={{ backgroundColor: '#FFF', padding: 8, borderRadius: 4, borderWidth: 1, borderColor: '#8B7355' }}
+                      />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 11, color: '#6B5344', marginBottom: 4 }}>CON</Text>
+                      <TextInput
+                        placeholder="0"
+                        value={newEffectCON}
+                        onChangeText={setNewEffectCON}
+                        keyboardType="numeric"
+                        style={{ backgroundColor: '#FFF', padding: 8, borderRadius: 4, borderWidth: 1, borderColor: '#8B7355' }}
+                      />
+                    </View>
                   </View>
-                  <TextInput
-                    placeholder="Modifier (e.g., +2, -1)"
-                    value={newEffectValue}
-                    onChangeText={setNewEffectValue}
-                    keyboardType="numeric"
-                    style={{ backgroundColor: '#FFF', padding: 8, borderRadius: 4, marginBottom: 8, borderWidth: 1, borderColor: '#8B7355' }}
-                  />
-                  <View style={{ flexDirection: 'row', gap: 8 }}>
+                  <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 11, color: '#6B5344', marginBottom: 4 }}>INT</Text>
+                      <TextInput
+                        placeholder="0"
+                        value={newEffectINT}
+                        onChangeText={setNewEffectINT}
+                        keyboardType="numeric"
+                        style={{ backgroundColor: '#FFF', padding: 8, borderRadius: 4, borderWidth: 1, borderColor: '#8B7355' }}
+                      />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 11, color: '#6B5344', marginBottom: 4 }}>WIS</Text>
+                      <TextInput
+                        placeholder="0"
+                        value={newEffectWIS}
+                        onChangeText={setNewEffectWIS}
+                        keyboardType="numeric"
+                        style={{ backgroundColor: '#FFF', padding: 8, borderRadius: 4, borderWidth: 1, borderColor: '#8B7355' }}
+                      />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 11, color: '#6B5344', marginBottom: 4 }}>CHA</Text>
+                      <TextInput
+                        placeholder="0"
+                        value={newEffectCHA}
+                        onChangeText={setNewEffectCHA}
+                        keyboardType="numeric"
+                        style={{ backgroundColor: '#FFF', padding: 8, borderRadius: 4, borderWidth: 1, borderColor: '#8B7355' }}
+                      />
+                    </View>
+                  </View>
+
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: '#4A3426', marginBottom: 8, marginTop: 4 }}>
+                    DAMAGE DICE MODIFIERS
+                  </Text>
+                  <View style={{ marginBottom: 12 }}>
+                    <Text style={{ fontSize: 11, color: '#6B5344', marginBottom: 4 }}>Add Damage Dice (e.g., "2d6" for Holy)</Text>
+                    <TextInput
+                      placeholder="e.g., 2d6"
+                      value={newEffectDamageDiceAdd}
+                      onChangeText={setNewEffectDamageDiceAdd}
+                      style={{ backgroundColor: '#FFF', padding: 8, borderRadius: 4, borderWidth: 1, borderColor: '#8B7355' }}
+                    />
+                  </View>
+                  <View style={{ marginBottom: 12 }}>
+                    <Text style={{ fontSize: 11, color: '#6B5344', marginBottom: 4 }}>Dice Size Steps (e.g., +1 for Enlarge: 1d6→1d8)</Text>
+                    <TextInput
+                      placeholder="0"
+                      value={newEffectDamageDiceSteps}
+                      onChangeText={setNewEffectDamageDiceSteps}
+                      keyboardType="numeric"
+                      style={{ backgroundColor: '#FFF', padding: 8, borderRadius: 4, borderWidth: 1, borderColor: '#8B7355' }}
+                    />
+                  </View>
+
+                  <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
                     <Button variant="outline" onPress={() => setShowAddEffect(false)} style={{ flex: 1 }}>
                       Cancel
                     </Button>
@@ -942,7 +1313,7 @@ export default function PlaysheetScreen() {
                       Add Effect
                     </Button>
                   </View>
-                </View>
+                </ScrollView>
               )}
 
               {/* Add Effect Button */}
